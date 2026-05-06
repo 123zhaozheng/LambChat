@@ -195,10 +195,9 @@ export function CollapsiblePill({
 
   const canExpand = expandable || hasChildren;
 
-  // Format label: handle snake_case, kebab-case, and camelCase
+  // Format label: capitalize first letter and convert underscores to spaces
   const formattedLabel = label
-    .replace(/([a-z])([A-Z])/g, "$1 $2") // camelCase/PascalCase -> space separated
-    .split(/[_-]/)
+    .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 

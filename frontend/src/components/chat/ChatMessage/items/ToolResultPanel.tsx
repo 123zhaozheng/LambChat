@@ -120,7 +120,6 @@ export function ToolResultPanel({
   const effectiveIsFullscreen = externalIsFullscreen ?? internalIsFullscreen;
   const isFullscreen = effectiveIsFullscreen;
 
-  // Mobile: force center mode so panels render as fullscreen overlays instead of bottom sheets
   const {
     isMobile,
     animateIn,
@@ -141,9 +140,6 @@ export function ToolResultPanel({
     dataAttr: "data-sidebar-preview",
   });
 
-  if (isMobile && effectiveViewMode === "sidebar") {
-    effectiveViewMode = "center";
-  }
   const viewMode = effectiveViewMode;
 
   const handleToggleViewMode = useCallback(() => {
@@ -228,38 +224,34 @@ export function ToolResultPanel({
       className={`w-full flex flex-col bg-white dark:bg-[#1e1e1e] pointer-events-auto ${
         panelClass
           ? panelClass
-          : isCenter
-            ? `overflow-hidden h-full relative transition-all duration-300 ease-out ${
-                isFullscreen
-                  ? "w-full max-w-none"
-                  : "sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl sm:h-[80vh] sm:rounded-2xl sm:my-auto"
-              }`
+          : isFullscreen
+            ? "h-full w-full"
             : isMobile
               ? `max-h-[92vh] rounded-t-2xl overflow-hidden shadow-[0_-8px_40px_-8px_rgba(0,0,0,0.2)] dark:shadow-[0_-8px_40px_-8px_rgba(0,0,0,0.5)] ${
                   animateIn
                     ? "animate-[slide-up-fullscreen_280ms_cubic-bezier(0.16,1,0.3,1)_backwards]"
                     : ""
                 }`
-              : `h-full relative shadow-[-4px_0_24px_-4px_rgba(0,0,0,0.12)] dark:shadow-[-4px_0_24px_-4px_rgba(0,0,0,0.4)] ${
-                  animateIn
-                    ? "animate-[slide-in-right_200ms_ease-out_backwards]"
-                    : ""
-                }`
+              : isCenter
+                ? `overflow-hidden h-full relative transition-all duration-300 ease-out ${"sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl sm:h-[80vh] sm:rounded-2xl sm:my-auto"}`
+                : `h-full relative shadow-[-4px_0_24px_-4px_rgba(0,0,0,0.12)] dark:shadow-[-4px_0_24px_-4px_rgba(0,0,0,0.4)] ${
+                    animateIn
+                      ? "animate-[slide-in-right_200ms_ease-out_backwards]"
+                      : ""
+                  }`
       }`}
       ref={(el) => {
         // Merge refs
-        if (isMobile && !isCenter) {
+        if (isMobile) {
           (panelRef as React.MutableRefObject<HTMLDivElement | null>).current =
             el;
+          (
+            swipeElementRef as React.MutableRefObject<HTMLElement | null>
+          ).current = el;
         }
         if (!isMobile && isSidebar && !panelClass) {
           (panelRef as React.MutableRefObject<HTMLDivElement | null>).current =
             el;
-        }
-        if (isMobile) {
-          (
-            swipeElementRef as React.MutableRefObject<HTMLElement | null>
-          ).current = el;
         }
         if (typeof panelElementRef === "function") {
           panelElementRef(el);
@@ -277,10 +269,8 @@ export function ToolResultPanel({
               minWidth: "min(25vw, 400px)",
               ...(animateIn ? {} : { transform: "translateX(100%)" }),
             }
-          : !animateIn && !panelClass && !isCenter
-            ? isMobile
-              ? { transform: "translateY(100%)" }
-              : undefined
+          : !animateIn && !panelClass && isMobile
+            ? { transform: "translateY(100%)" }
             : undefined
       }
       onClick={(e) => e.stopPropagation()}
@@ -308,11 +298,11 @@ export function ToolResultPanel({
         </>
       )}
 
-      {/* Header section — sidebar mode always; center mode only when customHeader is provided */}
-      {(isSidebar || (isCenter && hasCustomHeader)) && (
+      {/* Header section — sidebar mode always; center mode only when customHeader is provided; mobile always */}
+      {(isSidebar || isMobile || (isCenter && hasCustomHeader)) && (
         <div className="flex flex-col shrink-0 bg-gradient-to-r from-stone-50 to-white dark:from-stone-800 dark:to-[#292524]">
-          {/* Mobile drag handle — sidebar mode only */}
-          {isMobile && isSidebar && (
+          {/* Mobile drag handle */}
+          {isMobile && (
             <div className="flex justify-center pt-2 pb-1">
               <div
                 ref={dragHandleRef}
@@ -466,8 +456,8 @@ export function ToolResultPanel({
         </div>
       )}
 
-      {/* Floating close button (center mode only, no customHeader) */}
-      {isCenter && !hasCustomHeader && (
+      {/* Floating close button (center mode only, no customHeader, desktop only) */}
+      {isCenter && !hasCustomHeader && !isMobile && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -483,7 +473,9 @@ export function ToolResultPanel({
       {/* Content */}
       <div
         className={`flex-1 overflow-auto min-h-0 overscroll-contain ${
-          isCenter && !hasCustomHeader ? "!overflow-hidden" : ""
+          isCenter && !hasCustomHeader && !isMobile && !isFullscreen
+            ? "!overflow-hidden"
+            : ""
         }`}
       >
         {children}
@@ -499,13 +491,13 @@ export function ToolResultPanel({
       className={`fixed inset-0 z-[200] flex flex-col ${
         overlayClass
           ? overlayClass
-          : isCenter
-            ? isFullscreen
-              ? "bg-black/80"
-              : "sm:items-center sm:justify-center bg-black/70"
+          : isFullscreen
+            ? "bg-transparent pointer-events-none"
             : isMobile
               ? "bg-black/50 items-end justify-end"
-              : "bg-black/50 sm:bg-transparent sm:pointer-events-none sm:items-end sm:justify-stretch"
+              : isCenter
+                ? "sm:items-center sm:justify-center bg-black/70"
+                : "bg-black/50 sm:bg-transparent sm:pointer-events-none sm:items-end sm:justify-stretch"
       }`}
       onClick={() => {
         if (!isResizing.current && !justResized.current) onClose();

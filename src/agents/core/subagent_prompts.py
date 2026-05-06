@@ -46,6 +46,7 @@ Tools:
 - `transfer_path(src_dir, prefix)` — **Batch** transfer all files in a directory (bidirectional). Directory name is used as the target sub-path (e.g., `/skills/Foo/` → `/home/user/Foo/`).
 
 Text files only (no binary). Limits: single file 10MB, batch 100MB/200files.
+- `/skills/` is virtual storage, not a sandbox directory. Never execute `/skills/...` directly from shell; transfer the needed files into the workspace first if they must be run.
 
 ### Tool Selection Rules
 - If the needed tool is already loaded, call it directly.

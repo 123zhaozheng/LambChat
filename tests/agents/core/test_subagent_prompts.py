@@ -42,3 +42,17 @@ def test_workflow_section_mentions_searching_deferred_tools() -> None:
     workflow = WORKFLOW_SECTION.lower()
     for phrase in required_guidance:
         assert phrase in workflow
+
+
+def test_workflow_section_describes_skills_workspace_routing() -> None:
+    required_guidance = [
+        "/skills/*",
+        "skill store",
+        "transfer_file",
+        "transfer_path",
+        "never execute `/skills/...` directly",
+    ]
+
+    workflow = WORKFLOW_SECTION.lower()
+    for phrase in required_guidance:
+        assert phrase in workflow

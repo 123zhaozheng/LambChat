@@ -1,6 +1,10 @@
 import pytest
+from langgraph.errors import GraphRecursionError
 
-from src.infra.memory.compaction_agent import MemoryCompactionAgent
+from src.infra.memory.compaction_agent import (
+    _COMPACTION_SYSTEM_PROMPT,
+    MemoryCompactionAgent,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -236,21 +240,26 @@ async def test_maybe_compact_after_write_runs_deepagent_compactor(monkeypatch):
     monkeypatch.setattr(compaction_module, "release_consolidation_lock", fake_release)
     agent = MemoryCompactionAgent(enabled=True, threshold=50, min_interval_seconds=0)
 
+    async def fake_get_compaction_model():
+        return "fake-compaction-model"
+
+    agent._get_compaction_model = fake_get_compaction_model  # type: ignore[method-assign]
+
     result = await agent.maybe_compact_after_write(backend, "u1")
 
     assert result["triggered"] is True
     assert result["result"]["agent"] == "deepagent"
-    assert created["model"] == "fake-model"
+    assert created["model"] == "fake-compaction-model"
     tool_names = {tool.name for tool in created["tools"]}
-    assert {
+    assert tool_names == {
         "memory_compaction_list",
-        "memory_compaction_search",
-        "memory_compaction_view",
         "memory_compaction_update",
         "memory_compaction_delete",
-    } <= tool_names
+    }
     assert "80 automatic cross-session memories" in str(created["payload"])
     assert "User prefers DuckDB" not in str(created["payload"])
+    assert created["config"]["recursion_limit"] > 40
+    assert "every memory has been considered" in str(created["payload"])
 
 
 def test_compaction_prompt_does_not_embed_memory_content():
@@ -258,13 +267,119 @@ def test_compaction_prompt_does_not_embed_memory_content():
 
     assert "42 automatic cross-session memories" in prompt
     assert "memory_compaction_list" in prompt
-    assert "memory_compaction_search" in prompt
-    assert "memory_compaction_view" in prompt
+    assert "memory_compaction_update" in prompt
+    assert "memory_compaction_delete" in prompt
+    assert "every memory has been considered" in prompt
+    assert "list all memory metadata pages" in prompt
+    assert "identify candidate groups" in prompt
+    assert "fetch candidate content through memory_compaction_list" in prompt
+    assert "update canonical memories" in prompt
+    assert "delete only redundant or non-durable memories" in prompt
     assert "JSON array below" not in prompt
 
 
+def test_compaction_system_prompt_defines_strict_sop():
+    prompt = _COMPACTION_SYSTEM_PROMPT
+
+    assert "Follow this SOP exactly" in prompt
+    assert "Phase 1: Inventory" in prompt
+    assert "Do not update or delete anything during inventory" in prompt
+    assert (
+        "If metadata is enough to decide something is unique and durable, leave it alone" in prompt
+    )
+    assert "Phase 2: Candidate selection" in prompt
+    assert "Phase 3: Fetch candidate content before mutation" in prompt
+    assert "memory_compaction_list(memory_ids=" in prompt
+    assert "Phase 4: Edit / merge" in prompt
+    assert "Phase 5: Delete" in prompt
+    assert "Phase 6: Stop condition" in prompt
+    assert "memory_compaction_update on the canonical memory" in prompt
+    assert "Only delete a memory after its durable facts are preserved" in prompt
+
+
 @pytest.mark.asyncio
-async def test_compaction_tools_include_read_only_view_tool():
+async def test_compaction_model_uses_admin_model_config_id(monkeypatch):
+    from src.infra.llm.client import LLMClient
+    from src.infra.memory import compaction_agent as compaction_module
+
+    calls: list[dict] = []
+
+    async def fake_get_model(**kwargs):
+        calls.append(kwargs)
+        return "configured-compaction-model"
+
+    monkeypatch.setattr(
+        compaction_module.settings,
+        "NATIVE_MEMORY_COMPACTION_MODEL_ID",
+        "model-config-123",
+    )
+    monkeypatch.setattr(LLMClient, "get_model", fake_get_model)
+
+    model = await MemoryCompactionAgent()._get_compaction_model()
+
+    assert model == "configured-compaction-model"
+    assert calls == [{"model_id": "model-config-123", "temperature": 0.1}]
+
+
+@pytest.mark.asyncio
+async def test_deepagent_compactor_returns_error_on_recursion_limit(monkeypatch):
+    from src.infra.memory import compaction_agent as compaction_module
+
+    backend = _Backend(
+        {"u1": 80},
+        docs=[
+            {
+                "memory_id": "m1",
+                "user_id": "u1",
+                "content": "a",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m2",
+                "user_id": "u1",
+                "content": "b",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m3",
+                "user_id": "u1",
+                "content": "c",
+                "source": "auto_retained",
+            },
+        ],
+    )
+    events: list[tuple[str, str]] = []
+
+    class FakeGraph:
+        async def ainvoke(self, _payload, _config):
+            raise GraphRecursionError("recursion limit reached")
+
+    async def fake_acquire(user_id: str, instance_id: str) -> str:
+        events.append(("acquire", user_id))
+        return "acquired"
+
+    async def fake_release(user_id: str, instance_id: str) -> None:
+        events.append(("release", user_id))
+
+    monkeypatch.setattr(compaction_module, "create_deep_agent", lambda **_kwargs: FakeGraph())
+    monkeypatch.setattr(compaction_module, "acquire_consolidation_lock", fake_acquire)
+    monkeypatch.setattr(compaction_module, "release_consolidation_lock", fake_release)
+
+    result = await MemoryCompactionAgent(
+        enabled=True,
+        threshold=50,
+        min_interval_seconds=0,
+    ).compact_user_memories(backend, "u1")
+
+    assert result["agent"] == "deepagent"
+    assert result["skipped"] is True
+    assert result["reason"] == "recursion_limit"
+    assert result["checked"] == 80
+    assert events == [("acquire", "u1"), ("release", "u1")]
+
+
+@pytest.mark.asyncio
+async def test_compaction_list_can_include_content_for_candidate_ids():
     backend = _Backend(
         {"u1": 80},
         docs=[
@@ -285,11 +400,13 @@ async def test_compaction_tools_include_read_only_view_tool():
     tools = MemoryCompactionAgent()._build_compaction_tools(backend, "u1", metrics)
     tool_by_name = {tool.name: tool for tool in tools}
 
-    result = await tool_by_name["memory_compaction_view"].ainvoke({"memory_id": "m1"})
+    result = await tool_by_name["memory_compaction_list"].ainvoke(
+        {"memory_ids": ["m1"], "include_content": True}
+    )
 
     assert result["success"] is True
-    assert result["memory"]["memory_id"] == "m1"
-    assert result["memory"]["content"] == "User prefers careful memory review before deletion."
+    assert result["memories"][0]["memory_id"] == "m1"
+    assert result["memories"][0]["content"] == "User prefers careful memory review before deletion."
     assert metrics == {"updated": 0, "deleted": 0}
 
 
@@ -324,15 +441,32 @@ async def test_compaction_tools_list_metadata_without_full_content():
 
 
 @pytest.mark.asyncio
-async def test_maybe_compact_after_write_does_not_cool_down_when_lock_not_acquired(monkeypatch):
+async def test_maybe_compact_after_write_does_not_cool_down_when_lock_not_acquired(
+    monkeypatch,
+):
     from src.infra.memory import compaction_agent as compaction_module
 
     backend = _Backend(
         {"u1": 80},
         docs=[
-            {"memory_id": "m1", "user_id": "u1", "content": "a", "source": "auto_retained"},
-            {"memory_id": "m2", "user_id": "u1", "content": "b", "source": "auto_retained"},
-            {"memory_id": "m3", "user_id": "u1", "content": "c", "source": "auto_retained"},
+            {
+                "memory_id": "m1",
+                "user_id": "u1",
+                "content": "a",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m2",
+                "user_id": "u1",
+                "content": "b",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m3",
+                "user_id": "u1",
+                "content": "c",
+                "source": "auto_retained",
+            },
         ],
     )
     attempts = 0
@@ -412,9 +546,24 @@ async def test_deepagent_compactor_uses_distributed_consolidation_lock(monkeypat
     backend = _Backend(
         {"u1": 80},
         docs=[
-            {"memory_id": "m1", "user_id": "u1", "content": "a", "source": "auto_retained"},
-            {"memory_id": "m2", "user_id": "u1", "content": "b", "source": "auto_retained"},
-            {"memory_id": "m3", "user_id": "u1", "content": "c", "source": "auto_retained"},
+            {
+                "memory_id": "m1",
+                "user_id": "u1",
+                "content": "a",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m2",
+                "user_id": "u1",
+                "content": "b",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m3",
+                "user_id": "u1",
+                "content": "c",
+                "source": "auto_retained",
+            },
         ],
     )
 
@@ -451,9 +600,24 @@ async def test_deepagent_compactor_reports_successful_tool_counts(monkeypatch):
     backend = _Backend(
         {"u1": 80},
         docs=[
-            {"memory_id": "m1", "user_id": "u1", "content": "a", "source": "auto_retained"},
-            {"memory_id": "m2", "user_id": "u1", "content": "b", "source": "auto_retained"},
-            {"memory_id": "m3", "user_id": "u1", "content": "c", "source": "auto_retained"},
+            {
+                "memory_id": "m1",
+                "user_id": "u1",
+                "content": "a",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m2",
+                "user_id": "u1",
+                "content": "b",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m3",
+                "user_id": "u1",
+                "content": "c",
+                "source": "auto_retained",
+            },
         ],
     )
 
@@ -500,16 +664,33 @@ async def test_deepagent_compactor_reports_successful_tool_counts(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_deepagent_compactor_skips_when_distributed_lock_not_acquired(monkeypatch):
+async def test_deepagent_compactor_skips_when_distributed_lock_not_acquired(
+    monkeypatch,
+):
     from src.infra.memory import compaction_agent as compaction_module
 
     events: list[tuple[str, str]] = []
     backend = _Backend(
         {"u1": 80},
         docs=[
-            {"memory_id": "m1", "user_id": "u1", "content": "a", "source": "auto_retained"},
-            {"memory_id": "m2", "user_id": "u1", "content": "b", "source": "auto_retained"},
-            {"memory_id": "m3", "user_id": "u1", "content": "c", "source": "auto_retained"},
+            {
+                "memory_id": "m1",
+                "user_id": "u1",
+                "content": "a",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m2",
+                "user_id": "u1",
+                "content": "b",
+                "source": "auto_retained",
+            },
+            {
+                "memory_id": "m3",
+                "user_id": "u1",
+                "content": "c",
+                "source": "auto_retained",
+            },
         ],
     )
 

@@ -18,6 +18,7 @@ import type {
 } from "./types";
 import { convertAttachments, processMessageEvent } from "./eventProcessor";
 import { clearAllLoadingStates } from "./messageParts";
+import { parseDate } from "../../utils/datetime";
 
 function resolveUserMessageId(
   event: HistoryEvent,
@@ -42,6 +43,13 @@ interface ProcessHistoryOptions {
     }) => void;
   };
   activeSubagentStack: SubagentStackItem[];
+}
+
+function parseEventTimestamp(
+  timestamp: string | undefined,
+  fallbackMs: number,
+): Date {
+  return timestamp ? parseDate(timestamp) : new Date(fallbackMs);
 }
 
 /**
@@ -123,7 +131,7 @@ function processHistoryEvent(
       id: messageId,
       role: "assistant",
       content: "",
-      timestamp: new Date(event.timestamp || Date.now()),
+      timestamp: parseEventTimestamp(event.timestamp, Date.now()),
       parts: [],
       isStreaming: false,
       runId: event.run_id,
@@ -196,8 +204,8 @@ export function reconstructMessagesFromEvents(
 ): Message[] {
   // Sort events by timestamp
   const sortedEvents = [...events].sort((a, b) => {
-    const timeA = new Date(a.timestamp || 0).getTime();
-    const timeB = new Date(b.timestamp || 0).getTime();
+    const timeA = parseEventTimestamp(a.timestamp, 0).getTime();
+    const timeB = parseEventTimestamp(b.timestamp, 0).getTime();
     return timeA - timeB;
   });
 
@@ -219,7 +227,7 @@ export function reconstructMessagesFromEvents(
         id: resolveUserMessageId(event, eventData),
         role: "user",
         content: eventData.content || "",
-        timestamp: new Date(event.timestamp || Date.now()),
+        timestamp: parseEventTimestamp(event.timestamp, Date.now()),
         attachments: userAttachments,
         runId: event.run_id,
       });
@@ -255,7 +263,7 @@ export function reconstructMessagesFromEvents(
           id: crypto.randomUUID(),
           role: "assistant",
           content: "",
-          timestamp: new Date(event.timestamp || Date.now()),
+          timestamp: parseEventTimestamp(event.timestamp, Date.now()),
           parts: [{ type: "cancelled" }],
           runId: event.run_id,
         });
@@ -335,5 +343,5 @@ export function getLastEventTimestamp(events: HistoryEvent[]): Date | null {
       break;
     }
   }
-  return lastEvent?.timestamp ? new Date(lastEvent.timestamp) : null;
+  return lastEvent?.timestamp ? parseDate(lastEvent.timestamp) : null;
 }

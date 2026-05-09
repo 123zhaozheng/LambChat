@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from src.infra.logging import get_logger
-from src.infra.utils.datetime import utc_now
+from src.infra.utils.datetime import to_iso, utc_now
 from src.kernel.config import settings
 
 logger = get_logger(__name__)
@@ -170,7 +170,7 @@ class RevealedFileStorage:
         if "_id" in normalized:
             normalized["id"] = str(normalized.pop("_id"))
         if "created_at" in normalized and isinstance(normalized["created_at"], datetime):
-            normalized["created_at"] = normalized["created_at"].isoformat()
+            normalized["created_at"] = to_iso(normalized["created_at"])
 
         return normalized
 

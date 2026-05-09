@@ -13,6 +13,7 @@ from typing import Annotated, Optional
 
 from langchain.tools import ToolRuntime, tool
 from langchain_core.tools import BaseTool
+from langsmith.run_helpers import tracing_context
 
 from src.infra.logging import get_logger
 from src.infra.memory.client.base import (
@@ -298,6 +299,12 @@ async def _auto_retain_user_memory(user_id: str, user_input: str) -> None:
         _cleanup_local_auto_capture_lock(user_id, lock)
 
 
+async def _auto_retain_user_memory_detached(user_id: str, user_input: str) -> None:
+    """Run background memory capture without inheriting the chat trace parent."""
+    with tracing_context(parent=False):
+        await _auto_retain_user_memory(user_id, user_input)
+
+
 def schedule_auto_memory_capture(user_id: str, user_input: str) -> None:
     """Best-effort background capture of durable user memories from latest input."""
     try:
@@ -306,7 +313,7 @@ def schedule_auto_memory_capture(user_id: str, user_input: str) -> None:
         return
 
     logger.info("[Memory] Scheduling auto-retain for user %s", user_id)
-    task = loop.create_task(_auto_retain_user_memory(user_id, user_input))
+    task = loop.create_task(_auto_retain_user_memory_detached(user_id, user_input))
     _background_tasks.add(task)
     task.add_done_callback(_background_task_error)
     task.add_done_callback(_background_tasks.discard)

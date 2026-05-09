@@ -43,6 +43,7 @@
 | 变量名 | 默认值 | 敏感 | 说明 |
 |--------|--------|------|------|
 | `NATIVE_MEMORY_MODEL` | _(空)_ | 否 | 用于记忆提取的 LLM 模型。 |
+| `NATIVE_MEMORY_COMPACTION_MODEL_ID` | _(空)_ | 否 | 后台记忆压缩 agent 使用的管理员模型配置 ID。空 = 默认模型。 |
 | `NATIVE_MEMORY_API_BASE` | _(空)_ | 否 | 用于记忆提取的 LLM API 基础 URL。 |
 | `NATIVE_MEMORY_API_KEY` | _(空)_ | 是 | 用于记忆提取的 LLM API 密钥。 |
 | `NATIVE_MEMORY_STORE_NAMESPACE` | `memories` | 否 | LangGraph 存储命名空间。 |

@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import contextmanager
 from types import SimpleNamespace
 
 import pytest
@@ -143,6 +144,31 @@ async def test_auto_memory_capture_notifies_compaction_agent_after_store(monkeyp
     await memory_tools._auto_retain_user_memory("u1", "hello")
 
     assert events == [("acquire", "u1"), ("retain", "u1"), ("compact", "u1"), ("release", "u1")]
+
+
+@pytest.mark.asyncio
+async def test_auto_memory_capture_detaches_langsmith_parent(monkeypatch):
+    from src.infra.memory import tools as memory_tools
+
+    events: list[tuple[str, object]] = []
+
+    @contextmanager
+    def fake_tracing_context(**kwargs):
+        events.append(("trace_kwargs", kwargs))
+        yield
+
+    async def fake_auto_retain(user_id: str, user_input: str) -> None:
+        events.append(("retain", (user_id, user_input)))
+
+    monkeypatch.setattr(memory_tools, "tracing_context", fake_tracing_context)
+    monkeypatch.setattr(memory_tools, "_auto_retain_user_memory", fake_auto_retain)
+
+    await memory_tools._auto_retain_user_memory_detached("u1", "hello")
+
+    assert events == [
+        ("trace_kwargs", {"parent": False}),
+        ("retain", ("u1", "hello")),
+    ]
 
 
 @pytest.mark.asyncio

@@ -60,14 +60,10 @@ function formatSubagentName(agentName: string): string {
     .join(" ");
 }
 
-function buildSubagentPanelState(data: SubagentPanelData) {
+export function buildSubagentPanelState(data: SubagentPanelData) {
   const effectiveStatus =
     data.status ||
     (data.isPending ? "running" : data.success ? "complete" : "error");
-  const timestamp = data.completedAt ?? data.startedAt;
-  const elapsed = data.completedAt
-    ? getElapsedTime(data.startedAt, data.completedAt)
-    : null;
   const panelStatus: CollapsibleStatus =
     effectiveStatus === "running"
       ? "loading"
@@ -78,12 +74,7 @@ function buildSubagentPanelState(data: SubagentPanelData) {
           : effectiveStatus === "cancelled"
             ? "cancelled"
             : "idle";
-  const subtitle = [
-    timestamp ? formatDateTime(new Date(timestamp).toISOString()) : undefined,
-    elapsed || undefined,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const subtitle = data.startedAt ? formatDateTime(data.startedAt) : undefined;
 
   return {
     effectiveStatus,
@@ -256,24 +247,6 @@ function SubagentPanelContent({ agentId }: { agentId: string }) {
 // Utility
 // ==========================================
 
-/**
- * Calculate elapsed time between start and end (precise to milliseconds)
- */
-function getElapsedTime(
-  startedAt: number | undefined,
-  completedAt: number | undefined,
-): string | null {
-  if (!startedAt) return null;
-  const end = completedAt ?? Date.now();
-  const ms = end - startedAt;
-  if (ms < 1000) return `${ms}ms`;
-  const totalSeconds = Math.floor(ms / 1000);
-  if (totalSeconds < 60) return `${totalSeconds}s`;
-  const minutes = Math.floor(totalSeconds / 60);
-  const remainingSeconds = totalSeconds % 60;
-  return `${minutes}m ${remainingSeconds}s`;
-}
-
 // Thinking Block - pill button, content in sidebar panel
 export function ThinkingBlock({
   content,
@@ -381,8 +354,6 @@ export function SubagentBlock({
     completedAt,
     status,
   });
-  const elapsed = completedAt ? getElapsedTime(startedAt, completedAt) : null;
-
   // Keep sidebar panel data in sync
   useEffect(() => {
     subagentPanelStore.set({
@@ -537,24 +508,6 @@ export function SubagentBlock({
             </p>
           )}
         </div>
-
-        {elapsed && (
-          <span
-            className={clsx(
-              "text-[11px] shrink-0 tabular-nums tracking-tight px-1.5 py-0.5 rounded-md",
-              effectiveStatus === "running" &&
-                "text-stone-400 dark:text-stone-500 bg-stone-500/5",
-              effectiveStatus === "complete" &&
-                "text-stone-400 dark:text-stone-500 bg-stone-500/5",
-              effectiveStatus === "error" &&
-                "text-red-400 dark:text-red-500 bg-red-500/5",
-              effectiveStatus === "cancelled" &&
-                "text-stone-400 dark:text-stone-500 bg-stone-500/5",
-            )}
-          >
-            {elapsed}
-          </span>
-        )}
       </div>
     </div>
   );

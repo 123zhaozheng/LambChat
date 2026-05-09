@@ -83,6 +83,7 @@ export interface AvailableModelListResponse {
   models: ModelOption[];
   count: number;
   enabled_count: number;
+  default_model_id?: string | null;
 }
 
 export interface ModelResponse {

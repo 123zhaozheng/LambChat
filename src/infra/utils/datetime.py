@@ -8,13 +8,13 @@ def utc_now() -> datetime:
 
 
 def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return utc_now().isoformat()
 
 
 def ensure_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         return dt.replace(tzinfo=timezone.utc)
-    return dt
+    return dt.astimezone(timezone.utc)
 
 
 def parse_iso(s: str) -> datetime:

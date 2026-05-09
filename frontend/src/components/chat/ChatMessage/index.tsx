@@ -225,7 +225,7 @@ function TokenDetailsButton({
                   {t("chat.message.startTime")}
                 </span>
                 <span className="text-stone-700 dark:text-stone-200 font-medium tabular-nums">
-                  {formatDateTime(timestamp.toISOString())}
+                  {formatDateTime(timestamp)}
                 </span>
               </div>
             )}
@@ -324,11 +324,7 @@ export const ChatMessage = memo(function ChatMessage({
                 style={{ color: "var(--theme-text-secondary)" }}
               >
                 {message.timestamp
-                  ? formatDateTimeShort(
-                      typeof message.timestamp === "string"
-                        ? message.timestamp
-                        : message.timestamp.toISOString(),
-                    )
+                  ? formatDateTimeShort(message.timestamp)
                   : ""}
               </span>
             )}

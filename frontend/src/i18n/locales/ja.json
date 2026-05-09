@@ -301,6 +301,95 @@
     "verifyingEmail": "メールを確認中...",
     "whatToDoNext": "次に行うこと"
   },
+  "backendErrors": {
+    "accountInactive": "アカウントが有効化されていません。メール認証後にログインしてください。",
+    "approvalAlreadyHandled": "この承認リクエストはすでに処理されています。",
+    "approvalNotFound": "承認リクエストが見つかりません。",
+    "authMissing": "認証情報がありません。",
+    "avatarTooLarge": "アバターファイルは2MB以下にしてください。",
+    "cannotChangeOwnRolePermissions": "自分が所属するロールの権限は変更できません。",
+    "cannotCreateFavoritesProject": "お気に入りプロジェクトは作成できません。",
+    "cannotDeleteFavoritesProject": "お気に入りプロジェクトは削除できません。",
+    "channelInstanceDisabled": "チャンネルインスタンスは無効です。",
+    "channelInstanceNotFound": "チャンネルインスタンスが見つかりません。",
+    "deleteFailed": "削除に失敗しました。",
+    "emailServiceDisabled": "メールサービスが有効になっていません。",
+    "emailTooManyRequests": "このメールへのリクエストが多すぎます。しばらくしてから再試行してください。",
+    "emailVerificationRequired": "ログインする前にメールを認証してください。",
+    "emptyFile": "ファイルが空です。",
+    "favoriteUpdateFailed": "お気に入り状態の更新に失敗しました。",
+    "fileNotFound": "ファイルが見つかりません。",
+    "fileReadFailed": "ファイルの読み込みに失敗しました。",
+    "fileTooLarge": "ファイルサイズが上限 {{max}}MB を超えています。",
+    "fileUploadNoPermission": "{{category}} ファイルをアップロードする権限がありません。",
+    "fileUrlFailed": "ファイルURLの生成に失敗しました。",
+    "instanceNameRequired": "インスタンス名は必須です。",
+    "invalidCredentials": "ユーザー名またはパスワードが正しくありません。",
+    "invalidDisabledTools": "無効な無効化ツール一覧です。",
+    "invalidEnvKeyFormat": "環境変数キーの形式が無効です。",
+    "invalidExpiresRange": "有効期限は60〜86400秒の範囲で指定してください。",
+    "invalidFileId": "ファイルIDの形式が無効です。",
+    "invalidFilePath": "ファイルパスが無効です。",
+    "invalidPinnedModelIds": "ピン留めモデル一覧が無効です。",
+    "invalidResetToken": "リセットトークンが無効です。",
+    "invalidSessionStatus": "状態は active または archived である必要があります。",
+    "invalidToken": "トークンが無効です。",
+    "invalidTokenPayload": "トークンの内容が無効です。",
+    "invalidVerificationToken": "認証トークンが無効または期限切れです。",
+    "marketplaceSkillNameRequired": "マーケットプレイスのスキル名は必須です。",
+    "marketplaceSkillNoFiles": "マーケットプレイススキルにファイルがありません。",
+    "marketplaceSyncFailed": "ファイルをマーケットプレイスへ同期できませんでした。",
+    "marketplaceSyncRolledBack": "ファイル同期に失敗し、マーケットプレイス項目をロールバックしました。",
+    "memoryBackendUnavailable": "メモリーバックエンドを利用できません。",
+    "memoryDeleteLimit": "一度に100件を超えるメモリーは削除できません。",
+    "memoryIdsRequired": "memory_ids は空にできません。",
+    "memoryNotFound": "メモリーが見つかりません。",
+    "modelFallbackSelf": "モデル自身をフォールバックに指定することはできません。",
+    "modelsRequired": "モデル一覧は空にできません。",
+    "moveFailed": "移動に失敗しました。",
+    "moveFavoriteSyncFailed": "移動後のお気に入り状態の同期に失敗しました。",
+    "noSkillsFoundInRepository": "リポジトリにスキルが見つかりません。",
+    "notificationNotFound": "通知が見つかりません。",
+    "oauthFailed": "OAuth認証に失敗しました。",
+    "oauthStateInvalid": "OAuth状態が無効です。もう一度ログインしてください。",
+    "oauthUrlFailed": "認証URLの作成に失敗しました。",
+    "onlyCreatorCanToggleTools": "このサーバーのツールを切り替えられるのは作成者のみです。",
+    "onlyCreatorCanUpdate": "更新できるのは作成者のみです。",
+    "permissionMissing": "権限がありません: {{permission}}",
+    "projectNotFound": "プロジェクトが見つかりません。",
+    "publishSkillFailed": "スキルの公開に失敗しました。",
+    "refreshTokenInvalid": "リフレッシュトークンが無効です。",
+    "refreshTokenMissing": "リフレッシュトークンがありません。",
+    "registrationClosed": "登録は停止されています。",
+    "repositoryOrBranchNotFound": "リポジトリまたはブランチが見つかりません。",
+    "resetTokenExpired": "リセットトークンの有効期限が切れています。",
+    "roleNotFound": "ロールが見つかりません。",
+    "sessionAccessDenied": "このセッションにアクセスする権限がありません。",
+    "sessionNotFound": "セッションが見つかりません。",
+    "settingNotFound": "設定が見つかりません。",
+    "shareDeleteOwnOnly": "自分が作成した共有のみ削除できます。",
+    "shareExpiredOrMissing": "共有が見つからないか期限切れです。",
+    "shareLoginRequired": "この共有を表示するにはログインが必要です。",
+    "shareNoPermission": "セッションを共有する権限がありません。",
+    "shareNotFound": "共有が見つかりません。",
+    "shareOwnOnly": "自分のセッションのみ共有できます。",
+    "sharePartialNeedsRunIds": "部分共有には run_ids が必要です。",
+    "shareSourceMissing": "元のセッションは存在しません。",
+    "shareViewOwnOnly": "自分のセッションの共有のみ表示できます。",
+    "skillDeactivated": "このスキルは無効化されています。",
+    "skillFileRequired": "スキルには少なくとも1つのファイルが必要です。",
+    "skillNotFound": "スキルが見つかりません。",
+    "targetOwnerRequired": "新しい所有者を指定してください。",
+    "targetUserRequired": "対象ユーザーを指定してください。",
+    "tooManyPinnedModels": "ピン留めモデルが多すぎます。最大10件までです。",
+    "tooManyRequests": "リクエストが多すぎます。しばらくしてから再試行してください。",
+    "turnstileFailed": "人間確認に失敗しました。もう一度お試しください。",
+    "unauthenticated": "ユーザーは認証されていません。",
+    "updateFailed": "更新に失敗しました。",
+    "uploadDuplicateConflict": "アップロードに失敗しました。重複レコードがあります。",
+    "userNotFound": "ユーザーが見つかりません。",
+    "zipRequired": "ファイルはZIP形式である必要があります。"
+  },
   "categories": {
     "agent": "エージェント",
     "audio_transcription": "音声文字起こし",
@@ -547,10 +636,10 @@
     "showing": "{{start}}〜{{end}}件を表示",
     "skip": "スキップ",
     "timeAgo": {
+      "daysAgo": "{{count}}日前",
+      "hoursAgo": "{{count}}時間前",
       "justNow": "たった今",
       "minutesAgo": "{{count}}分前",
-      "hoursAgo": "{{count}}時間前",
-      "daysAgo": "{{count}}日前",
       "monthsAgo": "{{count}}ヶ月前"
     },
     "timeMonthsAgo": "{{count}}ヶ月前",
@@ -685,95 +774,6 @@
     "noPermissionTitle": "アクセス拒否",
     "pageNotFound": "ページが見つかりません",
     "pageNotFoundDesc": "申し訳ございません。お探しのページは存在しないか削除されました。URLを確認するか、ホームに戻ってください。"
-  },
-  "backendErrors": {
-    "accountInactive": "アカウントが有効化されていません。メール認証後にログインしてください。",
-    "approvalAlreadyHandled": "この承認リクエストはすでに処理されています。",
-    "approvalNotFound": "承認リクエストが見つかりません。",
-    "authMissing": "認証情報がありません。",
-    "avatarTooLarge": "アバターファイルは2MB以下にしてください。",
-    "cannotChangeOwnRolePermissions": "自分が所属するロールの権限は変更できません。",
-    "cannotCreateFavoritesProject": "お気に入りプロジェクトは作成できません。",
-    "cannotDeleteFavoritesProject": "お気に入りプロジェクトは削除できません。",
-    "channelInstanceDisabled": "チャンネルインスタンスは無効です。",
-    "channelInstanceNotFound": "チャンネルインスタンスが見つかりません。",
-    "deleteFailed": "削除に失敗しました。",
-    "emailServiceDisabled": "メールサービスが有効になっていません。",
-    "emailTooManyRequests": "このメールへのリクエストが多すぎます。しばらくしてから再試行してください。",
-    "emailVerificationRequired": "ログインする前にメールを認証してください。",
-    "emptyFile": "ファイルが空です。",
-    "favoriteUpdateFailed": "お気に入り状態の更新に失敗しました。",
-    "fileReadFailed": "ファイルの読み込みに失敗しました。",
-    "fileTooLarge": "ファイルサイズが上限 {{max}}MB を超えています。",
-    "fileUploadNoPermission": "{{category}} ファイルをアップロードする権限がありません。",
-    "fileNotFound": "ファイルが見つかりません。",
-    "fileUrlFailed": "ファイルURLの生成に失敗しました。",
-    "invalidCredentials": "ユーザー名またはパスワードが正しくありません。",
-    "invalidDisabledTools": "無効な無効化ツール一覧です。",
-    "invalidEnvKeyFormat": "環境変数キーの形式が無効です。",
-    "invalidExpiresRange": "有効期限は60〜86400秒の範囲で指定してください。",
-    "invalidFileId": "ファイルIDの形式が無効です。",
-    "invalidFilePath": "ファイルパスが無効です。",
-    "invalidPinnedModelIds": "ピン留めモデル一覧が無効です。",
-    "invalidResetToken": "リセットトークンが無効です。",
-    "invalidSessionStatus": "状態は active または archived である必要があります。",
-    "invalidToken": "トークンが無効です。",
-    "invalidTokenPayload": "トークンの内容が無効です。",
-    "invalidVerificationToken": "認証トークンが無効または期限切れです。",
-    "instanceNameRequired": "インスタンス名は必須です。",
-    "marketplaceSkillNameRequired": "マーケットプレイスのスキル名は必須です。",
-    "marketplaceSkillNoFiles": "マーケットプレイススキルにファイルがありません。",
-    "marketplaceSyncFailed": "ファイルをマーケットプレイスへ同期できませんでした。",
-    "marketplaceSyncRolledBack": "ファイル同期に失敗し、マーケットプレイス項目をロールバックしました。",
-    "memoryBackendUnavailable": "メモリーバックエンドを利用できません。",
-    "memoryDeleteLimit": "一度に100件を超えるメモリーは削除できません。",
-    "memoryIdsRequired": "memory_ids は空にできません。",
-    "memoryNotFound": "メモリーが見つかりません。",
-    "modelFallbackSelf": "モデル自身をフォールバックに指定することはできません。",
-    "modelsRequired": "モデル一覧は空にできません。",
-    "moveFailed": "移動に失敗しました。",
-    "moveFavoriteSyncFailed": "移動後のお気に入り状態の同期に失敗しました。",
-    "noSkillsFoundInRepository": "リポジトリにスキルが見つかりません。",
-    "notificationNotFound": "通知が見つかりません。",
-    "oauthFailed": "OAuth認証に失敗しました。",
-    "oauthStateInvalid": "OAuth状態が無効です。もう一度ログインしてください。",
-    "oauthUrlFailed": "認証URLの作成に失敗しました。",
-    "onlyCreatorCanToggleTools": "このサーバーのツールを切り替えられるのは作成者のみです。",
-    "onlyCreatorCanUpdate": "更新できるのは作成者のみです。",
-    "permissionMissing": "権限がありません: {{permission}}",
-    "projectNotFound": "プロジェクトが見つかりません。",
-    "publishSkillFailed": "スキルの公開に失敗しました。",
-    "refreshTokenInvalid": "リフレッシュトークンが無効です。",
-    "refreshTokenMissing": "リフレッシュトークンがありません。",
-    "registrationClosed": "登録は停止されています。",
-    "repositoryOrBranchNotFound": "リポジトリまたはブランチが見つかりません。",
-    "resetTokenExpired": "リセットトークンの有効期限が切れています。",
-    "roleNotFound": "ロールが見つかりません。",
-    "sessionAccessDenied": "このセッションにアクセスする権限がありません。",
-    "sessionNotFound": "セッションが見つかりません。",
-    "settingNotFound": "設定が見つかりません。",
-    "shareDeleteOwnOnly": "自分が作成した共有のみ削除できます。",
-    "shareExpiredOrMissing": "共有が見つからないか期限切れです。",
-    "shareLoginRequired": "この共有を表示するにはログインが必要です。",
-    "shareNoPermission": "セッションを共有する権限がありません。",
-    "shareNotFound": "共有が見つかりません。",
-    "shareOwnOnly": "自分のセッションのみ共有できます。",
-    "sharePartialNeedsRunIds": "部分共有には run_ids が必要です。",
-    "shareSourceMissing": "元のセッションは存在しません。",
-    "shareViewOwnOnly": "自分のセッションの共有のみ表示できます。",
-    "skillDeactivated": "このスキルは無効化されています。",
-    "skillFileRequired": "スキルには少なくとも1つのファイルが必要です。",
-    "skillNotFound": "スキルが見つかりません。",
-    "targetOwnerRequired": "新しい所有者を指定してください。",
-    "targetUserRequired": "対象ユーザーを指定してください。",
-    "tooManyPinnedModels": "ピン留めモデルが多すぎます。最大10件までです。",
-    "tooManyRequests": "リクエストが多すぎます。しばらくしてから再試行してください。",
-    "turnstileFailed": "人間確認に失敗しました。もう一度お試しください。",
-    "unauthenticated": "ユーザーは認証されていません。",
-    "updateFailed": "更新に失敗しました。",
-    "uploadDuplicateConflict": "アップロードに失敗しました。重複レコードがあります。",
-    "userNotFound": "ユーザーが見つかりません。",
-    "zipRequired": "ファイルはZIP形式である必要があります。"
   },
   "featureMenu": {
     "enhance": "強化",
@@ -1225,51 +1225,57 @@
     "allTypes": "すべてのタイプ",
     "batchDeleteConfirmMessage": "選択した{{count}}件の記憶を削除しますか？この操作は取り消せません。",
     "batchDeleted": "{{count}}件の記憶を削除しました",
+    "contentLabel": "内容",
+    "contentPlaceholder": "記憶の内容を入力（5文字以上）...",
+    "contentRequired": "記憶の内容は5文字以上必要です",
+    "createBtn": "記憶を追加",
+    "createSuccess": "記憶を作成しました",
+    "createTitle": "新規記憶",
     "deleteConfirm": "この記憶を削除しますか？",
     "deleteConfirmMessage": "この操作は元に戻せません。",
     "deleteError": "削除に失敗しました",
     "deleted": "記憶を削除しました",
-    "createBtn": "記憶を追加",
-    "createSuccess": "記憶を作成しました",
-    "createTitle": "新規記憶",
-    "contentLabel": "内容",
-    "contentPlaceholder": "記憶の内容を入力（5文字以上）...",
-    "contentRequired": "記憶の内容は5文字以上必要です",
     "editTitle": "記憶を編集",
+    "empty": "まだ記憶がありません。AIが重要な情報を自動的に保存します。",
+    "export": "エクスポート",
+    "exportError": "メモリのエクスポートに失敗しました",
+    "exportSuccess": "{{count}}件のメモリをエクスポートしました",
+    "fetchError": "記憶の取得に失敗しました",
+    "import": "インポート",
+    "importError": "インポートに失敗しました。JSONファイルの形式を確認してください。",
+    "importSuccess": "{{imported}}件のメモリをインポートしました（{{created}}件新規作成、{{overwritten}}件上書き）",
+    "loading": "記憶を読み込み中...",
+    "noResults": "一致する記憶がありません",
     "saveError": "保存に失敗しました",
     "saving": "保存中...",
+    "searchPlaceholder": "記憶を検索...",
+    "selectHint": "記憶を選択して詳細を表示",
+    "source": {
+      "auto_retained": "自動保持",
+      "consolidated": "統合",
+      "imported": "インポート",
+      "manual": "手動"
+    },
+    "sourceLabel": "ソース",
+    "subtitle": "合計 {{count}} 件の記憶",
     "summaryLabel": "要約",
     "summaryPlaceholder": "簡潔な説明（任意）",
     "tagsLabel": "タグ",
     "tagsPlaceholder": "タグをカンマで区切って入力",
-    "titleLabel": "タイトル",
-    "titlePlaceholder": "記憶のタイトルを入力...",
-    "typeLabel": "タイプ",
-    "sourceLabel": "ソース",
-    "source": {
-      "manual": "手動",
-      "auto_retained": "自動保持",
-      "imported": "インポート",
-      "consolidated": "統合"
-    },
-    "updateSuccess": "記憶を更新しました",
-    "empty": "まだ記憶がありません。AIが重要な情報を自動的に保存します。",
-    "fetchError": "記憶の取得に失敗しました",
-    "loading": "記憶を読み込み中...",
-    "noResults": "一致する記憶がありません",
-    "searchPlaceholder": "記憶を検索...",
-    "selectHint": "記憶を選択して詳細を表示",
-    "subtitle": "合計 {{count}} 件の記憶",
     "timeAgo": "{{count}}日前",
     "timeMonthsAgo": "{{count}}ヶ月前",
     "timeWeeksAgo": "{{count}}週間前",
     "title": "記憶スペース",
+    "titleLabel": "タイトル",
+    "titlePlaceholder": "記憶のタイトルを入力...",
     "type": {
       "feedback": "フィードバック",
       "project": "プロジェクト",
       "reference": "リファレンス",
       "user": "ユーザー"
-    }
+    },
+    "typeLabel": "タイプ",
+    "updateSuccess": "記憶を更新しました"
   },
   "mermaidViewer": {
     "hideCode": "コードを隠す",
@@ -1573,6 +1579,72 @@
       "selectPermission": "少なくとも1つの権限を選択してください"
     }
   },
+  "seo": {
+    "agents": {
+      "description": "AIエージェントの設定と管理。システムプロンプト、モデル選択、ツール定義、マルチエージェントワークフローのオーケストレーション。",
+      "title": "AIエージェント"
+    },
+    "channels": {
+      "description": "コミュニケーションチャネルの管理。外部メッセージングプラットフォームと通知サービスを接続してマルチチャネルAI連携。",
+      "title": "コミュニケーションチャネル"
+    },
+    "chat": {
+      "description": "AIエージェントとインテリジェントな対話。マルチモデル切り替え、リアルタイムストリーミング応答、セッション管理、ファイルアップロード、マルチエージェント連携に対応。",
+      "title": "AIチャット"
+    },
+    "feedback": {
+      "description": "ユーザーフィードバックの表示と管理。機能リクエスト、バグ報告、ユーザー満足度を追跡して製品改善を推進。",
+      "title": "ユーザーフィードバック"
+    },
+    "files": {
+      "description": "AIワークスペースでのファイルのアップロード、整理、管理。ドキュメント、画像、メディアをAIエージェントと共有して分析・処理。",
+      "title": "ファイルライブラリ"
+    },
+    "landing": {
+      "description": "LambChatはSkills + MCPデュアルエンジン駆動のプラガブルなマルチテナントAI対話プラットフォーム。Claude、GPT、Geminiなど複数モデルに対応し、リアルタイムSSEストリーミング、マルチエージェントオーケストレーション、モジュラースキルシステムを提供。",
+      "title": "LambChat - AIエージェントプラットフォーム"
+    },
+    "marketplace": {
+      "description": "コミュニティ構築のAIスキルを発見・インストール。評価・デプロイでAIエージェントの機能を拡張。",
+      "title": "スキルマーケットプレイス"
+    },
+    "mcp": {
+      "description": "Model Context Protocolサーバー接続の管理。外部ツール、データベース、サービスを接続してAIエージェントの能力を拡張。",
+      "title": "MCPサーバー管理"
+    },
+    "memory": {
+      "description": "AIメモリコンテンツの表示と管理。永続的なコンテキストと知識保存で対話間の長期的なAIエージェント理解を実現。",
+      "title": "AIメモリスペース"
+    },
+    "models": {
+      "description": "LLMモデル設定の管理。Claude、GPT、Geminiなど統合API抽象化でシームレスなモデル切り替え。",
+      "title": "モデル管理"
+    },
+    "notifications": {
+      "description": "システムアナウンスと通知の管理。プラットフォームニュース、アラート、重要メッセージの最新情報を取得。",
+      "title": "通知"
+    },
+    "persona": {
+      "description": "AIペルソナの選択とカスタマイズ。パーソナリティ、トーン、専門分野、行動パターンを定義した専門的な対話体験。",
+      "title": "ペルソナプリセット"
+    },
+    "roles": {
+      "description": "ロールときめ細かい権限の設定。チーム、リソース、管理機能のアクセス制御ポリシーを定義。",
+      "title": "ロールと権限"
+    },
+    "settings": {
+      "description": "アプリケーションとシステム設定の構成。グローバル設定、統合、セキュリティポリシー、プラットフォーム動作の管理。",
+      "title": "システム設定"
+    },
+    "skills": {
+      "description": "AIスキルの作成、設定、管理。プロンプトエンジニアリング、ツール統合、モジュラースキル構成で強力なカスタム機能を構築。",
+      "title": "スキル管理"
+    },
+    "users": {
+      "description": "ユーザーアカウント、ロール、アクセス権限の管理。マルチテナントユーザーライフサイクルとセキュリティ設定の管理。",
+      "title": "ユーザー管理"
+    }
+  },
   "settingDesc": {
     "ACCESS_TOKEN_EXPIRE_HOURS": "アクセストークン有効期限（時間）",
     "ADMIN_CONTACT_EMAIL": "Aboutダイアログに表示される管理者の連絡先メール",
@@ -1598,6 +1670,7 @@
     "DAYTONA_TIMEOUT": "Daytonaコマンドタイムアウト（秒）",
     "DEBUG": "デバッグモードを有効化",
     "DEFAULT_AGENT": "新しいセッションのデフォルトエージェントタイプ",
+    "DEFAULT_MODEL_ID": "新しいセッションとバックグラウンドジョブで使用する管理者のデフォルトモデル設定。空の場合は最初の有効なモデルを使用します。",
     "DEFAULT_USER_ROLE": "新規登録ユーザーのデフォルトロール",
     "DEFERRED_TOOL_SEARCH_LIMIT": "ツール検索で返される最大結果数",
     "DEFERRED_TOOL_THRESHOLD": "MCPツールを遅延読み込みするツール総数閾値（0 = 常に遅延）",
@@ -1651,6 +1724,7 @@
     "NATIVE_MEMORY_AUTO_COMPACT_INTERVAL_SECONDS": "メモリ圧縮agentがしきい値超過ユーザーをスキャンする間隔（秒）。",
     "NATIVE_MEMORY_AUTO_COMPACT_MIN_INTERVAL_SECONDS": "同じユーザーへの圧縮試行の最小間隔（秒）。",
     "NATIVE_MEMORY_AUTO_COMPACT_THRESHOLD": "自動圧縮を開始するユーザーごとのメモリ数。",
+    "NATIVE_MEMORY_COMPACTION_MODEL_ID": "バックグラウンドメモリ圧縮agentが使用する管理者モデル設定。空の場合はデフォルトモデルを使用。",
     "NATIVE_MEMORY_EMBEDDING_API_BASE": "ベクトル検索用のEmbedding APIベースURL（OpenAI互換）。空の場合はテキストのみモード。",
     "NATIVE_MEMORY_EMBEDDING_API_KEY": "Embedding APIキー（OpenAI互換エンドポイント）",
     "NATIVE_MEMORY_EMBEDDING_MODEL": "Embeddingモデル名（例：text-embedding-3-small）",
@@ -1726,6 +1800,8 @@
     "WELCOME_SUGGESTION_TEXT": "テキスト"
   },
   "settings": {
+    "defaultModel": "デフォルトモデル",
+    "firstEnabledModel": "最初の有効なモデル",
     "exportSettings": "設定をエクスポート",
     "exportSuccess": "設定をエクスポートしました",
     "importSettings": "設定をインポート",
@@ -2041,6 +2117,7 @@
     "langsmith": "LangSmith",
     "limits": "制限",
     "llm": "LLM",
+    "model": "モデル",
     "mcp": "MCP",
     "policy": "ポリシー",
     "pool": "接続プール",
@@ -2150,72 +2227,6 @@
       "enterPassword": "パスワードを入力してください",
       "enterUsername": "ユーザー名を入力してください",
       "passwordMinLength": "パスワードは6文字以上である必要があります"
-    }
-  },
-  "seo": {
-    "landing": {
-      "title": "LambChat - AIエージェントプラットフォーム",
-      "description": "LambChatはSkills + MCPデュアルエンジン駆動のプラガブルなマルチテナントAI対話プラットフォーム。Claude、GPT、Geminiなど複数モデルに対応し、リアルタイムSSEストリーミング、マルチエージェントオーケストレーション、モジュラースキルシステムを提供。"
-    },
-    "chat": {
-      "title": "AIチャット",
-      "description": "AIエージェントとインテリジェントな対話。マルチモデル切り替え、リアルタイムストリーミング応答、セッション管理、ファイルアップロード、マルチエージェント連携に対応。"
-    },
-    "skills": {
-      "title": "スキル管理",
-      "description": "AIスキルの作成、設定、管理。プロンプトエンジニアリング、ツール統合、モジュラースキル構成で強力なカスタム機能を構築。"
-    },
-    "marketplace": {
-      "title": "スキルマーケットプレイス",
-      "description": "コミュニティ構築のAIスキルを発見・インストール。評価・デプロイでAIエージェントの機能を拡張。"
-    },
-    "agents": {
-      "title": "AIエージェント",
-      "description": "AIエージェントの設定と管理。システムプロンプト、モデル選択、ツール定義、マルチエージェントワークフローのオーケストレーション。"
-    },
-    "models": {
-      "title": "モデル管理",
-      "description": "LLMモデル設定の管理。Claude、GPT、Geminiなど統合API抽象化でシームレスなモデル切り替え。"
-    },
-    "mcp": {
-      "title": "MCPサーバー管理",
-      "description": "Model Context Protocolサーバー接続の管理。外部ツール、データベース、サービスを接続してAIエージェントの能力を拡張。"
-    },
-    "persona": {
-      "title": "ペルソナプリセット",
-      "description": "AIペルソナの選択とカスタマイズ。パーソナリティ、トーン、専門分野、行動パターンを定義した専門的な対話体験。"
-    },
-    "files": {
-      "title": "ファイルライブラリ",
-      "description": "AIワークスペースでのファイルのアップロード、整理、管理。ドキュメント、画像、メディアをAIエージェントと共有して分析・処理。"
-    },
-    "memory": {
-      "title": "AIメモリスペース",
-      "description": "AIメモリコンテンツの表示と管理。永続的なコンテキストと知識保存で対話間の長期的なAIエージェント理解を実現。"
-    },
-    "users": {
-      "title": "ユーザー管理",
-      "description": "ユーザーアカウント、ロール、アクセス権限の管理。マルチテナントユーザーライフサイクルとセキュリティ設定の管理。"
-    },
-    "roles": {
-      "title": "ロールと権限",
-      "description": "ロールときめ細かい権限の設定。チーム、リソース、管理機能のアクセス制御ポリシーを定義。"
-    },
-    "settings": {
-      "title": "システム設定",
-      "description": "アプリケーションとシステム設定の構成。グローバル設定、統合、セキュリティポリシー、プラットフォーム動作の管理。"
-    },
-    "feedback": {
-      "title": "ユーザーフィードバック",
-      "description": "ユーザーフィードバックの表示と管理。機能リクエスト、バグ報告、ユーザー満足度を追跡して製品改善を推進。"
-    },
-    "channels": {
-      "title": "コミュニケーションチャネル",
-      "description": "コミュニケーションチャネルの管理。外部メッセージングプラットフォームと通知サービスを接続してマルチチャネルAI連携。"
-    },
-    "notifications": {
-      "title": "通知",
-      "description": "システムアナウンスと通知の管理。プラットフォームニュース、アラート、重要メッセージの最新情報を取得。"
     }
   }
 }

@@ -110,6 +110,10 @@ class AvailableModelListResponse(BaseModel):
     )
     count: int = Field(0, description="Number of visible models")
     enabled_count: int = Field(0, description="Number of visible enabled models")
+    default_model_id: Optional[str] = Field(
+        None,
+        description="Effective default model ID for this user's visible model set",
+    )
 
 
 def to_available_model(model: ModelConfig) -> AvailableModel:

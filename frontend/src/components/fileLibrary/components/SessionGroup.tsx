@@ -5,7 +5,7 @@ import type { RevealedFileItem } from "../../../services/api";
 import { RevealedFileCard } from "../RevealedFileCard";
 import { VISIBLE_FILES_PER_SESSION } from "../constants";
 import { getSessionNavigationTarget } from "../utils";
-import { formatDate } from "../../../utils/datetime";
+import { formatDate, parseDate } from "../../../utils/datetime";
 import type { ViewMode } from "../types";
 
 interface SessionGroupProps {
@@ -38,7 +38,7 @@ export function SessionGroup({
   const dateLabel = useMemo(() => {
     const created = files[0]?.created_at;
     if (!created) return "";
-    const d = new Date(created);
+    const d = parseDate(created);
     if (isNaN(d.getTime())) return "";
     return formatDate(created);
   }, [files]);

@@ -15,6 +15,7 @@ import type {
   ToolPart,
   TodoPart,
 } from "../../types";
+import { parseDate } from "../../utils/datetime";
 import type { SubagentStackItem } from "./types";
 
 // ============================================
@@ -72,7 +73,7 @@ export function createSubagentPart(
   depth: number,
   timestamp?: string,
 ): SubagentPart {
-  const startedAt = timestamp ? new Date(timestamp).getTime() : Date.now();
+  const startedAt = timestamp ? parseDate(timestamp).getTime() : Date.now();
   return {
     type: "subagent",
     agent_id: agentId,
@@ -371,7 +372,7 @@ export function updateSubagentResult(
   error?: string,
   timestamp?: string,
 ): MessagePart[] {
-  const completedAt = timestamp ? new Date(timestamp).getTime() : Date.now();
+  const completedAt = timestamp ? parseDate(timestamp).getTime() : Date.now();
   const status = success ? "complete" : "error";
 
   for (let i = parts.length - 1; i >= 0; i--) {

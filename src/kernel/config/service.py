@@ -19,6 +19,11 @@ _settings_service: Optional["SettingsService"] = None
 # Cache for all settings from database
 _settings_cache: dict[str, Any] = {}
 
+_ALLOW_EMPTY_STRING_SETTINGS = {
+    "DEFAULT_MODEL_ID",
+    "NATIVE_MEMORY_COMPACTION_MODEL_ID",
+}
+
 
 async def initialize_settings() -> None:
     """Initialize settings from database, importing from .env if needed.
@@ -43,9 +48,13 @@ async def initialize_settings() -> None:
     for category, items in all_settings.items():
         logger.debug(f"[Settings] Category {category}: {len(items)} items")
         for item in items:
-            # Only update if value is not None AND not an empty string
-            # This prevents empty DB values from overriding .env values
-            if item and item.value is not None and item.value != "":
+            # Empty strings usually mean "keep env fallback", but selected model
+            # settings use "" as an intentional "automatic/default" value.
+            if (
+                item
+                and item.value is not None
+                and (item.value != "" or item.key in _ALLOW_EMPTY_STRING_SETTINGS)
+            ):
                 _settings_cache[item.key] = item.value
                 # Only update if the field exists in Settings class
                 if hasattr(settings, item.key):
@@ -71,6 +80,7 @@ async def refresh_settings(key: Optional[str] = None) -> None:
 
     # Settings that affect LLM model cache (used for title generation etc.)
     llm_affected_settings = {
+        "DEFAULT_MODEL_ID",
         "SESSION_TITLE_MODEL",
         "SESSION_TITLE_API_BASE",
         "SESSION_TITLE_API_KEY",
@@ -87,8 +97,11 @@ async def refresh_settings(key: Optional[str] = None) -> None:
     if key:
         # Refresh single setting
         setting = await _settings_service._storage.get_raw(key)
-        # Only update if value is not None AND not an empty string
-        if setting and setting.value is not None and setting.value != "":
+        if (
+            setting
+            and setting.value is not None
+            and (setting.value != "" or key in _ALLOW_EMPTY_STRING_SETTINGS)
+        ):
             _settings_cache[key] = setting.value
             setattr(settings, key, setting.value)
             # Clear LLM model cache if this setting affects it
@@ -112,8 +125,11 @@ async def refresh_settings(key: Optional[str] = None) -> None:
         any_memory_setting_changed = False
         for items in all_settings.values():
             for item in items:
-                # Only update if value is not None AND not an empty string
-                if item and item.value is not None and item.value != "":
+                if (
+                    item
+                    and item.value is not None
+                    and (item.value != "" or item.key in _ALLOW_EMPTY_STRING_SETTINGS)
+                ):
                     _settings_cache[item.key] = item.value
                     setattr(settings, item.key, item.value)
                     if item.key in llm_affected_settings:

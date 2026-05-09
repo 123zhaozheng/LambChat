@@ -2,15 +2,25 @@ import type { TFunction } from "i18next";
 
 // ── Parse ──────────────────────────────────────────────
 
-export function parseDate(iso: string): Date {
-  const s = iso.trim();
-  return new Date(s.endsWith("Z") ? s : s + "Z");
+type TimeInput = string | number | Date;
+
+function toDate(input: TimeInput): Date {
+  if (input instanceof Date) return input;
+  if (typeof input === "number") return new Date(input);
+  const s = input.trim();
+  if (s.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(s)) {
+    return new Date(s);
+  }
+  return new Date(s + "Z");
 }
+
+export { toDate as parseDate };
+export type { TimeInput };
 
 // ── Display formatters ─────────────────────────────────
 
-export function formatDateTime(iso: string): string {
-  return parseDate(iso).toLocaleString(undefined, {
+export function formatDateTime(input: TimeInput): string {
+  return toDate(input).toLocaleString(undefined, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -20,19 +30,19 @@ export function formatDateTime(iso: string): string {
   });
 }
 
-export function formatDate(iso: string): string {
-  return parseDate(iso).toLocaleDateString();
+export function formatDate(input: TimeInput): string {
+  return toDate(input).toLocaleDateString();
 }
 
-export function formatTime(iso: string): string {
-  return parseDate(iso).toLocaleTimeString(undefined, {
+export function formatTime(input: TimeInput): string {
+  return toDate(input).toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
   });
 }
 
-export function formatDateTimeShort(iso: string): string {
-  return parseDate(iso).toLocaleString(undefined, {
+export function formatDateTimeShort(input: TimeInput): string {
+  return toDate(input).toLocaleString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -43,8 +53,8 @@ export function formatDateTimeShort(iso: string): string {
 
 // ── Relative time ──────────────────────────────────────
 
-export function formatTimeAgo(t: TFunction, iso: string): string {
-  const diffMs = Date.now() - parseDate(iso).getTime();
+export function formatTimeAgo(t: TFunction, input: TimeInput): string {
+  const diffMs = Date.now() - toDate(input).getTime();
   const diffMin = Math.floor(diffMs / 60000);
   if (diffMin < 1) return t("common.timeAgo.justNow");
   if (diffMin < 60) return t("common.timeAgo.minutesAgo", { count: diffMin });
@@ -57,9 +67,12 @@ export function formatTimeAgo(t: TFunction, iso: string): string {
   });
 }
 
-export function formatRelativeDate(t: TFunction, iso: string | null): string {
-  if (!iso) return "";
-  const d = parseDate(iso);
+export function formatRelativeDate(
+  t: TFunction,
+  input: TimeInput | null,
+): string {
+  if (!input) return "";
+  const d = toDate(input);
   const diffDays = Math.floor((Date.now() - d.getTime()) / 86400000);
   if (diffDays === 0)
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -72,6 +85,6 @@ export function formatRelativeDate(t: TFunction, iso: string | null): string {
 
 // ── Comparison helpers ─────────────────────────────────
 
-export function getTimeMs(iso: string): number {
-  return parseDate(iso).getTime();
+export function getTimeMs(input: TimeInput): number {
+  return toDate(input).getTime();
 }

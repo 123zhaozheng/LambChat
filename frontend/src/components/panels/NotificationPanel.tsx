@@ -24,7 +24,7 @@ import type {
   NotificationCreate,
 } from "../../types/notification";
 import type { I18nText } from "../../types/notification";
-import { formatDateTimeShort } from "../../utils/datetime";
+import { formatDateTimeShort, parseDate } from "../../utils/datetime";
 
 const LOCALE_KEYS: Array<{ key: keyof I18nText; label: string }> = [
   { key: "en", label: "English" },
@@ -39,7 +39,7 @@ const emptyI18n: I18nText = { en: "", zh: "", ja: "", ko: "", ru: "" };
 /** Convert ISO datetime string to datetime-local input value (YYYY-MM-DDTHH:mm) */
 function toDatetimeLocal(value: string | null): string {
   if (!value) return "";
-  const d = new Date(value);
+  const d = parseDate(value);
   const pad = (n: number) => n.toString().padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
     d.getHours(),
@@ -60,13 +60,13 @@ function getNotificationStatus(
   if (!notification.is_active) return "inactive";
   if (
     notification.end_time &&
-    new Date(notification.end_time).getTime() < now
+    parseDate(notification.end_time).getTime() < now
   ) {
     return "expired";
   }
   if (
     notification.start_time &&
-    new Date(notification.start_time).getTime() > now
+    parseDate(notification.start_time).getTime() > now
   ) {
     return "scheduled";
   }

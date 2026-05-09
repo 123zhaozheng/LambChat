@@ -3,7 +3,7 @@ MongoDB 存储实现
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, List, Optional
 
@@ -59,6 +59,8 @@ def get_mongo_client() -> "AsyncIOMotorClient":
             minPoolSize=2,
             connectTimeoutMS=5000,
             serverSelectionTimeoutMS=10000,
+            tz_aware=True,
+            tzinfo=timezone.utc,
         )
         return client
     except ImportError:

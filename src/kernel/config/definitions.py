@@ -27,6 +27,14 @@ SETTING_DEFINITIONS: dict[str, dict] = {
         "default": "default",
         "frontend_visible": True,
     },
+    "DEFAULT_MODEL_ID": {
+        "type": SettingType.STRING,
+        "category": SettingCategory.LLM,
+        "subcategory": "model",
+        "description": "settingDesc.DEFAULT_MODEL_ID",
+        "default": "",
+        "frontend_visible": True,
+    },
     "WELCOME_SUGGESTIONS": {
         "type": SettingType.JSON,
         "category": SettingCategory.FRONTEND,

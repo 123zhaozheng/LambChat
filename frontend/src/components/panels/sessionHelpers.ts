@@ -4,6 +4,7 @@
 
 import type { BackendSession } from "../../services/api";
 import type { TFunction } from "i18next";
+import { parseDate } from "../../utils/datetime";
 
 export function getSessionTitle(session: BackendSession, t: TFunction): string {
   if (session.name) return session.name;
@@ -28,7 +29,7 @@ export function groupSessionsByTime(
   const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   sessionList.forEach((session) => {
-    const sessionDate = new Date(session.updated_at);
+    const sessionDate = parseDate(session.updated_at);
     if (sessionDate >= todayStart) {
       today.push(session);
     } else if (sessionDate >= yesterdayStart) {

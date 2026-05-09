@@ -15,6 +15,7 @@ from src.infra.session.dual_writer import get_dual_writer
 from src.infra.session.manager import SessionManager
 from src.infra.share.storage import ShareStorage
 from src.infra.user.storage import UserStorage
+from src.infra.utils.datetime import to_iso
 from src.kernel.schemas.share import (
     ShareCreate,
     SharedContentOwner,
@@ -288,11 +289,11 @@ async def get_shared_content(
         "agent_id": session.agent_id,
         "agent_name": agent_name,
         "model": model,
-        "created_at": session.created_at.isoformat() if session.created_at else None,
-        "updated_at": session.updated_at.isoformat() if session.updated_at else None,
+        "created_at": to_iso(session.created_at),
+        "updated_at": to_iso(session.updated_at),
         "task_status": session.task_status,
         "task_error": session.task_error,
-        "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+        "completed_at": to_iso(session.completed_at),
     }
 
     # Add persona info if available

@@ -643,6 +643,14 @@ EXTRA_SETTING_DEFINITIONS: dict[str, dict] = {
         "default": "",
         "depends_on": "ENABLE_MEMORY",
     },
+    "NATIVE_MEMORY_COMPACTION_MODEL_ID": {
+        "type": SettingType.STRING,
+        "category": SettingCategory.MEMORY_STORAGE,
+        "subcategory": "llm",
+        "description": "settingDesc.NATIVE_MEMORY_COMPACTION_MODEL_ID",
+        "default": "",
+        "depends_on": "ENABLE_MEMORY",
+    },
     "NATIVE_MEMORY_API_BASE": {
         "type": SettingType.STRING,
         "category": SettingCategory.MEMORY_STORAGE,
@@ -705,7 +713,7 @@ EXTRA_SETTING_DEFINITIONS: dict[str, dict] = {
         "category": SettingCategory.MEMORY_STORAGE,
         "subcategory": "policy",
         "description": "settingDesc.NATIVE_MEMORY_AUTO_COMPACT_THRESHOLD",
-        "default": 10,
+        "default": 40,
         "depends_on": "ENABLE_MEMORY",
     },
     "NATIVE_MEMORY_AUTO_COMPACT_INTERVAL_SECONDS": {

@@ -43,6 +43,7 @@ Optional reranking for improved memory relevance.
 | Variable | Default | Sensitive | Description |
 |----------|---------|-----------|-------------|
 | `NATIVE_MEMORY_MODEL` | _(empty)_ | No | LLM model for memory extraction. |
+| `NATIVE_MEMORY_COMPACTION_MODEL_ID` | _(empty)_ | No | Admin model configuration ID used by the background memory compaction agent. Empty = default model. |
 | `NATIVE_MEMORY_API_BASE` | _(empty)_ | No | LLM API base for memory extraction. |
 | `NATIVE_MEMORY_API_KEY` | _(empty)_ | Yes | LLM API key for memory extraction. |
 | `NATIVE_MEMORY_STORE_NAMESPACE` | `memories` | No | LangGraph store namespace. |

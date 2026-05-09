@@ -12,6 +12,7 @@ shared caches.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import Any, Optional
 
 from src.infra.logging import get_logger
@@ -57,6 +58,32 @@ def set_cached_api_key(model_value: str, api_key: str) -> None:
     _api_key_cache[model_value] = api_key
 
 
+def _matches_allowed(model: Mapping[str, Any], allowed_set: set[str] | None) -> bool:
+    if allowed_set is None:
+        return True
+    return model.get("value") in allowed_set or model.get("id") in allowed_set
+
+
+def select_default_model(
+    models: list[dict[str, Any]], allowed_models: Optional[list[str]] = None
+) -> Mapping[str, Any] | None:
+    """Select the effective default model from already-available models."""
+    allowed_set = set(allowed_models) if allowed_models is not None else None
+    admin_default_id = getattr(settings, "DEFAULT_MODEL_ID", "") or ""
+
+    if admin_default_id:
+        for model in models:
+            if not _matches_allowed(model, allowed_set):
+                continue
+            if model.get("id") == admin_default_id or model.get("value") == admin_default_id:
+                return model
+
+    for model in models:
+        if _matches_allowed(model, allowed_set):
+            return model
+    return None
+
+
 async def get_default_model(allowed_models: Optional[list[str]] = None) -> str:
     """Return the first available model's value, or empty string.
 
@@ -64,17 +91,8 @@ async def get_default_model(allowed_models: Optional[list[str]] = None) -> str:
         allowed_models: If provided, only consider models in this list
                        (can be model values or model IDs).
     """
-    models = await get_available_models()
-    if allowed_models is not None:
-        allowed_set = set(allowed_models)
-        for m in models:
-            # 支持按 value 或 id 匹配
-            if m.get("value") in allowed_set or m.get("id") in allowed_set:
-                return m.get("value", "")
-        return ""
-    if models:
-        return models[0].get("value", "")
-    return ""
+    model = select_default_model(await get_available_models(), allowed_models)
+    return model.get("value", "") if model else ""
 
 
 async def get_default_model_id(allowed_models: Optional[list[str]] = None) -> str:
@@ -84,16 +102,8 @@ async def get_default_model_id(allowed_models: Optional[list[str]] = None) -> st
         allowed_models: If provided, only consider models in this list
                        (model IDs).
     """
-    models = await get_available_models()
-    if allowed_models is not None:
-        allowed_set = set(allowed_models)
-        for m in models:
-            if m.get("id") in allowed_set or m.get("value") in allowed_set:
-                return m.get("id", "")
-        return ""
-    if models:
-        return models[0].get("id", "")
-    return ""
+    model = select_default_model(await get_available_models(), allowed_models)
+    return model.get("id", "") if model else ""
 
 
 async def get_available_models() -> list[dict[str, Any]]:

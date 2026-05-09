@@ -301,6 +301,95 @@
     "verifyingEmail": "이메일 인증 중...",
     "whatToDoNext": "다음 단계"
   },
+  "backendErrors": {
+    "accountInactive": "계정이 활성화되지 않았습니다. 이메일 인증 후 로그인하세요.",
+    "approvalAlreadyHandled": "이 승인 요청은 이미 처리되었습니다.",
+    "approvalNotFound": "승인 요청을 찾을 수 없습니다.",
+    "authMissing": "인증 정보가 없습니다.",
+    "avatarTooLarge": "아바타 파일은 2MB를 초과할 수 없습니다.",
+    "cannotChangeOwnRolePermissions": "자신이 속한 역할의 권한은 변경할 수 없습니다.",
+    "cannotCreateFavoritesProject": "즐겨찾기 프로젝트는 만들 수 없습니다.",
+    "cannotDeleteFavoritesProject": "즐겨찾기 프로젝트는 삭제할 수 없습니다.",
+    "channelInstanceDisabled": "채널 인스턴스가 비활성화되었습니다.",
+    "channelInstanceNotFound": "채널 인스턴스를 찾을 수 없습니다.",
+    "deleteFailed": "삭제 실패",
+    "emailServiceDisabled": "이메일 서비스가 활성화되어 있지 않습니다.",
+    "emailTooManyRequests": "이 이메일 요청이 너무 많습니다. 나중에 다시 시도하세요.",
+    "emailVerificationRequired": "로그인하기 전에 이메일을 인증하세요.",
+    "emptyFile": "파일이 비어 있습니다.",
+    "favoriteUpdateFailed": "즐겨찾기 상태 업데이트에 실패했습니다.",
+    "fileNotFound": "파일을 찾을 수 없습니다.",
+    "fileReadFailed": "파일 읽기에 실패했습니다.",
+    "fileTooLarge": "파일 크기가 {{max}}MB 제한을 초과했습니다.",
+    "fileUploadNoPermission": "{{category}} 파일을 업로드할 권한이 없습니다.",
+    "fileUrlFailed": "파일 URL 생성에 실패했습니다.",
+    "instanceNameRequired": "인스턴스 이름은 필수입니다.",
+    "invalidCredentials": "사용자 이름 또는 비밀번호가 올바르지 않습니다.",
+    "invalidDisabledTools": "비활성화 도구 목록이 올바르지 않습니다.",
+    "invalidEnvKeyFormat": "환경 변수 키 형식이 올바르지 않습니다.",
+    "invalidExpiresRange": "만료 시간은 60초에서 86400초 사이여야 합니다.",
+    "invalidFileId": "파일 ID 형식이 올바르지 않습니다.",
+    "invalidFilePath": "파일 경로가 올바르지 않습니다.",
+    "invalidPinnedModelIds": "고정 모델 목록이 올바르지 않습니다.",
+    "invalidResetToken": "재설정 토큰이 올바르지 않습니다.",
+    "invalidSessionStatus": "상태는 active 또는 archived여야 합니다.",
+    "invalidToken": "토큰이 올바르지 않습니다.",
+    "invalidTokenPayload": "토큰 내용이 올바르지 않습니다.",
+    "invalidVerificationToken": "인증 토큰이 올바르지 않거나 만료되었습니다.",
+    "marketplaceSkillNameRequired": "마켓플레이스 스킬 이름은 필수입니다.",
+    "marketplaceSkillNoFiles": "마켓플레이스 스킬에 파일이 없습니다.",
+    "marketplaceSyncFailed": "파일을 마켓플레이스에 동기화하지 못했습니다.",
+    "marketplaceSyncRolledBack": "파일 동기화에 실패하여 마켓플레이스 항목을 롤백했습니다.",
+    "memoryBackendUnavailable": "메모리 백엔드를 사용할 수 없습니다.",
+    "memoryDeleteLimit": "한 번에 100개를 초과하여 삭제할 수 없습니다.",
+    "memoryIdsRequired": "memory_ids는 비워 둘 수 없습니다.",
+    "memoryNotFound": "메모리를 찾을 수 없습니다.",
+    "modelFallbackSelf": "모델은 자기 자신을 대체 모델로 사용할 수 없습니다.",
+    "modelsRequired": "모델 목록은 비워 둘 수 없습니다.",
+    "moveFailed": "이동 실패",
+    "moveFavoriteSyncFailed": "이동 후 즐겨찾기 상태 동기화에 실패했습니다.",
+    "noSkillsFoundInRepository": "저장소에서 스킬을 찾을 수 없습니다.",
+    "notificationNotFound": "알림을 찾을 수 없습니다.",
+    "oauthFailed": "OAuth 인증에 실패했습니다.",
+    "oauthStateInvalid": "OAuth 상태가 올바르지 않습니다. 다시 로그인하세요.",
+    "oauthUrlFailed": "인증 URL 생성에 실패했습니다.",
+    "onlyCreatorCanToggleTools": "이 서버의 도구는 생성자만 전환할 수 있습니다.",
+    "onlyCreatorCanUpdate": "생성자만 업데이트할 수 있습니다.",
+    "permissionMissing": "권한이 없습니다: {{permission}}",
+    "projectNotFound": "프로젝트를 찾을 수 없습니다.",
+    "publishSkillFailed": "스킬 게시에 실패했습니다.",
+    "refreshTokenInvalid": "새로고침 토큰이 올바르지 않습니다.",
+    "refreshTokenMissing": "새로고침 토큰이 없습니다.",
+    "registrationClosed": "가입이 닫혀 있습니다.",
+    "repositoryOrBranchNotFound": "저장소 또는 브랜치를 찾을 수 없습니다.",
+    "resetTokenExpired": "재설정 토큰이 만료되었습니다.",
+    "roleNotFound": "역할을 찾을 수 없습니다.",
+    "sessionAccessDenied": "이 세션에 접근할 권한이 없습니다.",
+    "sessionNotFound": "세션을 찾을 수 없습니다.",
+    "settingNotFound": "설정을 찾을 수 없습니다.",
+    "shareDeleteOwnOnly": "자신이 만든 공유만 삭제할 수 있습니다.",
+    "shareExpiredOrMissing": "공유가 없거나 만료되었습니다.",
+    "shareLoginRequired": "이 공유를 보려면 로그인해야 합니다.",
+    "shareNoPermission": "세션을 공유할 권한이 없습니다.",
+    "shareNotFound": "공유를 찾을 수 없습니다.",
+    "shareOwnOnly": "자신의 세션만 공유할 수 있습니다.",
+    "sharePartialNeedsRunIds": "부분 공유에는 run_ids가 필요합니다.",
+    "shareSourceMissing": "원본 세션이 더 이상 존재하지 않습니다.",
+    "shareViewOwnOnly": "자신의 세션 공유만 볼 수 있습니다.",
+    "skillDeactivated": "이 스킬은 비활성화되었습니다.",
+    "skillFileRequired": "스킬에는 하나 이상의 파일이 필요합니다.",
+    "skillNotFound": "스킬을 찾을 수 없습니다.",
+    "targetOwnerRequired": "새 소유자를 지정해야 합니다.",
+    "targetUserRequired": "대상 사용자를 지정해야 합니다.",
+    "tooManyPinnedModels": "고정 모델이 너무 많습니다. 최대 10개까지 가능합니다.",
+    "tooManyRequests": "요청이 너무 많습니다. 나중에 다시 시도하세요.",
+    "turnstileFailed": "인간 인증에 실패했습니다. 다시 시도하세요.",
+    "unauthenticated": "사용자가 인증되지 않았습니다.",
+    "updateFailed": "업데이트 실패",
+    "uploadDuplicateConflict": "업로드 실패: 중복 레코드 충돌",
+    "userNotFound": "사용자를 찾을 수 없습니다.",
+    "zipRequired": "파일은 ZIP 압축 파일이어야 합니다."
+  },
   "categories": {
     "agent": "에이전트",
     "audio_transcription": "오디오 전사",
@@ -547,10 +636,10 @@
     "showing": "{{start}}-{{end}} 표시 중",
     "skip": "건너뛰기",
     "timeAgo": {
+      "daysAgo": "{{count}}일 전",
+      "hoursAgo": "{{count}}시간 전",
       "justNow": "방금",
       "minutesAgo": "{{count}}분 전",
-      "hoursAgo": "{{count}}시간 전",
-      "daysAgo": "{{count}}일 전",
       "monthsAgo": "{{count}}개월 전"
     },
     "timeMonthsAgo": "{{count}}개월 전",
@@ -685,95 +774,6 @@
     "noPermissionTitle": "접근 거부",
     "pageNotFound": "페이지를 찾을 수 없습니다",
     "pageNotFoundDesc": "죄송합니다. 찾으시는 페이지가 존재하지 않거나 삭제되었습니다. URL을 확인하거나 홈으로 돌아가세요."
-  },
-  "backendErrors": {
-    "accountInactive": "계정이 활성화되지 않았습니다. 이메일 인증 후 로그인하세요.",
-    "approvalAlreadyHandled": "이 승인 요청은 이미 처리되었습니다.",
-    "approvalNotFound": "승인 요청을 찾을 수 없습니다.",
-    "authMissing": "인증 정보가 없습니다.",
-    "avatarTooLarge": "아바타 파일은 2MB를 초과할 수 없습니다.",
-    "cannotChangeOwnRolePermissions": "자신이 속한 역할의 권한은 변경할 수 없습니다.",
-    "cannotCreateFavoritesProject": "즐겨찾기 프로젝트는 만들 수 없습니다.",
-    "cannotDeleteFavoritesProject": "즐겨찾기 프로젝트는 삭제할 수 없습니다.",
-    "channelInstanceDisabled": "채널 인스턴스가 비활성화되었습니다.",
-    "channelInstanceNotFound": "채널 인스턴스를 찾을 수 없습니다.",
-    "deleteFailed": "삭제 실패",
-    "emailServiceDisabled": "이메일 서비스가 활성화되어 있지 않습니다.",
-    "emailTooManyRequests": "이 이메일 요청이 너무 많습니다. 나중에 다시 시도하세요.",
-    "emailVerificationRequired": "로그인하기 전에 이메일을 인증하세요.",
-    "emptyFile": "파일이 비어 있습니다.",
-    "favoriteUpdateFailed": "즐겨찾기 상태 업데이트에 실패했습니다.",
-    "fileReadFailed": "파일 읽기에 실패했습니다.",
-    "fileTooLarge": "파일 크기가 {{max}}MB 제한을 초과했습니다.",
-    "fileUploadNoPermission": "{{category}} 파일을 업로드할 권한이 없습니다.",
-    "fileNotFound": "파일을 찾을 수 없습니다.",
-    "fileUrlFailed": "파일 URL 생성에 실패했습니다.",
-    "invalidCredentials": "사용자 이름 또는 비밀번호가 올바르지 않습니다.",
-    "invalidDisabledTools": "비활성화 도구 목록이 올바르지 않습니다.",
-    "invalidEnvKeyFormat": "환경 변수 키 형식이 올바르지 않습니다.",
-    "invalidExpiresRange": "만료 시간은 60초에서 86400초 사이여야 합니다.",
-    "invalidFileId": "파일 ID 형식이 올바르지 않습니다.",
-    "invalidFilePath": "파일 경로가 올바르지 않습니다.",
-    "invalidPinnedModelIds": "고정 모델 목록이 올바르지 않습니다.",
-    "invalidResetToken": "재설정 토큰이 올바르지 않습니다.",
-    "invalidSessionStatus": "상태는 active 또는 archived여야 합니다.",
-    "invalidToken": "토큰이 올바르지 않습니다.",
-    "invalidTokenPayload": "토큰 내용이 올바르지 않습니다.",
-    "invalidVerificationToken": "인증 토큰이 올바르지 않거나 만료되었습니다.",
-    "instanceNameRequired": "인스턴스 이름은 필수입니다.",
-    "marketplaceSkillNameRequired": "마켓플레이스 스킬 이름은 필수입니다.",
-    "marketplaceSkillNoFiles": "마켓플레이스 스킬에 파일이 없습니다.",
-    "marketplaceSyncFailed": "파일을 마켓플레이스에 동기화하지 못했습니다.",
-    "marketplaceSyncRolledBack": "파일 동기화에 실패하여 마켓플레이스 항목을 롤백했습니다.",
-    "memoryBackendUnavailable": "메모리 백엔드를 사용할 수 없습니다.",
-    "memoryDeleteLimit": "한 번에 100개를 초과하여 삭제할 수 없습니다.",
-    "memoryIdsRequired": "memory_ids는 비워 둘 수 없습니다.",
-    "memoryNotFound": "메모리를 찾을 수 없습니다.",
-    "modelFallbackSelf": "모델은 자기 자신을 대체 모델로 사용할 수 없습니다.",
-    "modelsRequired": "모델 목록은 비워 둘 수 없습니다.",
-    "moveFailed": "이동 실패",
-    "moveFavoriteSyncFailed": "이동 후 즐겨찾기 상태 동기화에 실패했습니다.",
-    "noSkillsFoundInRepository": "저장소에서 스킬을 찾을 수 없습니다.",
-    "notificationNotFound": "알림을 찾을 수 없습니다.",
-    "oauthFailed": "OAuth 인증에 실패했습니다.",
-    "oauthStateInvalid": "OAuth 상태가 올바르지 않습니다. 다시 로그인하세요.",
-    "oauthUrlFailed": "인증 URL 생성에 실패했습니다.",
-    "onlyCreatorCanToggleTools": "이 서버의 도구는 생성자만 전환할 수 있습니다.",
-    "onlyCreatorCanUpdate": "생성자만 업데이트할 수 있습니다.",
-    "permissionMissing": "권한이 없습니다: {{permission}}",
-    "projectNotFound": "프로젝트를 찾을 수 없습니다.",
-    "publishSkillFailed": "스킬 게시에 실패했습니다.",
-    "refreshTokenInvalid": "새로고침 토큰이 올바르지 않습니다.",
-    "refreshTokenMissing": "새로고침 토큰이 없습니다.",
-    "registrationClosed": "가입이 닫혀 있습니다.",
-    "repositoryOrBranchNotFound": "저장소 또는 브랜치를 찾을 수 없습니다.",
-    "resetTokenExpired": "재설정 토큰이 만료되었습니다.",
-    "roleNotFound": "역할을 찾을 수 없습니다.",
-    "sessionAccessDenied": "이 세션에 접근할 권한이 없습니다.",
-    "sessionNotFound": "세션을 찾을 수 없습니다.",
-    "settingNotFound": "설정을 찾을 수 없습니다.",
-    "shareDeleteOwnOnly": "자신이 만든 공유만 삭제할 수 있습니다.",
-    "shareExpiredOrMissing": "공유가 없거나 만료되었습니다.",
-    "shareLoginRequired": "이 공유를 보려면 로그인해야 합니다.",
-    "shareNoPermission": "세션을 공유할 권한이 없습니다.",
-    "shareNotFound": "공유를 찾을 수 없습니다.",
-    "shareOwnOnly": "자신의 세션만 공유할 수 있습니다.",
-    "sharePartialNeedsRunIds": "부분 공유에는 run_ids가 필요합니다.",
-    "shareSourceMissing": "원본 세션이 더 이상 존재하지 않습니다.",
-    "shareViewOwnOnly": "자신의 세션 공유만 볼 수 있습니다.",
-    "skillDeactivated": "이 스킬은 비활성화되었습니다.",
-    "skillFileRequired": "스킬에는 하나 이상의 파일이 필요합니다.",
-    "skillNotFound": "스킬을 찾을 수 없습니다.",
-    "targetOwnerRequired": "새 소유자를 지정해야 합니다.",
-    "targetUserRequired": "대상 사용자를 지정해야 합니다.",
-    "tooManyPinnedModels": "고정 모델이 너무 많습니다. 최대 10개까지 가능합니다.",
-    "tooManyRequests": "요청이 너무 많습니다. 나중에 다시 시도하세요.",
-    "turnstileFailed": "인간 인증에 실패했습니다. 다시 시도하세요.",
-    "unauthenticated": "사용자가 인증되지 않았습니다.",
-    "updateFailed": "업데이트 실패",
-    "uploadDuplicateConflict": "업로드 실패: 중복 레코드 충돌",
-    "userNotFound": "사용자를 찾을 수 없습니다.",
-    "zipRequired": "파일은 ZIP 압축 파일이어야 합니다."
   },
   "featureMenu": {
     "enhance": "강화",
@@ -1225,51 +1225,57 @@
     "allTypes": "모든 유형",
     "batchDeleteConfirmMessage": "선택한 {{count}}개의 메모리를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     "batchDeleted": "{{count}}개의 메모리가 삭제되었습니다",
+    "contentLabel": "내용",
+    "contentPlaceholder": "메모리 내용을 입력하세요 (5자 이상)...",
+    "contentRequired": "메모리 내용은 5자 이상이어야 합니다",
+    "createBtn": "메모리 추가",
+    "createSuccess": "메모리가 생성되었습니다",
+    "createTitle": "새 메모리",
     "deleteConfirm": "이 메모리를 삭제하시겠습니까?",
     "deleteConfirmMessage": "이 작업은 되돌릴 수 없습니다.",
     "deleteError": "삭제 실패",
     "deleted": "메모리가 삭제되었습니다",
-    "createBtn": "메모리 추가",
-    "createSuccess": "메모리가 생성되었습니다",
-    "createTitle": "새 메모리",
-    "contentLabel": "내용",
-    "contentPlaceholder": "메모리 내용을 입력하세요 (5자 이상)...",
-    "contentRequired": "메모리 내용은 5자 이상이어야 합니다",
     "editTitle": "메모리 편집",
+    "empty": "아직 메모리가 없습니다. AI가 자동으로 중요한 정보를 저장합니다.",
+    "export": "내보내기",
+    "exportError": "메모리 내보내기에 실패했습니다",
+    "exportSuccess": "{{count}}개의 메모리를 내보냈습니다",
+    "fetchError": "메모리를 불러오지 못했습니다",
+    "import": "가져오기",
+    "importError": "가져오기에 실패했습니다. JSON 파일 형식을 확인해 주세요.",
+    "importSuccess": "{{imported}}개의 메모리를 가져왔습니다 ({{created}}개 생성, {{overwritten}}개 덮어쓰기)",
+    "loading": "메모리 로딩 중...",
+    "noResults": "일치하는 메모리 없음",
     "saveError": "저장에 실패했습니다",
     "saving": "저장 중...",
+    "searchPlaceholder": "메모리 검색...",
+    "selectHint": "메모리를 선택하여 상세 보기",
+    "source": {
+      "auto_retained": "자동 보관",
+      "consolidated": "병합",
+      "imported": "가져오기",
+      "manual": "수동"
+    },
+    "sourceLabel": "출처",
+    "subtitle": "총 {{count}}개 메모리",
     "summaryLabel": "요약",
     "summaryPlaceholder": "간단한 설명 (선택사항)",
     "tagsLabel": "태그",
     "tagsPlaceholder": "태그를 쉼표로 구분하여 입력",
-    "titleLabel": "제목",
-    "titlePlaceholder": "메모리 제목을 입력하세요...",
-    "typeLabel": "유형",
-    "sourceLabel": "출처",
-    "source": {
-      "manual": "수동",
-      "auto_retained": "자동 보관",
-      "imported": "가져오기",
-      "consolidated": "병합"
-    },
-    "updateSuccess": "메모리가 업데이트되었습니다",
-    "empty": "아직 메모리가 없습니다. AI가 자동으로 중요한 정보를 저장합니다.",
-    "fetchError": "메모리를 불러오지 못했습니다",
-    "loading": "메모리 로딩 중...",
-    "noResults": "일치하는 메모리 없음",
-    "searchPlaceholder": "메모리 검색...",
-    "selectHint": "메모리를 선택하여 상세 보기",
-    "subtitle": "총 {{count}}개 메모리",
     "timeAgo": "{{count}}일 전",
     "timeMonthsAgo": "{{count}}개월 전",
     "timeWeeksAgo": "{{count}}주 전",
     "title": "메모리 공간",
+    "titleLabel": "제목",
+    "titlePlaceholder": "메모리 제목을 입력하세요...",
     "type": {
       "feedback": "피드백",
       "project": "프로젝트",
       "reference": "참조",
       "user": "사용자"
-    }
+    },
+    "typeLabel": "유형",
+    "updateSuccess": "메모리가 업데이트되었습니다"
   },
   "mermaidViewer": {
     "hideCode": "코드 숨기기",
@@ -1573,6 +1579,72 @@
       "selectPermission": "최소 하나의 권한을 선택해주세요"
     }
   },
+  "seo": {
+    "agents": {
+      "description": "AI 에이전트를 구성하고 관리하세요. 시스템 프롬프트 설정, 모델 선택, 도구 정의 및 복잡한 작업을 위한 멀티 에이전트 워크플로우 오케스트레이션.",
+      "title": "AI 에이전트"
+    },
+    "channels": {
+      "description": "커뮤니케이션 채널을 관리하세요. 외부 메시징 플랫폼 및 알림 서비스를 연결하여 멀티채널 AI 상호작용을 구현합니다.",
+      "title": "커뮤니케이션 채널"
+    },
+    "chat": {
+      "description": "AI 에이전트와 지능적인 대화를 나누세요. 다중 모델 전환, 실시간 스트리밍 응답, 세션 관리, 파일 업로드 및 멀티 에이전트 협업을 지원합니다.",
+      "title": "AI 채팅"
+    },
+    "feedback": {
+      "description": "사용자 피드백을 보고 관리하세요. 기능 요청, 버그 보고 및 사용자 만족도를 추적하여 제품 개선을 추진합니다.",
+      "title": "사용자 피드백"
+    },
+    "files": {
+      "description": "AI 워크스페이스에서 파일을 업로드, 구성 및 관리하세요. 문서, 이미지 및 미디어를 AI 에이전트와 공유하여 분석 및 처리합니다.",
+      "title": "파일 라이브러리"
+    },
+    "landing": {
+      "description": "LambChat은 Skills + MCP 듀얼 엔진 기반의 플러그인 가능한 멀티테넌트 AI 대화 플랫폼입니다. Claude, GPT, Gemini 등 다중 모델 지원, 실시간 SSE 스트리밍, 멀티 에이전트 오케스트레이션 및 모듈형 스킬 시스템을 제공합니다.",
+      "title": "LambChat - AI 에이전트 플랫폼"
+    },
+    "marketplace": {
+      "description": "커뮤니티에서 제작한 AI 스킬을 발견하고 설치하세요. 평가, 배포로 AI 에이전트 기능을 확장합니다.",
+      "title": "스킬 마켓플레이스"
+    },
+    "mcp": {
+      "description": "Model Context Protocol 서버 연결을 관리하세요. 외부 도구, 데이터베이스 및 서비스를 연결하여 AI 에이전트 기능을 확장합니다.",
+      "title": "MCP 서버 관리"
+    },
+    "memory": {
+      "description": "AI 메모리 콘텐츠를 보고 관리하세요. 영구적인 컨텍스트와 지식 저장으로 대화 간 장기적인 AI 에이전트 이해를 실현합니다.",
+      "title": "AI 메모리 공간"
+    },
+    "models": {
+      "description": "LLM 모델 구성을 관리하세요. Claude, GPT, Gemini 등 통합 API 추상화로 원활한 모델 전환.",
+      "title": "모델 관리"
+    },
+    "notifications": {
+      "description": "시스템 공지 및 알림을 관리하세요. 플랫폼 뉴스, 경고 및 중요 메시지의 최신 정보를 받아보세요.",
+      "title": "알림"
+    },
+    "persona": {
+      "description": "AI 페르소나를 선택하고 사용자 정의하세요. 성격, 어조, 전문 분야 및 행동 패턴을 정의하여 전문적인 대화 경험을 제공합니다.",
+      "title": "페르소나 프리셋"
+    },
+    "roles": {
+      "description": "역할과 세분화된 권한을 구성하세요. 팀, 리소스 및 관리 기능에 대한 액세스 제어 정책을 정의합니다.",
+      "title": "역할 및 권한"
+    },
+    "settings": {
+      "description": "애플리케이션 및 시스템 설정을 구성하세요. 전역 기본 설정, 통합, 보안 정책 및 플랫폼 동작을 관리합니다.",
+      "title": "시스템 설정"
+    },
+    "skills": {
+      "description": "AI 스킬을 생성, 구성 및 관리하세요. 프롬프트 엔지니어링, 도구 통합 및 모듈형 스킬 구성으로 강력한 사용자 정의 기능을 구축합니다.",
+      "title": "스킬 관리"
+    },
+    "users": {
+      "description": "사용자 계정, 역할 및 액세스 권한을 관리하세요. 멀티테넌트 사용자 라이프사이클 및 보안 설정을 관리합니다.",
+      "title": "사용자 관리"
+    }
+  },
   "settingDesc": {
     "ACCESS_TOKEN_EXPIRE_HOURS": "액세스 토큰 만료 시간(시간)",
     "ADMIN_CONTACT_EMAIL": "정보 대화상자에 표시되는 관리자 연락처 이메일",
@@ -1598,6 +1670,7 @@
     "DAYTONA_TIMEOUT": "Daytona 명령어 타임아웃(초)",
     "DEBUG": "디버그 모드 활성화",
     "DEFAULT_AGENT": "새 세션의 기본 에이전트 유형",
+    "DEFAULT_MODEL_ID": "새 세션과 백그라운드 작업에 사용할 관리자 기본 모델 설정입니다. 비워두면 첫 번째 활성 모델을 사용합니다.",
     "DEFAULT_USER_ROLE": "신규 등록 사용자의 기본 역할",
     "DEFERRED_TOOL_SEARCH_LIMIT": "도구 검색에서 반환되는 최대 결과 수",
     "DEFERRED_TOOL_THRESHOLD": "MCP 도구를 지연 로딩하는 도구 총수 임계값(0 = 항상 지연)",
@@ -1659,6 +1732,7 @@
     "NATIVE_MEMORY_INLINE_CONTENT_MAX_CHARS": "전체 메모리 본문을 스토리지 백엔드로 오프로드하기 전에 MongoDB에 인라인으로 유지할 최대 문자 수.",
     "NATIVE_MEMORY_MAX_TOKENS": "메모리 LLM 응답의 최대 토큰 수(추출, 통합, 재순위화). 값이 높을수록 긴 요약을 생성하지만 비용 증가.",
     "NATIVE_MEMORY_MODEL": "메모리 추출, 통합, 재순위화용 LLM 모델. 비워두면 첫 번째 사용 가능 모델 사용.",
+    "NATIVE_MEMORY_COMPACTION_MODEL_ID": "백그라운드 메모리 압축 agent가 사용할 관리자 모델 설정. 비워두면 기본 모델 사용.",
     "NATIVE_MEMORY_PRUNE_THRESHOLD": "접근되지 않은 메모리가 통합 중에 정리되기까지의 일수",
     "NATIVE_MEMORY_RERANK_API_BASE": "네이티브 메모리 재순위화 모델 엔드포인트의 API 기본 URL.",
     "NATIVE_MEMORY_RERANK_API_KEY": "네이티브 메모리 재순위화 모델 엔드포인트의 API 키.",
@@ -1726,6 +1800,8 @@
     "WELCOME_SUGGESTION_TEXT": "텍스트"
   },
   "settings": {
+    "defaultModel": "기본 모델",
+    "firstEnabledModel": "첫 번째 활성 모델",
     "exportSettings": "설정 내보내기",
     "exportSuccess": "설정 내보내기 완료",
     "importSettings": "설정 가져오기",
@@ -2041,6 +2117,7 @@
     "langsmith": "LangSmith",
     "limits": "제한",
     "llm": "LLM",
+    "model": "모델",
     "mcp": "MCP",
     "policy": "정책",
     "pool": "연결 풀",
@@ -2150,72 +2227,6 @@
       "enterPassword": "비밀번호를 입력해주세요",
       "enterUsername": "사용자 이름을 입력해주세요",
       "passwordMinLength": "비밀번호는 6자 이상이어야 합니다"
-    }
-  },
-  "seo": {
-    "landing": {
-      "title": "LambChat - AI 에이전트 플랫폼",
-      "description": "LambChat은 Skills + MCP 듀얼 엔진 기반의 플러그인 가능한 멀티테넌트 AI 대화 플랫폼입니다. Claude, GPT, Gemini 등 다중 모델 지원, 실시간 SSE 스트리밍, 멀티 에이전트 오케스트레이션 및 모듈형 스킬 시스템을 제공합니다."
-    },
-    "chat": {
-      "title": "AI 채팅",
-      "description": "AI 에이전트와 지능적인 대화를 나누세요. 다중 모델 전환, 실시간 스트리밍 응답, 세션 관리, 파일 업로드 및 멀티 에이전트 협업을 지원합니다."
-    },
-    "skills": {
-      "title": "스킬 관리",
-      "description": "AI 스킬을 생성, 구성 및 관리하세요. 프롬프트 엔지니어링, 도구 통합 및 모듈형 스킬 구성으로 강력한 사용자 정의 기능을 구축합니다."
-    },
-    "marketplace": {
-      "title": "스킬 마켓플레이스",
-      "description": "커뮤니티에서 제작한 AI 스킬을 발견하고 설치하세요. 평가, 배포로 AI 에이전트 기능을 확장합니다."
-    },
-    "agents": {
-      "title": "AI 에이전트",
-      "description": "AI 에이전트를 구성하고 관리하세요. 시스템 프롬프트 설정, 모델 선택, 도구 정의 및 복잡한 작업을 위한 멀티 에이전트 워크플로우 오케스트레이션."
-    },
-    "models": {
-      "title": "모델 관리",
-      "description": "LLM 모델 구성을 관리하세요. Claude, GPT, Gemini 등 통합 API 추상화로 원활한 모델 전환."
-    },
-    "mcp": {
-      "title": "MCP 서버 관리",
-      "description": "Model Context Protocol 서버 연결을 관리하세요. 외부 도구, 데이터베이스 및 서비스를 연결하여 AI 에이전트 기능을 확장합니다."
-    },
-    "persona": {
-      "title": "페르소나 프리셋",
-      "description": "AI 페르소나를 선택하고 사용자 정의하세요. 성격, 어조, 전문 분야 및 행동 패턴을 정의하여 전문적인 대화 경험을 제공합니다."
-    },
-    "files": {
-      "title": "파일 라이브러리",
-      "description": "AI 워크스페이스에서 파일을 업로드, 구성 및 관리하세요. 문서, 이미지 및 미디어를 AI 에이전트와 공유하여 분석 및 처리합니다."
-    },
-    "memory": {
-      "title": "AI 메모리 공간",
-      "description": "AI 메모리 콘텐츠를 보고 관리하세요. 영구적인 컨텍스트와 지식 저장으로 대화 간 장기적인 AI 에이전트 이해를 실현합니다."
-    },
-    "users": {
-      "title": "사용자 관리",
-      "description": "사용자 계정, 역할 및 액세스 권한을 관리하세요. 멀티테넌트 사용자 라이프사이클 및 보안 설정을 관리합니다."
-    },
-    "roles": {
-      "title": "역할 및 권한",
-      "description": "역할과 세분화된 권한을 구성하세요. 팀, 리소스 및 관리 기능에 대한 액세스 제어 정책을 정의합니다."
-    },
-    "settings": {
-      "title": "시스템 설정",
-      "description": "애플리케이션 및 시스템 설정을 구성하세요. 전역 기본 설정, 통합, 보안 정책 및 플랫폼 동작을 관리합니다."
-    },
-    "feedback": {
-      "title": "사용자 피드백",
-      "description": "사용자 피드백을 보고 관리하세요. 기능 요청, 버그 보고 및 사용자 만족도를 추적하여 제품 개선을 추진합니다."
-    },
-    "channels": {
-      "title": "커뮤니케이션 채널",
-      "description": "커뮤니케이션 채널을 관리하세요. 외부 메시징 플랫폼 및 알림 서비스를 연결하여 멀티채널 AI 상호작용을 구현합니다."
-    },
-    "notifications": {
-      "title": "알림",
-      "description": "시스템 공지 및 알림을 관리하세요. 플랫폼 뉴스, 경고 및 중요 메시지의 최신 정보를 받아보세요."
     }
   }
 }

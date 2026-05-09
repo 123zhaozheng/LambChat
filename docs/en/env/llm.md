@@ -22,6 +22,7 @@ LambChat supports multi-model management through the UI. The env vars above set 
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `DEFAULT_MODEL_ID` | _(empty)_ | Admin model configuration ID used as the default for new sessions and background jobs. Empty = first enabled model. |
 | `LLM_MAX_RETRIES` | `3` | Maximum number of API retries on failure. |
 | `LLM_RETRY_DELAY` | `1.0` | Delay between retries in seconds. |
 | `LLM_MODEL_CACHE_SIZE` | `50` | Model instance cache size. Prevents memory leaks from repeated instantiation. |

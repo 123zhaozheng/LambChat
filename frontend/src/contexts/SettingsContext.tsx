@@ -67,6 +67,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   // 从 DB 的 model_configs 读取可用模型
   const [dbModels, setDbModels] = useState<AvailableModel[] | null>(null);
+  const [adminDefaultModelId, setAdminDefaultModelId] = useState<string>("");
 
   // 置顶模型 ID
   const [pinnedModelIds, setPinnedModelIds] = useState<string[]>([]);
@@ -75,6 +76,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     modelApi
       .listAvailable()
       .then((data) => {
+        setAdminDefaultModelId(data.default_model_id || "");
         if (data.models && data.models.length > 0) {
           setDbModels(
             data.models.map((m) => ({
@@ -89,7 +91,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
           setDbModels(null);
         }
       })
-      .catch(() => setDbModels(null));
+      .catch(() => {
+        setAdminDefaultModelId("");
+        setDbModels(null);
+      });
   }, []);
 
   const fetchPinnedModels = useCallback(() => {
@@ -136,10 +141,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, [dbModels]);
 
   const defaultModel = useMemo(() => {
-    return availableModels && availableModels.length > 0
-      ? availableModels[0].value
-      : "";
-  }, [availableModels]);
+    if (!availableModels || availableModels.length === 0) {
+      return "";
+    }
+    return (
+      availableModels.find((model) => model.id === adminDefaultModelId)
+        ?.value || availableModels[0].value
+    );
+  }, [adminDefaultModelId, availableModels]);
 
   const value: SettingsContextValue = {
     settings,

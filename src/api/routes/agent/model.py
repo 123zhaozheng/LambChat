@@ -72,10 +72,15 @@ async def list_available_models(
 
     logger.info(f"[Model] Found {len(models)} visible models for user_id={user.sub}")
 
+    from src.infra.llm.models_service import select_default_model
+
+    default_model = select_default_model([m.model_dump() for m in models])
+
     return AvailableModelListResponse(
         models=[to_available_model(m) for m in models],
         count=len(models),
         enabled_count=len(models),
+        default_model_id=default_model.get("id") if default_model else None,
     )
 
 

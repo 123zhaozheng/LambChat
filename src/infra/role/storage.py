@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from src.infra.logging import get_logger
 from src.infra.storage.redis import create_redis_client
-from src.infra.utils.datetime import utc_now
+from src.infra.utils.datetime import to_iso, utc_now
 from src.kernel.config import settings
 from src.kernel.exceptions import NotFoundError, ValidationError
 from src.kernel.schemas.role import Role, RoleCreate, RoleLimits, RoleUpdate
@@ -43,10 +43,10 @@ def _role_to_cache_dict(role: Role) -> dict:
         "allowed_agents": role.allowed_agents,
         "limits": role.limits.model_dump() if role.limits else None,
         "is_system": role.is_system,
-        "created_at": role.created_at.isoformat()
+        "created_at": to_iso(role.created_at)
         if isinstance(role.created_at, datetime)
         else str(role.created_at),
-        "updated_at": role.updated_at.isoformat()
+        "updated_at": to_iso(role.updated_at)
         if isinstance(role.updated_at, datetime)
         else str(role.updated_at),
     }

@@ -21,7 +21,8 @@ import { useSettingsContext } from "../../contexts/SettingsContext";
 import { JsonSchemaEditor } from "./JsonSchemaEditor";
 import { SystemHealthSection } from "./SystemHealthSection";
 import { useAuth } from "../../hooks/useAuth";
-import { roleApi, agentApi } from "../../services/api";
+import { roleApi, agentApi, modelApi } from "../../services/api";
+import type { ModelOption } from "../../services/api/model";
 import { Permission, type AgentInfo } from "../../types";
 import { formatDateTime } from "../../utils/datetime";
 import type {
@@ -68,6 +69,11 @@ const TYPE_COLORS: Record<SettingType, string> = {
   json: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300",
   select: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
 };
+
+const MODEL_CONFIG_SETTING_KEYS = new Set([
+  "DEFAULT_MODEL_ID",
+  "NATIVE_MEMORY_COMPACTION_MODEL_ID",
+]);
 
 export function SettingsPanel() {
   const { t } = useTranslation();
@@ -123,6 +129,7 @@ export function SettingsPanel() {
   const [isImporting, setIsImporting] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
   const [agents, setAgents] = useState<AgentInfo[]>([]);
+  const [availableModels, setAvailableModels] = useState<ModelOption[]>([]);
   const [showAbout, setShowAbout] = useState(false);
 
   // Reset confirmation dialog state
@@ -158,6 +165,35 @@ export function SettingsPanel() {
     fetchAgents();
   }, []);
 
+  // Fetch model configs for settings that reference admin model configuration IDs
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        if (hasPermission(Permission.MODEL_ADMIN)) {
+          const data = await modelApi.list(true);
+          setAvailableModels(
+            (data.models || [])
+              .filter((model) => model.enabled && model.id)
+              .map((model) => ({
+                id: model.id || "",
+                value: model.value,
+                provider: model.provider,
+                label: model.label,
+                description: model.description,
+                profile: model.profile,
+              })),
+          );
+          return;
+        }
+        const data = await modelApi.listAvailable();
+        setAvailableModels(data.models || []);
+      } catch (err) {
+        console.error("Failed to fetch models:", err);
+      }
+    };
+    fetchModels();
+  }, [hasPermission]);
+
   // Get settings for active category
   const categorySettings = settings?.settings[activeCategory] ?? [];
 
@@ -192,6 +228,7 @@ export function SettingsPanel() {
       index: t("subcategories.index"),
       rerank: t("subcategories.rerank"),
       llm: t("subcategories.llm"),
+      model: t("subcategories.model"),
       policy: t("subcategories.policy"),
     }),
     [t],
@@ -657,6 +694,7 @@ export function SettingsPanel() {
                       const isSelect =
                         setting.key === "DEFAULT_AGENT" ||
                         setting.key === "DEFAULT_USER_ROLE" ||
+                        MODEL_CONFIG_SETTING_KEYS.has(setting.key) ||
                         setting.type === "boolean" ||
                         (setting.type === "select" && setting.options);
 
@@ -712,15 +750,52 @@ export function SettingsPanel() {
                                           value: role.name,
                                           label: role.name,
                                         }))
-                                      : setting.type === "boolean"
+                                      : setting.key === "DEFAULT_MODEL_ID"
                                         ? [
-                                            { value: "true", label: "true" },
-                                            { value: "false", label: "false" },
+                                            {
+                                              value: "",
+                                              label: t(
+                                                "settings.firstEnabledModel",
+                                                "First enabled model",
+                                              ),
+                                            },
+                                            ...availableModels.map((model) => ({
+                                              value: model.id,
+                                              label: `${model.label} (${model.value})`,
+                                            })),
                                           ]
-                                        : setting.options?.map((opt) => ({
-                                            value: opt,
-                                            label: opt,
-                                          })) ?? []
+                                        : setting.key ===
+                                            "NATIVE_MEMORY_COMPACTION_MODEL_ID"
+                                          ? [
+                                              {
+                                                value: "",
+                                                label: t(
+                                                  "settings.defaultModel",
+                                                  "Default model",
+                                                ),
+                                              },
+                                              ...availableModels.map(
+                                                (model) => ({
+                                                  value: model.id,
+                                                  label: `${model.label} (${model.value})`,
+                                                }),
+                                              ),
+                                            ]
+                                          : setting.type === "boolean"
+                                            ? [
+                                                {
+                                                  value: "true",
+                                                  label: "true",
+                                                },
+                                                {
+                                                  value: "false",
+                                                  label: "false",
+                                                },
+                                              ]
+                                            : setting.options?.map((opt) => ({
+                                                value: opt,
+                                                label: opt,
+                                              })) ?? []
                                 }
                               />
                             )}

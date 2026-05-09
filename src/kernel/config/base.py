@@ -204,6 +204,7 @@ class Settings(BaseSettings):
     # Frontend Settings
     FRONTEND_DEV_URL: str = ""
     DEFAULT_AGENT: str = "default"
+    DEFAULT_MODEL_ID: str = ""
     WELCOME_SUGGESTIONS: list = Field(
         default_factory=lambda: [
             {"icon": "🐍", "text": "Create a Python hello world script"},
@@ -256,6 +257,7 @@ class Settings(BaseSettings):
     NATIVE_MEMORY_INDEX_ENABLED: bool = True
     NATIVE_MEMORY_INDEX_CACHE_TTL: int = 300
     NATIVE_MEMORY_MODEL: str = ""
+    NATIVE_MEMORY_COMPACTION_MODEL_ID: str = ""
     NATIVE_MEMORY_API_BASE: str = ""
     NATIVE_MEMORY_API_KEY: str = ""
     NATIVE_MEMORY_RERANK_MODEL: str = ""

@@ -300,6 +300,95 @@
     "verifyingEmail": "Verifying Email...",
     "whatToDoNext": "What to do next?"
   },
+  "backendErrors": {
+    "accountInactive": "Your account is inactive. Please verify your email before signing in.",
+    "approvalAlreadyHandled": "This approval request has already been handled.",
+    "approvalNotFound": "Approval request not found.",
+    "authMissing": "Authentication information is missing.",
+    "avatarTooLarge": "Avatar file size exceeds the 2MB limit.",
+    "cannotChangeOwnRolePermissions": "You cannot modify permissions for your own role.",
+    "cannotCreateFavoritesProject": "The favorites project cannot be created manually.",
+    "cannotDeleteFavoritesProject": "The favorites project cannot be deleted.",
+    "channelInstanceDisabled": "Channel instance is disabled.",
+    "channelInstanceNotFound": "Channel instance not found.",
+    "deleteFailed": "Delete failed.",
+    "emailServiceDisabled": "Email service is not enabled.",
+    "emailTooManyRequests": "Too many requests for this email. Please try again later.",
+    "emailVerificationRequired": "Please verify your email before signing in.",
+    "emptyFile": "The file is empty.",
+    "favoriteUpdateFailed": "Failed to update favorite status.",
+    "fileNotFound": "File not found.",
+    "fileReadFailed": "Failed to read file.",
+    "fileTooLarge": "File size exceeds the {{max}}MB limit.",
+    "fileUploadNoPermission": "You do not have permission to upload {{category}} files.",
+    "fileUrlFailed": "Failed to generate file URL.",
+    "instanceNameRequired": "Instance name is required.",
+    "invalidCredentials": "Invalid username or password.",
+    "invalidDisabledTools": "Invalid disabled tools list.",
+    "invalidEnvKeyFormat": "Invalid environment variable key format.",
+    "invalidExpiresRange": "Expiration must be between 60 and 86400 seconds.",
+    "invalidFileId": "Invalid file ID format.",
+    "invalidFilePath": "Invalid file path.",
+    "invalidPinnedModelIds": "Invalid pinned model list.",
+    "invalidResetToken": "Invalid reset token.",
+    "invalidSessionStatus": "Status must be active or archived.",
+    "invalidToken": "Invalid token.",
+    "invalidTokenPayload": "Invalid token payload.",
+    "invalidVerificationToken": "Invalid or expired verification token.",
+    "marketplaceSkillNameRequired": "Marketplace skill name is required.",
+    "marketplaceSkillNoFiles": "Marketplace skill has no files.",
+    "marketplaceSyncFailed": "Failed to sync files to marketplace.",
+    "marketplaceSyncRolledBack": "Failed to sync files. Marketplace entry was rolled back.",
+    "memoryBackendUnavailable": "Memory backend is not available.",
+    "memoryDeleteLimit": "Cannot delete more than 100 memories at once.",
+    "memoryIdsRequired": "memory_ids must be a non-empty list.",
+    "memoryNotFound": "Memory not found.",
+    "modelFallbackSelf": "A model cannot use itself as its fallback.",
+    "modelsRequired": "The model list must not be empty.",
+    "moveFailed": "Move failed.",
+    "moveFavoriteSyncFailed": "Failed to sync favorite status after moving.",
+    "noSkillsFoundInRepository": "No skills found in repository.",
+    "notificationNotFound": "Notification not found.",
+    "oauthFailed": "OAuth authentication failed.",
+    "oauthStateInvalid": "Invalid OAuth state. Please try signing in again.",
+    "oauthUrlFailed": "Failed to create authorization URL.",
+    "onlyCreatorCanToggleTools": "Only the creator can toggle tools on this server.",
+    "onlyCreatorCanUpdate": "Only the creator can update this item.",
+    "permissionMissing": "Missing permission: {{permission}}",
+    "projectNotFound": "Project not found.",
+    "publishSkillFailed": "Failed to publish skill.",
+    "refreshTokenInvalid": "Invalid refresh token.",
+    "refreshTokenMissing": "Refresh token is missing.",
+    "registrationClosed": "Registration is closed.",
+    "repositoryOrBranchNotFound": "Repository or branch not found.",
+    "resetTokenExpired": "Reset token has expired.",
+    "roleNotFound": "Role not found.",
+    "sessionAccessDenied": "You do not have access to this session.",
+    "sessionNotFound": "Session not found.",
+    "settingNotFound": "Setting not found.",
+    "shareDeleteOwnOnly": "You can only delete shares you created.",
+    "shareExpiredOrMissing": "Share not found or expired.",
+    "shareLoginRequired": "Please sign in to view this share.",
+    "shareNoPermission": "You do not have permission to share sessions.",
+    "shareNotFound": "Share not found.",
+    "shareOwnOnly": "You can only share your own sessions.",
+    "sharePartialNeedsRunIds": "Partial sharing requires run_ids.",
+    "shareSourceMissing": "The original session no longer exists.",
+    "shareViewOwnOnly": "You can only view shares from your own sessions.",
+    "skillDeactivated": "This skill has been deactivated.",
+    "skillFileRequired": "Skill must have at least one file.",
+    "skillNotFound": "Skill not found.",
+    "targetOwnerRequired": "A new owner must be specified.",
+    "targetUserRequired": "Target user is required.",
+    "tooManyPinnedModels": "Too many pinned models. Maximum 10 allowed.",
+    "tooManyRequests": "Too many requests. Please try again later.",
+    "turnstileFailed": "Human verification failed. Please try again.",
+    "unauthenticated": "User is not authenticated.",
+    "updateFailed": "Update failed.",
+    "uploadDuplicateConflict": "Upload failed due to a duplicate record conflict.",
+    "userNotFound": "User not found.",
+    "zipRequired": "File must be a ZIP archive."
+  },
   "categories": {
     "agent": "Agent",
     "audio_transcription": "Audio Transcription",
@@ -546,10 +635,10 @@
     "showing": "Showing {{start}}-{{end}}",
     "skip": "Skip",
     "timeAgo": {
+      "daysAgo": "{{count}}d ago",
+      "hoursAgo": "{{count}}h ago",
       "justNow": "just now",
       "minutesAgo": "{{count}}m ago",
-      "hoursAgo": "{{count}}h ago",
-      "daysAgo": "{{count}}d ago",
       "monthsAgo": "{{count}}mo ago"
     },
     "timeMonthsAgo": "{{count}}mo ago",
@@ -683,95 +772,6 @@
     "noPermissionTitle": "Permission Denied",
     "pageNotFound": "Page Not Found",
     "pageNotFoundDesc": "Sorry, the page you are looking for doesn't exist or has been removed. Please check the URL or return to home."
-  },
-  "backendErrors": {
-    "accountInactive": "Your account is inactive. Please verify your email before signing in.",
-    "approvalAlreadyHandled": "This approval request has already been handled.",
-    "approvalNotFound": "Approval request not found.",
-    "authMissing": "Authentication information is missing.",
-    "avatarTooLarge": "Avatar file size exceeds the 2MB limit.",
-    "cannotChangeOwnRolePermissions": "You cannot modify permissions for your own role.",
-    "cannotCreateFavoritesProject": "The favorites project cannot be created manually.",
-    "cannotDeleteFavoritesProject": "The favorites project cannot be deleted.",
-    "channelInstanceDisabled": "Channel instance is disabled.",
-    "channelInstanceNotFound": "Channel instance not found.",
-    "deleteFailed": "Delete failed.",
-    "emailServiceDisabled": "Email service is not enabled.",
-    "emailTooManyRequests": "Too many requests for this email. Please try again later.",
-    "emailVerificationRequired": "Please verify your email before signing in.",
-    "emptyFile": "The file is empty.",
-    "favoriteUpdateFailed": "Failed to update favorite status.",
-    "fileReadFailed": "Failed to read file.",
-    "fileTooLarge": "File size exceeds the {{max}}MB limit.",
-    "fileUploadNoPermission": "You do not have permission to upload {{category}} files.",
-    "fileNotFound": "File not found.",
-    "fileUrlFailed": "Failed to generate file URL.",
-    "invalidCredentials": "Invalid username or password.",
-    "invalidDisabledTools": "Invalid disabled tools list.",
-    "invalidEnvKeyFormat": "Invalid environment variable key format.",
-    "invalidExpiresRange": "Expiration must be between 60 and 86400 seconds.",
-    "invalidFileId": "Invalid file ID format.",
-    "invalidFilePath": "Invalid file path.",
-    "invalidPinnedModelIds": "Invalid pinned model list.",
-    "invalidResetToken": "Invalid reset token.",
-    "invalidSessionStatus": "Status must be active or archived.",
-    "invalidToken": "Invalid token.",
-    "invalidTokenPayload": "Invalid token payload.",
-    "invalidVerificationToken": "Invalid or expired verification token.",
-    "instanceNameRequired": "Instance name is required.",
-    "marketplaceSkillNameRequired": "Marketplace skill name is required.",
-    "marketplaceSkillNoFiles": "Marketplace skill has no files.",
-    "marketplaceSyncFailed": "Failed to sync files to marketplace.",
-    "marketplaceSyncRolledBack": "Failed to sync files. Marketplace entry was rolled back.",
-    "memoryBackendUnavailable": "Memory backend is not available.",
-    "memoryDeleteLimit": "Cannot delete more than 100 memories at once.",
-    "memoryIdsRequired": "memory_ids must be a non-empty list.",
-    "memoryNotFound": "Memory not found.",
-    "modelFallbackSelf": "A model cannot use itself as its fallback.",
-    "modelsRequired": "The model list must not be empty.",
-    "moveFailed": "Move failed.",
-    "moveFavoriteSyncFailed": "Failed to sync favorite status after moving.",
-    "noSkillsFoundInRepository": "No skills found in repository.",
-    "notificationNotFound": "Notification not found.",
-    "oauthFailed": "OAuth authentication failed.",
-    "oauthStateInvalid": "Invalid OAuth state. Please try signing in again.",
-    "oauthUrlFailed": "Failed to create authorization URL.",
-    "onlyCreatorCanToggleTools": "Only the creator can toggle tools on this server.",
-    "onlyCreatorCanUpdate": "Only the creator can update this item.",
-    "permissionMissing": "Missing permission: {{permission}}",
-    "projectNotFound": "Project not found.",
-    "publishSkillFailed": "Failed to publish skill.",
-    "refreshTokenInvalid": "Invalid refresh token.",
-    "refreshTokenMissing": "Refresh token is missing.",
-    "registrationClosed": "Registration is closed.",
-    "repositoryOrBranchNotFound": "Repository or branch not found.",
-    "resetTokenExpired": "Reset token has expired.",
-    "roleNotFound": "Role not found.",
-    "sessionAccessDenied": "You do not have access to this session.",
-    "sessionNotFound": "Session not found.",
-    "settingNotFound": "Setting not found.",
-    "shareDeleteOwnOnly": "You can only delete shares you created.",
-    "shareExpiredOrMissing": "Share not found or expired.",
-    "shareLoginRequired": "Please sign in to view this share.",
-    "shareNoPermission": "You do not have permission to share sessions.",
-    "shareNotFound": "Share not found.",
-    "shareOwnOnly": "You can only share your own sessions.",
-    "sharePartialNeedsRunIds": "Partial sharing requires run_ids.",
-    "shareSourceMissing": "The original session no longer exists.",
-    "shareViewOwnOnly": "You can only view shares from your own sessions.",
-    "skillDeactivated": "This skill has been deactivated.",
-    "skillFileRequired": "Skill must have at least one file.",
-    "skillNotFound": "Skill not found.",
-    "targetOwnerRequired": "A new owner must be specified.",
-    "targetUserRequired": "Target user is required.",
-    "tooManyPinnedModels": "Too many pinned models. Maximum 10 allowed.",
-    "tooManyRequests": "Too many requests. Please try again later.",
-    "turnstileFailed": "Human verification failed. Please try again.",
-    "unauthenticated": "User is not authenticated.",
-    "updateFailed": "Update failed.",
-    "uploadDuplicateConflict": "Upload failed due to a duplicate record conflict.",
-    "userNotFound": "User not found.",
-    "zipRequired": "File must be a ZIP archive."
   },
   "featureMenu": {
     "enhance": "Enhance",
@@ -1224,35 +1224,18 @@
     "batchDeleteConfirmMessage": "Are you sure you want to delete {{count}} selected memories? This action cannot be undone.",
     "batchDeleted": "Deleted {{count}} memories",
     "clearSelection": "Clear selection",
+    "contentLabel": "Content",
+    "contentPlaceholder": "Enter memory content (at least 5 characters)...",
+    "contentRequired": "Memory content must be at least 5 characters",
+    "createBtn": "Add Memory",
+    "createSuccess": "Memory created successfully",
+    "createTitle": "New Memory",
     "deleteConfirm": "Delete this memory?",
     "deleteConfirmMessage": "This action cannot be undone.",
     "deleteError": "Delete failed",
     "deleteSelected": "Delete ({{count}})",
     "deleted": "Memory deleted",
-    "createBtn": "Add Memory",
-    "createSuccess": "Memory created successfully",
-    "createTitle": "New Memory",
-    "contentLabel": "Content",
-    "contentPlaceholder": "Enter memory content (at least 5 characters)...",
-    "contentRequired": "Memory content must be at least 5 characters",
     "editTitle": "Edit Memory",
-    "saveError": "Failed to save memory",
-    "saving": "Saving...",
-    "summaryLabel": "Summary",
-    "summaryPlaceholder": "Brief description (optional)",
-    "tagsLabel": "Tags",
-    "tagsPlaceholder": "Separate tags with commas",
-    "titleLabel": "Title",
-    "titlePlaceholder": "Enter memory title...",
-    "typeLabel": "Type",
-    "sourceLabel": "Source",
-    "source": {
-      "manual": "Manual",
-      "auto_retained": "Auto Retained",
-      "imported": "Imported",
-      "consolidated": "Consolidated"
-    },
-    "updateSuccess": "Memory updated successfully",
     "empty": "No memories yet. AI will automatically store important information.",
     "export": "Export",
     "exportError": "Failed to export memories",
@@ -1263,20 +1246,37 @@
     "importSuccess": "Imported {{imported}} memories ({{created}} created, {{overwritten}} overwritten)",
     "loading": "Loading memories...",
     "noResults": "No matching memories",
+    "saveError": "Failed to save memory",
+    "saving": "Saving...",
     "searchPlaceholder": "Search memories...",
     "selectAll": "Select all",
     "selectHint": "Select a memory to view details",
+    "source": {
+      "auto_retained": "Auto Retained",
+      "consolidated": "Consolidated",
+      "imported": "Imported",
+      "manual": "Manual"
+    },
+    "sourceLabel": "Source",
     "subtitle": "{{count}} memories total",
+    "summaryLabel": "Summary",
+    "summaryPlaceholder": "Brief description (optional)",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "Separate tags with commas",
     "timeAgo": "{{count}}d ago",
     "timeMonthsAgo": "{{count}}mo ago",
     "timeWeeksAgo": "{{count}}w ago",
     "title": "Memory Space",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Enter memory title...",
     "type": {
       "feedback": "Feedback",
       "project": "Project",
       "reference": "Reference",
       "user": "User"
-    }
+    },
+    "typeLabel": "Type",
+    "updateSuccess": "Memory updated successfully"
   },
   "mermaidViewer": {
     "hideCode": "Hide code",
@@ -1581,6 +1581,72 @@
       "selectPermission": "Please select at least one permission"
     }
   },
+  "seo": {
+    "agents": {
+      "description": "Configure and manage AI agents. Set up system prompts, select models, define tools, and orchestrate multi-agent workflows for complex tasks.",
+      "title": "AI Agents"
+    },
+    "channels": {
+      "description": "Manage communication channels. Connect external messaging platforms and notification services for multi-channel AI interactions.",
+      "title": "Communication Channels"
+    },
+    "chat": {
+      "description": "Have intelligent conversations with AI agents. Multi-model switching, real-time streaming responses, session management, file uploads, and multi-agent collaboration.",
+      "title": "AI Chat"
+    },
+    "feedback": {
+      "description": "View and manage user feedback. Track feature requests, bug reports, and user satisfaction to drive product improvements.",
+      "title": "User Feedback"
+    },
+    "files": {
+      "description": "Upload, organize, and manage files in your AI workspace. Share documents, images, and media with AI agents for analysis and processing.",
+      "title": "File Library"
+    },
+    "landing": {
+      "description": "LambChat is a pluggable multi-tenant AI conversation platform powered by Skills and MCP dual-engine. Supports Claude, GPT, Gemini and more with real-time SSE streaming, multi-agent orchestration, and modular skill system.",
+      "title": "LambChat - AI Agent Platform"
+    },
+    "marketplace": {
+      "description": "Discover and install community-built AI skills. Browse, rate, and deploy pre-built capabilities to extend your AI agent functionality.",
+      "title": "Skill Marketplace"
+    },
+    "mcp": {
+      "description": "Manage Model Context Protocol server connections. Connect external tools, databases, and services to extend AI agent capabilities.",
+      "title": "MCP Server Management"
+    },
+    "memory": {
+      "description": "View and manage AI memory content. Persistent context and knowledge storage for long-term AI agent understanding across conversations.",
+      "title": "AI Memory Space"
+    },
+    "models": {
+      "description": "Manage LLM model configurations. Connect and switch between Claude, GPT, Gemini, and other models with unified API abstraction.",
+      "title": "Model Management"
+    },
+    "notifications": {
+      "description": "Manage system announcements and notifications. Stay updated with platform news, alerts, and important messages.",
+      "title": "Notifications"
+    },
+    "persona": {
+      "description": "Choose and customize AI personas. Define personality, tone, expertise, and behavior patterns for specialized conversation experiences.",
+      "title": "Persona Presets"
+    },
+    "roles": {
+      "description": "Configure roles and granular permissions. Define access control policies for teams, resources, and administrative functions.",
+      "title": "Roles & Permissions"
+    },
+    "settings": {
+      "description": "Configure application and system settings. Manage global preferences, integrations, security policies, and platform behavior.",
+      "title": "System Settings"
+    },
+    "skills": {
+      "description": "Create, configure, and manage AI skills. Build powerful custom capabilities with prompt engineering, tool integration, and modular skill composition.",
+      "title": "Skills Management"
+    },
+    "users": {
+      "description": "Manage user accounts, roles, and access permissions. Administer multi-tenant user lifecycle and security settings.",
+      "title": "User Management"
+    }
+  },
   "settingDesc": {
     "ACCESS_TOKEN_EXPIRE_HOURS": "Access token expiration in hours",
     "ADMIN_CONTACT_EMAIL": "Administrator contact email displayed to users in the About dialog",
@@ -1606,6 +1672,7 @@
     "DAYTONA_TIMEOUT": "Daytona command timeout in seconds",
     "DEBUG": "Enable debug mode",
     "DEFAULT_AGENT": "Default agent type for new sessions",
+    "DEFAULT_MODEL_ID": "Admin default model configuration for new sessions and background jobs. Empty uses the first enabled model.",
     "DEFAULT_USER_ROLE": "Default role for newly registered users",
     "DEFERRED_TOOL_SEARCH_LIMIT": "Maximum number of results returned by tool search",
     "DEFERRED_TOOL_THRESHOLD": "Total tool count threshold above which MCP tools are deferred (0 = always defer)",
@@ -1659,6 +1726,7 @@
     "NATIVE_MEMORY_AUTO_COMPACT_INTERVAL_SECONDS": "How often the memory compaction agent scans for users over the threshold.",
     "NATIVE_MEMORY_AUTO_COMPACT_MIN_INTERVAL_SECONDS": "Minimum seconds between compaction attempts for the same user.",
     "NATIVE_MEMORY_AUTO_COMPACT_THRESHOLD": "Number of memories per user that triggers automatic compaction.",
+    "NATIVE_MEMORY_COMPACTION_MODEL_ID": "Admin model configuration used by the background memory compaction agent. Leave empty to use the default model.",
     "NATIVE_MEMORY_EMBEDDING_API_BASE": "Embedding API base URL for vector search (OpenAI-compatible). Leave empty for text-only mode.",
     "NATIVE_MEMORY_EMBEDDING_API_KEY": "Embedding API key (OpenAI-compatible endpoint)",
     "NATIVE_MEMORY_EMBEDDING_MODEL": "Embedding model name (e.g., text-embedding-3-small)",
@@ -1734,6 +1802,8 @@
     "WELCOME_SUGGESTION_TEXT": "Text"
   },
   "settings": {
+    "defaultModel": "Default Model",
+    "firstEnabledModel": "First enabled model",
     "exportSettings": "Export settings",
     "exportSuccess": "Settings exported successfully",
     "importSettings": "Import settings",
@@ -2049,6 +2119,7 @@
     "langsmith": "LangSmith",
     "limits": "Limits",
     "llm": "LLM",
+    "model": "Model",
     "mcp": "MCP",
     "policy": "Policy",
     "pool": "Connection Pool",
@@ -2158,72 +2229,6 @@
       "enterPassword": "Please enter password",
       "enterUsername": "Please enter username",
       "passwordMinLength": "Password must be at least 6 characters"
-    }
-  },
-  "seo": {
-    "landing": {
-      "title": "LambChat - AI Agent Platform",
-      "description": "LambChat is a pluggable multi-tenant AI conversation platform powered by Skills and MCP dual-engine. Supports Claude, GPT, Gemini and more with real-time SSE streaming, multi-agent orchestration, and modular skill system."
-    },
-    "chat": {
-      "title": "AI Chat",
-      "description": "Have intelligent conversations with AI agents. Multi-model switching, real-time streaming responses, session management, file uploads, and multi-agent collaboration."
-    },
-    "skills": {
-      "title": "Skills Management",
-      "description": "Create, configure, and manage AI skills. Build powerful custom capabilities with prompt engineering, tool integration, and modular skill composition."
-    },
-    "marketplace": {
-      "title": "Skill Marketplace",
-      "description": "Discover and install community-built AI skills. Browse, rate, and deploy pre-built capabilities to extend your AI agent functionality."
-    },
-    "agents": {
-      "title": "AI Agents",
-      "description": "Configure and manage AI agents. Set up system prompts, select models, define tools, and orchestrate multi-agent workflows for complex tasks."
-    },
-    "models": {
-      "title": "Model Management",
-      "description": "Manage LLM model configurations. Connect and switch between Claude, GPT, Gemini, and other models with unified API abstraction."
-    },
-    "mcp": {
-      "title": "MCP Server Management",
-      "description": "Manage Model Context Protocol server connections. Connect external tools, databases, and services to extend AI agent capabilities."
-    },
-    "persona": {
-      "title": "Persona Presets",
-      "description": "Choose and customize AI personas. Define personality, tone, expertise, and behavior patterns for specialized conversation experiences."
-    },
-    "files": {
-      "title": "File Library",
-      "description": "Upload, organize, and manage files in your AI workspace. Share documents, images, and media with AI agents for analysis and processing."
-    },
-    "memory": {
-      "title": "AI Memory Space",
-      "description": "View and manage AI memory content. Persistent context and knowledge storage for long-term AI agent understanding across conversations."
-    },
-    "users": {
-      "title": "User Management",
-      "description": "Manage user accounts, roles, and access permissions. Administer multi-tenant user lifecycle and security settings."
-    },
-    "roles": {
-      "title": "Roles & Permissions",
-      "description": "Configure roles and granular permissions. Define access control policies for teams, resources, and administrative functions."
-    },
-    "settings": {
-      "title": "System Settings",
-      "description": "Configure application and system settings. Manage global preferences, integrations, security policies, and platform behavior."
-    },
-    "feedback": {
-      "title": "User Feedback",
-      "description": "View and manage user feedback. Track feature requests, bug reports, and user satisfaction to drive product improvements."
-    },
-    "channels": {
-      "title": "Communication Channels",
-      "description": "Manage communication channels. Connect external messaging platforms and notification services for multi-channel AI interactions."
-    },
-    "notifications": {
-      "title": "Notifications",
-      "description": "Manage system announcements and notifications. Stay updated with platform news, alerts, and important messages."
     }
   }
 }

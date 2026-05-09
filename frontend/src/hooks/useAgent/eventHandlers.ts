@@ -12,6 +12,7 @@ import { authFetch } from "../../services/api/fetch";
 import { sessionApi } from "../../services/api";
 import i18n from "../../i18n";
 import { translateBackendError } from "../../utils/backendErrors";
+import { parseDate } from "../../utils/datetime";
 import type {
   StreamEvent,
   EventData,
@@ -62,7 +63,7 @@ export function handleStreamEvent(
 
   // Skip if this event is older than the last history timestamp
   if (eventTimestamp && ctx.lastHistoryTimestampRef.current) {
-    const eventTime = new Date(eventTimestamp);
+    const eventTime = parseDate(eventTimestamp);
     const historyTime = ctx.lastHistoryTimestampRef.current;
     if (eventTime <= historyTime) {
       console.log(
@@ -313,7 +314,7 @@ function handleUserMessage(
           id: resolvedMessageId,
           role: "user",
           content: userContent,
-          timestamp: eventTimestamp ? new Date(eventTimestamp) : new Date(),
+          timestamp: eventTimestamp ? parseDate(eventTimestamp) : new Date(),
           attachments: userAttachments,
         };
         return [...prev, newUserMessage];
@@ -349,7 +350,7 @@ function handleUserMessage(
         id: resolvedMessageId,
         role: "user",
         content: userContent,
-        timestamp: eventTimestamp ? new Date(eventTimestamp) : new Date(),
+        timestamp: eventTimestamp ? parseDate(eventTimestamp) : new Date(),
         attachments: userAttachments,
       };
       const streamingAssistantIndex = prev.findIndex(

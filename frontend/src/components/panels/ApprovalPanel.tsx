@@ -16,6 +16,7 @@ import type { PendingApproval, FormField } from "../../types";
 import { Checkbox } from "../common/Checkbox";
 import { GlassSelect } from "../common/GlassSelect";
 import { authFetch } from "../../services/api/fetch";
+import { parseDate } from "../../utils/datetime";
 
 interface ApprovalPanelProps {
   approvals: PendingApproval[];
@@ -218,7 +219,7 @@ export function ApprovalPanel({
       let deadline: number;
       let seconds: number;
       if (a.expires_at) {
-        deadline = new Date(a.expires_at).getTime();
+        deadline = parseDate(a.expires_at).getTime();
         seconds = Math.max(0, Math.floor((deadline - now) / 1000));
       } else {
         const ttl = a.timeout || DEFAULT_TIMEOUT;
@@ -292,7 +293,7 @@ export function ApprovalPanel({
         method: "POST",
       });
       if (res?.status === "success" && res.expires_at) {
-        const newDeadline = new Date(res.expires_at).getTime();
+        const newDeadline = parseDate(res.expires_at).getTime();
         deadlinesRef.current[approvalId] = newDeadline;
         setRemaining((prev) => ({
           ...prev,

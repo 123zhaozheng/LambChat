@@ -300,6 +300,95 @@
     "verifyingEmail": "正在验证邮箱...",
     "whatToDoNext": "接下来该做什么？"
   },
+  "backendErrors": {
+    "accountInactive": "账户未激活，请验证邮箱后登录",
+    "approvalAlreadyHandled": "审批请求已处理",
+    "approvalNotFound": "审批请求不存在",
+    "authMissing": "未提供认证信息",
+    "avatarTooLarge": "头像文件大小不能超过 2MB",
+    "cannotChangeOwnRolePermissions": "不能修改自己所属角色的权限",
+    "cannotCreateFavoritesProject": "不能创建收藏项目",
+    "cannotDeleteFavoritesProject": "不能删除收藏项目",
+    "channelInstanceDisabled": "渠道实例已禁用",
+    "channelInstanceNotFound": "渠道实例不存在",
+    "deleteFailed": "删除失败",
+    "emailServiceDisabled": "邮件服务未启用",
+    "emailTooManyRequests": "该邮箱请求过于频繁，请稍后再试",
+    "emailVerificationRequired": "请先验证邮箱后再登录",
+    "emptyFile": "文件为空",
+    "favoriteUpdateFailed": "收藏状态更新失败",
+    "fileNotFound": "文件不存在",
+    "fileReadFailed": "读取文件失败",
+    "fileTooLarge": "文件大小超过 {{max}}MB 限制",
+    "fileUploadNoPermission": "没有上传 {{category}} 文件的权限",
+    "fileUrlFailed": "生成文件链接失败",
+    "instanceNameRequired": "实例名称为必填项",
+    "invalidCredentials": "用户名或密码错误",
+    "invalidDisabledTools": "无效的禁用工具列表",
+    "invalidEnvKeyFormat": "环境变量名格式无效",
+    "invalidExpiresRange": "过期时间必须在 60 到 86400 秒之间",
+    "invalidFileId": "无效的文件 ID 格式",
+    "invalidFilePath": "无效的文件路径",
+    "invalidPinnedModelIds": "无效的置顶模型列表",
+    "invalidResetToken": "无效的重置令牌",
+    "invalidSessionStatus": "状态必须是 active 或 archived",
+    "invalidToken": "无效的 Token",
+    "invalidTokenPayload": "无效的令牌内容",
+    "invalidVerificationToken": "无效或过期的验证令牌",
+    "marketplaceSkillNameRequired": "市场技能名称为必填项",
+    "marketplaceSkillNoFiles": "市场技能没有文件",
+    "marketplaceSyncFailed": "同步文件到市场失败",
+    "marketplaceSyncRolledBack": "同步文件失败，市场条目已回滚",
+    "memoryBackendUnavailable": "记忆后端不可用",
+    "memoryDeleteLimit": "一次最多只能删除 100 条记忆",
+    "memoryIdsRequired": "memory_ids 不能为空",
+    "memoryNotFound": "记忆不存在",
+    "modelFallbackSelf": "模型不能将自身作为备用模型",
+    "modelsRequired": "模型列表不能为空",
+    "moveFailed": "移动失败",
+    "moveFavoriteSyncFailed": "移动后收藏状态同步失败",
+    "noSkillsFoundInRepository": "仓库中未找到技能",
+    "notificationNotFound": "通知不存在",
+    "oauthFailed": "OAuth 认证失败",
+    "oauthStateInvalid": "OAuth 状态无效，请重新登录",
+    "oauthUrlFailed": "创建授权链接失败",
+    "onlyCreatorCanToggleTools": "只有创建者可以切换此服务器上的工具",
+    "onlyCreatorCanUpdate": "只有创建者可以更新",
+    "permissionMissing": "缺少权限：{{permission}}",
+    "projectNotFound": "项目不存在",
+    "publishSkillFailed": "发布技能失败",
+    "refreshTokenInvalid": "无效的刷新令牌",
+    "refreshTokenMissing": "缺少刷新令牌",
+    "registrationClosed": "注册已关闭",
+    "repositoryOrBranchNotFound": "仓库或分支不存在",
+    "resetTokenExpired": "重置令牌已过期",
+    "roleNotFound": "角色不存在",
+    "sessionAccessDenied": "无权访问此会话",
+    "sessionNotFound": "会话不存在",
+    "settingNotFound": "设置不存在",
+    "shareDeleteOwnOnly": "只能删除自己创建的分享",
+    "shareExpiredOrMissing": "分享不存在或已过期",
+    "shareLoginRequired": "需要登录才能查看此分享",
+    "shareNoPermission": "没有分享会话的权限",
+    "shareNotFound": "分享不存在",
+    "shareOwnOnly": "只能分享自己的会话",
+    "sharePartialNeedsRunIds": "部分分享需要指定 run_ids",
+    "shareSourceMissing": "原会话已不存在",
+    "shareViewOwnOnly": "只能查看自己会话的分享",
+    "skillDeactivated": "该技能已停用",
+    "skillFileRequired": "技能至少需要一个文件",
+    "skillNotFound": "技能不存在",
+    "targetOwnerRequired": "需要指定新的所有者",
+    "targetUserRequired": "需要指定目标用户",
+    "tooManyPinnedModels": "置顶模型过多，最多允许 10 个",
+    "tooManyRequests": "请求过于频繁，请稍后再试",
+    "turnstileFailed": "人机验证失败，请重试",
+    "unauthenticated": "用户未认证",
+    "updateFailed": "更新失败",
+    "uploadDuplicateConflict": "上传失败：记录冲突",
+    "userNotFound": "用户不存在",
+    "zipRequired": "文件必须是 ZIP 压缩包"
+  },
   "categories": {
     "agent": "代理",
     "audio_transcription": "音频转写",
@@ -546,10 +635,10 @@
     "showing": "显示第 {{start}}-{{end}} 条",
     "skip": "跳过",
     "timeAgo": {
+      "daysAgo": "{{count}}天前",
+      "hoursAgo": "{{count}}小时前",
       "justNow": "刚刚",
       "minutesAgo": "{{count}}分钟前",
-      "hoursAgo": "{{count}}小时前",
-      "daysAgo": "{{count}}天前",
       "monthsAgo": "{{count}}个月前"
     },
     "timeMonthsAgo": "{{count}}个月前",
@@ -684,95 +773,6 @@
     "noPermissionTitle": "权限不足",
     "pageNotFound": "页面未找到",
     "pageNotFoundDesc": "抱歉，您访问的页面不存在或已被移除。请检查网址是否正确，或返回首页继续使用。"
-  },
-  "backendErrors": {
-    "accountInactive": "账户未激活，请验证邮箱后登录",
-    "approvalAlreadyHandled": "审批请求已处理",
-    "approvalNotFound": "审批请求不存在",
-    "authMissing": "未提供认证信息",
-    "avatarTooLarge": "头像文件大小不能超过 2MB",
-    "cannotChangeOwnRolePermissions": "不能修改自己所属角色的权限",
-    "cannotCreateFavoritesProject": "不能创建收藏项目",
-    "cannotDeleteFavoritesProject": "不能删除收藏项目",
-    "channelInstanceDisabled": "渠道实例已禁用",
-    "channelInstanceNotFound": "渠道实例不存在",
-    "deleteFailed": "删除失败",
-    "emailServiceDisabled": "邮件服务未启用",
-    "emailTooManyRequests": "该邮箱请求过于频繁，请稍后再试",
-    "emailVerificationRequired": "请先验证邮箱后再登录",
-    "emptyFile": "文件为空",
-    "favoriteUpdateFailed": "收藏状态更新失败",
-    "fileReadFailed": "读取文件失败",
-    "fileTooLarge": "文件大小超过 {{max}}MB 限制",
-    "fileUploadNoPermission": "没有上传 {{category}} 文件的权限",
-    "fileNotFound": "文件不存在",
-    "fileUrlFailed": "生成文件链接失败",
-    "invalidCredentials": "用户名或密码错误",
-    "invalidDisabledTools": "无效的禁用工具列表",
-    "invalidEnvKeyFormat": "环境变量名格式无效",
-    "invalidExpiresRange": "过期时间必须在 60 到 86400 秒之间",
-    "invalidFileId": "无效的文件 ID 格式",
-    "invalidFilePath": "无效的文件路径",
-    "invalidPinnedModelIds": "无效的置顶模型列表",
-    "invalidResetToken": "无效的重置令牌",
-    "invalidSessionStatus": "状态必须是 active 或 archived",
-    "invalidToken": "无效的 Token",
-    "invalidTokenPayload": "无效的令牌内容",
-    "invalidVerificationToken": "无效或过期的验证令牌",
-    "instanceNameRequired": "实例名称为必填项",
-    "marketplaceSkillNameRequired": "市场技能名称为必填项",
-    "marketplaceSkillNoFiles": "市场技能没有文件",
-    "marketplaceSyncFailed": "同步文件到市场失败",
-    "marketplaceSyncRolledBack": "同步文件失败，市场条目已回滚",
-    "memoryBackendUnavailable": "记忆后端不可用",
-    "memoryDeleteLimit": "一次最多只能删除 100 条记忆",
-    "memoryIdsRequired": "memory_ids 不能为空",
-    "memoryNotFound": "记忆不存在",
-    "modelFallbackSelf": "模型不能将自身作为备用模型",
-    "modelsRequired": "模型列表不能为空",
-    "moveFailed": "移动失败",
-    "moveFavoriteSyncFailed": "移动后收藏状态同步失败",
-    "noSkillsFoundInRepository": "仓库中未找到技能",
-    "notificationNotFound": "通知不存在",
-    "oauthFailed": "OAuth 认证失败",
-    "oauthStateInvalid": "OAuth 状态无效，请重新登录",
-    "oauthUrlFailed": "创建授权链接失败",
-    "onlyCreatorCanToggleTools": "只有创建者可以切换此服务器上的工具",
-    "onlyCreatorCanUpdate": "只有创建者可以更新",
-    "permissionMissing": "缺少权限：{{permission}}",
-    "projectNotFound": "项目不存在",
-    "publishSkillFailed": "发布技能失败",
-    "refreshTokenInvalid": "无效的刷新令牌",
-    "refreshTokenMissing": "缺少刷新令牌",
-    "registrationClosed": "注册已关闭",
-    "repositoryOrBranchNotFound": "仓库或分支不存在",
-    "resetTokenExpired": "重置令牌已过期",
-    "roleNotFound": "角色不存在",
-    "sessionAccessDenied": "无权访问此会话",
-    "sessionNotFound": "会话不存在",
-    "settingNotFound": "设置不存在",
-    "shareDeleteOwnOnly": "只能删除自己创建的分享",
-    "shareExpiredOrMissing": "分享不存在或已过期",
-    "shareLoginRequired": "需要登录才能查看此分享",
-    "shareNoPermission": "没有分享会话的权限",
-    "shareNotFound": "分享不存在",
-    "shareOwnOnly": "只能分享自己的会话",
-    "sharePartialNeedsRunIds": "部分分享需要指定 run_ids",
-    "shareSourceMissing": "原会话已不存在",
-    "shareViewOwnOnly": "只能查看自己会话的分享",
-    "skillDeactivated": "该技能已停用",
-    "skillFileRequired": "技能至少需要一个文件",
-    "skillNotFound": "技能不存在",
-    "targetOwnerRequired": "需要指定新的所有者",
-    "targetUserRequired": "需要指定目标用户",
-    "tooManyPinnedModels": "置顶模型过多，最多允许 10 个",
-    "tooManyRequests": "请求过于频繁，请稍后再试",
-    "turnstileFailed": "人机验证失败，请重试",
-    "unauthenticated": "用户未认证",
-    "updateFailed": "更新失败",
-    "uploadDuplicateConflict": "上传失败：记录冲突",
-    "userNotFound": "用户不存在",
-    "zipRequired": "文件必须是 ZIP 压缩包"
   },
   "featureMenu": {
     "enhance": "增强",
@@ -1225,35 +1225,18 @@
     "batchDeleteConfirmMessage": "确定要删除选中的 {{count}} 条记忆吗？此操作不可撤销。",
     "batchDeleted": "已删除 {{count}} 条记忆",
     "clearSelection": "取消选择",
+    "contentLabel": "内容",
+    "contentPlaceholder": "输入记忆内容（至少5个字符）...",
+    "contentRequired": "记忆内容至少需要5个字符",
+    "createBtn": "添加记忆",
+    "createSuccess": "记忆创建成功",
+    "createTitle": "新建记忆",
     "deleteConfirm": "确认删除记忆？",
     "deleteConfirmMessage": "此操作不可撤销。",
     "deleteError": "删除失败",
     "deleteSelected": "删除 ({{count}})",
     "deleted": "记忆已删除",
-    "createBtn": "添加记忆",
-    "createSuccess": "记忆创建成功",
-    "createTitle": "新建记忆",
-    "contentLabel": "内容",
-    "contentPlaceholder": "输入记忆内容（至少5个字符）...",
-    "contentRequired": "记忆内容至少需要5个字符",
     "editTitle": "编辑记忆",
-    "saveError": "保存失败",
-    "saving": "保存中...",
-    "summaryLabel": "摘要",
-    "summaryPlaceholder": "简短描述（可选）",
-    "tagsLabel": "标签",
-    "tagsPlaceholder": "多个标签用逗号分隔",
-    "titleLabel": "标题",
-    "titlePlaceholder": "输入记忆标题...",
-    "typeLabel": "类型",
-    "sourceLabel": "来源",
-    "source": {
-      "manual": "手动创建",
-      "auto_retained": "自动保留",
-      "imported": "导入",
-      "consolidated": "合并"
-    },
-    "updateSuccess": "记忆更新成功",
     "empty": "还没有记忆，AI 会自动存储重要信息",
     "export": "导出",
     "exportError": "导出记忆失败",
@@ -1264,20 +1247,37 @@
     "importSuccess": "已导入 {{imported}} 条记忆（新增 {{created}} 条，覆盖 {{overwritten}} 条）",
     "loading": "加载记忆中...",
     "noResults": "没有匹配的记忆",
+    "saveError": "保存失败",
+    "saving": "保存中...",
     "searchPlaceholder": "搜索记忆...",
     "selectAll": "全选",
     "selectHint": "选择一条记忆查看详情",
+    "source": {
+      "auto_retained": "自动保留",
+      "consolidated": "合并",
+      "imported": "导入",
+      "manual": "手动创建"
+    },
+    "sourceLabel": "来源",
     "subtitle": "共 {{count}} 条记忆",
+    "summaryLabel": "摘要",
+    "summaryPlaceholder": "简短描述（可选）",
+    "tagsLabel": "标签",
+    "tagsPlaceholder": "多个标签用逗号分隔",
     "timeAgo": "{{count}}天前",
     "timeMonthsAgo": "{{count}}个月前",
     "timeWeeksAgo": "{{count}}周前",
     "title": "记忆空间",
+    "titleLabel": "标题",
+    "titlePlaceholder": "输入记忆标题...",
     "type": {
       "feedback": "反馈",
       "project": "项目",
       "reference": "参考",
       "user": "用户"
-    }
+    },
+    "typeLabel": "类型",
+    "updateSuccess": "记忆更新成功"
   },
   "mermaidViewer": {
     "hideCode": "隐藏代码",
@@ -1582,6 +1582,72 @@
       "selectPermission": "请至少选择一个权限"
     }
   },
+  "seo": {
+    "agents": {
+      "description": "配置和管理 AI 智能体。设置系统提示词、选择模型、定义工具，编排多智能体工作流以处理复杂任务。",
+      "title": "AI 智能体"
+    },
+    "channels": {
+      "description": "管理通信渠道。连接外部消息平台和通知服务，实现多渠道 AI 交互。",
+      "title": "通信渠道"
+    },
+    "chat": {
+      "description": "与 AI 智能体进行智能对话。支持多模型切换、实时流式响应、会话管理、文件上传和多智能体协作。",
+      "title": "AI 对话"
+    },
+    "feedback": {
+      "description": "查看和管理用户反馈。跟踪功能请求、错误报告和用户满意度，推动产品改进。",
+      "title": "用户反馈"
+    },
+    "files": {
+      "description": "上传、组织和管理 AI 工作空间中的文件。与 AI 智能体共享文档、图像和媒体，进行分析和处理。",
+      "title": "文件库"
+    },
+    "landing": {
+      "description": "LambChat 是一个可插拔的多租户 AI 对话平台，由 Skills + MCP 双引擎驱动。支持 Claude、GPT、Gemini 等多种模型，实时 SSE 流式输出，多智能体协作与模块化技能系统。",
+      "title": "LambChat - AI 智能体平台"
+    },
+    "marketplace": {
+      "description": "发现并安装社区构建的 AI 技能。浏览、评分和部署预构建能力，扩展 AI 智能体功能。",
+      "title": "技能市场"
+    },
+    "mcp": {
+      "description": "管理模型上下文协议服务器连接。连接外部工具、数据库和服务，扩展 AI 智能体能力。",
+      "title": "MCP 服务器管理"
+    },
+    "memory": {
+      "description": "查看和管理 AI 记忆内容。持久化上下文和知识存储，实现跨对话的 AI 智能体长期理解。",
+      "title": "AI 记忆空间"
+    },
+    "models": {
+      "description": "管理大语言模型配置。连接和切换 Claude、GPT、Gemini 等模型，统一 API 抽象层。",
+      "title": "模型管理"
+    },
+    "notifications": {
+      "description": "管理系统公告和通知。获取平台新闻、警报和重要消息的实时更新。",
+      "title": "通知中心"
+    },
+    "persona": {
+      "description": "选择和自定义 AI 人设。定义个性、语气、专业领域和行为模式，打造专属对话体验。",
+      "title": "人设预设"
+    },
+    "roles": {
+      "description": "配置角色和细粒度权限。定义团队、资源和管​​理功能的访问控制策略。",
+      "title": "角色与权限"
+    },
+    "settings": {
+      "description": "配置应用和系统设置。管理全局偏好、集成、安全策略和平台行为。",
+      "title": "系统设置"
+    },
+    "skills": {
+      "description": "创建、配置和管理 AI 技能。通过提示词工程、工具集成和模块化技能组合，构建强大的自定义能力。",
+      "title": "技能管理"
+    },
+    "users": {
+      "description": "管理用户账户、角色和访问权限。管理多租户用户生命周期和安全设置。",
+      "title": "用户管理"
+    }
+  },
   "settingDesc": {
     "ACCESS_TOKEN_EXPIRE_HOURS": "访问令牌过期时间（小时）",
     "ADMIN_CONTACT_EMAIL": "在关于对话框中显示给用户的管理员联系邮箱",
@@ -1607,6 +1673,7 @@
     "DAYTONA_TIMEOUT": "Daytona 命令超时时间（秒）",
     "DEBUG": "启用调试模式",
     "DEFAULT_AGENT": "新会话的默认 Agent 类型",
+    "DEFAULT_MODEL_ID": "管理员设置的新会话和后台任务默认模型配置。留空使用第一个启用模型。",
     "DEFAULT_USER_ROLE": "新注册用户的默认角色",
     "DEFERRED_TOOL_SEARCH_LIMIT": "工具搜索返回的最大结果数",
     "DEFERRED_TOOL_THRESHOLD": "MCP 工具延迟加载的工具总数阈值（0 = 始终延迟）",
@@ -1660,6 +1727,7 @@
     "NATIVE_MEMORY_AUTO_COMPACT_INTERVAL_SECONDS": "记忆压缩 agent 扫描超阈值用户的间隔秒数。",
     "NATIVE_MEMORY_AUTO_COMPACT_MIN_INTERVAL_SECONDS": "同一用户两次压缩尝试之间的最小间隔秒数。",
     "NATIVE_MEMORY_AUTO_COMPACT_THRESHOLD": "每个用户触发自动压缩的记忆数量阈值。",
+    "NATIVE_MEMORY_COMPACTION_MODEL_ID": "后台记忆压缩 agent 使用的管理员模型配置。留空使用默认模型。",
     "NATIVE_MEMORY_EMBEDDING_API_BASE": "向量搜索的 Embedding API 基础 URL（OpenAI 兼容）。留空使用纯文本模式。",
     "NATIVE_MEMORY_EMBEDDING_API_KEY": "Embedding API 密钥（OpenAI 兼容端点）",
     "NATIVE_MEMORY_EMBEDDING_MODEL": "Embedding 模型名称（如 text-embedding-3-small）",
@@ -1735,6 +1803,8 @@
     "WELCOME_SUGGESTION_TEXT": "文本"
   },
   "settings": {
+    "defaultModel": "默认模型",
+    "firstEnabledModel": "第一个启用模型",
     "exportSettings": "导出设置",
     "exportSuccess": "设置导出成功",
     "importSettings": "导入设置",
@@ -2050,6 +2120,7 @@
     "langsmith": "LangSmith",
     "limits": "限制",
     "llm": "LLM",
+    "model": "模型",
     "mcp": "MCP",
     "policy": "策略",
     "pool": "连接池",
@@ -2159,72 +2230,6 @@
       "enterPassword": "请输入密码",
       "enterUsername": "请输入用户名",
       "passwordMinLength": "密码至少需要6个字符"
-    }
-  },
-  "seo": {
-    "landing": {
-      "title": "LambChat - AI 智能体平台",
-      "description": "LambChat 是一个可插拔的多租户 AI 对话平台，由 Skills + MCP 双引擎驱动。支持 Claude、GPT、Gemini 等多种模型，实时 SSE 流式输出，多智能体协作与模块化技能系统。"
-    },
-    "chat": {
-      "title": "AI 对话",
-      "description": "与 AI 智能体进行智能对话。支持多模型切换、实时流式响应、会话管理、文件上传和多智能体协作。"
-    },
-    "skills": {
-      "title": "技能管理",
-      "description": "创建、配置和管理 AI 技能。通过提示词工程、工具集成和模块化技能组合，构建强大的自定义能力。"
-    },
-    "marketplace": {
-      "title": "技能市场",
-      "description": "发现并安装社区构建的 AI 技能。浏览、评分和部署预构建能力，扩展 AI 智能体功能。"
-    },
-    "agents": {
-      "title": "AI 智能体",
-      "description": "配置和管理 AI 智能体。设置系统提示词、选择模型、定义工具，编排多智能体工作流以处理复杂任务。"
-    },
-    "models": {
-      "title": "模型管理",
-      "description": "管理大语言模型配置。连接和切换 Claude、GPT、Gemini 等模型，统一 API 抽象层。"
-    },
-    "mcp": {
-      "title": "MCP 服务器管理",
-      "description": "管理模型上下文协议服务器连接。连接外部工具、数据库和服务，扩展 AI 智能体能力。"
-    },
-    "persona": {
-      "title": "人设预设",
-      "description": "选择和自定义 AI 人设。定义个性、语气、专业领域和行为模式，打造专属对话体验。"
-    },
-    "files": {
-      "title": "文件库",
-      "description": "上传、组织和管理 AI 工作空间中的文件。与 AI 智能体共享文档、图像和媒体，进行分析和处理。"
-    },
-    "memory": {
-      "title": "AI 记忆空间",
-      "description": "查看和管理 AI 记忆内容。持久化上下文和知识存储，实现跨对话的 AI 智能体长期理解。"
-    },
-    "users": {
-      "title": "用户管理",
-      "description": "管理用户账户、角色和访问权限。管理多租户用户生命周期和安全设置。"
-    },
-    "roles": {
-      "title": "角色与权限",
-      "description": "配置角色和细粒度权限。定义团队、资源和管​​理功能的访问控制策略。"
-    },
-    "settings": {
-      "title": "系统设置",
-      "description": "配置应用和系统设置。管理全局偏好、集成、安全策略和平台行为。"
-    },
-    "feedback": {
-      "title": "用户反馈",
-      "description": "查看和管理用户反馈。跟踪功能请求、错误报告和用户满意度，推动产品改进。"
-    },
-    "channels": {
-      "title": "通信渠道",
-      "description": "管理通信渠道。连接外部消息平台和通知服务，实现多渠道 AI 交互。"
-    },
-    "notifications": {
-      "title": "通知中心",
-      "description": "管理系统公告和通知。获取平台新闻、警报和重要消息的实时更新。"
     }
   }
 }

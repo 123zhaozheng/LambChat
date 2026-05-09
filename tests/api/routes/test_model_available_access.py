@@ -121,6 +121,7 @@ async def test_list_available_models_returns_public_fields_only(
             "profile": None,
         }
     ]
+    assert payload["default_model_id"] == "allowed-model"
 
 
 @pytest.mark.asyncio
@@ -143,3 +144,27 @@ async def test_list_available_models_returns_empty_when_role_allows_no_models(
     assert response.models == []
     assert response.count == 0
     assert response.enabled_count == 0
+
+
+@pytest.mark.asyncio
+async def test_list_available_models_marks_effective_admin_default_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(model_routes, "get_model_storage", lambda: _ModelStorage())
+    monkeypatch.setattr(
+        "src.infra.agent.config_storage.get_agent_config_storage",
+        lambda: _AgentConfigStorage(),
+    )
+    monkeypatch.setattr(
+        "src.infra.role.manager.get_role_manager",
+        lambda: _RoleManager(),
+    )
+    monkeypatch.setattr(
+        "src.infra.llm.models_service.settings.DEFAULT_MODEL_ID",
+        "blocked-model",
+    )
+    user = TokenPayload(sub="user-1", username="tester", roles=["user"])
+
+    response = await model_routes.list_available_models(user)
+
+    assert response.default_model_id == "allowed-model"

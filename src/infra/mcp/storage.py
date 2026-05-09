@@ -15,7 +15,7 @@ from src.infra.mcp.encryption import (
 )
 from src.infra.mcp.storage_operations import StorageOperations, _can_access_system_server
 from src.infra.storage.mongodb import get_mongo_client
-from src.infra.utils.datetime import utc_now_iso
+from src.infra.utils.datetime import to_iso, utc_now_iso
 from src.kernel.config import settings
 from src.kernel.schemas.mcp import (
     MCPServerResponse,
@@ -636,9 +636,9 @@ class MCPStorage(StorageOperations):
         updated_at = doc.get("updated_at")
 
         if created_at and hasattr(created_at, "isoformat"):
-            created_at = created_at.isoformat()
+            created_at = to_iso(created_at)
         if updated_at and hasattr(updated_at, "isoformat"):
-            updated_at = updated_at.isoformat()
+            updated_at = to_iso(updated_at)
 
         # 解密敏感字段
         doc = decrypt_server_secrets(doc)
@@ -670,9 +670,9 @@ class MCPStorage(StorageOperations):
         updated_at = doc.get("updated_at")
 
         if created_at and hasattr(created_at, "isoformat"):
-            created_at = created_at.isoformat()
+            created_at = to_iso(created_at)
         if updated_at and hasattr(updated_at, "isoformat"):
-            updated_at = updated_at.isoformat()
+            updated_at = to_iso(updated_at)
 
         # 解密敏感字段
         doc = decrypt_server_secrets(doc)
@@ -730,9 +730,9 @@ class MCPStorage(StorageOperations):
         updated_at = doc_copy.get("updated_at")
 
         if created_at and hasattr(created_at, "isoformat"):
-            created_at = created_at.isoformat()
+            created_at = to_iso(created_at)
         if updated_at and hasattr(updated_at, "isoformat"):
-            updated_at = updated_at.isoformat()
+            updated_at = to_iso(updated_at)
 
         return MCPServerResponse(
             name=doc_copy["name"],

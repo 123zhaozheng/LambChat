@@ -17,7 +17,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { LoadingSpinner, CollapsiblePill } from "../../common";
+import { LoadingSpinner, CollapsiblePill, CopyButton } from "../../common";
 import type { CollapsibleStatus } from "../../common";
 import type { MessagePart } from "../../../types";
 import { MarkdownContent } from "./MarkdownContent";
@@ -190,8 +190,11 @@ function SubagentPanelContent({ agentId }: { agentId: string }) {
       <div ref={contentRef} className="space-y-3">
         {data.input && (
           <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-stone-100 dark:bg-stone-700/50">
-            <div className="text-xs uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-2 font-medium">
-              {t("chat.message.args")}
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs uppercase tracking-wider text-stone-400 dark:text-stone-500 font-medium">
+                {t("chat.message.args")}
+              </div>
+              <CopyButton text={data.input} />
             </div>
             <div className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
               <MarkdownContent content={data.input} />
@@ -214,8 +217,11 @@ function SubagentPanelContent({ agentId }: { agentId: string }) {
         )}
         {data.error && effectiveStatus === "error" && (
           <div className="p-3 sm:p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50">
-            <div className="text-xs text-red-600 dark:text-red-400 font-medium mb-1">
-              {t("chat.message.error")}
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-xs text-red-600 dark:text-red-400 font-medium">
+                {t("chat.message.error")}
+              </div>
+              <CopyButton text={data.error} />
             </div>
             <div className="text-xs text-red-700 dark:text-red-300 leading-relaxed">
               {data.error}
@@ -224,8 +230,11 @@ function SubagentPanelContent({ agentId }: { agentId: string }) {
         )}
         {data.result && effectiveStatus === "complete" && (
           <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-stone-100 dark:bg-stone-700/50">
-            <div className="text-xs uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-2 font-medium">
-              {t("chat.message.result")}
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs uppercase tracking-wider text-stone-400 dark:text-stone-500 font-medium">
+                {t("chat.message.result")}
+              </div>
+              <CopyButton text={data.result} />
             </div>
             <div className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
               <MarkdownContent content={data.result} />

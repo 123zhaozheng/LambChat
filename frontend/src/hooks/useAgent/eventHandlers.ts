@@ -124,6 +124,7 @@ export function handleStreamEvent(
       return;
     }
 
+    case "complete":
     case "done": {
       ctx.setMessages((prev) =>
         prev.map((m) =>

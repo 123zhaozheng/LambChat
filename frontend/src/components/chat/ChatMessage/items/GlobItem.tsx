@@ -38,7 +38,7 @@ const GlobItem = memo(function GlobItem({
 
   const detailContent = canExpand && (
     <div className="p-4 sm:p-5 space-y-3">
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-sm text-stone-500 dark:text-stone-400 font-mono flex-wrap">
+      <div className="group/args relative flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-sm text-stone-500 dark:text-stone-400 font-mono flex-wrap">
         <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
           {pattern}
         </span>
@@ -47,6 +47,9 @@ const GlobItem = memo(function GlobItem({
             in {searchPath}
           </span>
         )}
+        <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+          <CopyButton text={pattern} size={12} />
+        </div>
       </div>
       {paths.length > 0 && (
         <div className="relative group rounded-lg border border-stone-200/60 dark:border-stone-700/50 bg-stone-50 dark:bg-stone-900 overflow-auto max-h-[60vh]">
@@ -122,7 +125,7 @@ const GlobItem = memo(function GlobItem({
       >
         {canExpand && (
           <div className="mt-2 ml-4 pl-3 border-l-2 border-stone-200/60 dark:border-stone-700/50 max-h-80 overflow-y-auto min-w-0">
-            <div className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono flex-wrap">
+            <div className="group/args relative flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono flex-wrap">
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
                 {pattern}
               </span>
@@ -131,6 +134,9 @@ const GlobItem = memo(function GlobItem({
                   {t("chat.message.toolInPath", { path: searchPath })}
                 </span>
               )}
+              <div className="absolute top-0.5 right-0.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+                <CopyButton text={pattern} size={12} />
+              </div>
             </div>
             {paths.length > 0 && (
               <div className="relative group max-h-48 overflow-y-auto rounded-md border border-stone-200/60 dark:border-stone-700/50 bg-stone-50 dark:bg-stone-900">

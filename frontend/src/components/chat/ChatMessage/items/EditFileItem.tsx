@@ -36,15 +36,18 @@ const EditFileItem = memo(function EditFileItem({
 
   const detailContent = canExpand && (
     <div className="p-4 sm:p-5 space-y-3">
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-sm text-stone-500 dark:text-stone-400 font-mono">
+      <div className="group/args relative flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-sm text-stone-500 dark:text-stone-400 font-mono">
         <span className="truncate">{filePath}</span>
+        <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+          <CopyButton text={filePath} size={12} />
+        </div>
       </div>
       {oldString && (
         <div>
           <div className="text-xs text-red-500 dark:text-red-400 mb-1.5 font-semibold uppercase tracking-wider">
             {t("chat.message.toolEditRemoved")}
           </div>
-          <div className="rounded-lg border border-red-200/60 dark:border-red-800/40 bg-red-50 dark:bg-red-950/30 overflow-hidden">
+          <div className="relative group rounded-lg border border-red-200/60 dark:border-red-800/40 bg-red-50 dark:bg-red-950/30 overflow-hidden">
             <DeferredCodeMirrorViewer
               value={oldString}
               filePath={filePath}
@@ -52,6 +55,13 @@ const EditFileItem = memo(function EditFileItem({
               fontSize="0.8rem"
               className="[&_.cm-editor]:bg-transparent dark:[&_.cm-editor]:bg-transparent"
             />
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <CopyButton
+                text={oldString}
+                size={14}
+                className="!bg-white/80 dark:!bg-stone-800/80 backdrop-blur-sm !rounded-md !border !border-red-200 dark:!border-red-800"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -82,8 +92,15 @@ const EditFileItem = memo(function EditFileItem({
         (() => {
           const text = extractText(result);
           return text ? (
-            <pre className="text-xs text-stone-500 dark:text-stone-400 whitespace-pre-wrap break-words p-3 rounded-lg bg-stone-50 dark:bg-stone-900 border border-stone-200/60 dark:border-stone-700/50">
+            <pre className="group/result relative text-xs text-stone-500 dark:text-stone-400 whitespace-pre-wrap break-words p-3 rounded-lg bg-stone-50 dark:bg-stone-900 border border-stone-200/60 dark:border-stone-700/50">
               {text}
+              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/result:opacity-100 transition-opacity">
+                <CopyButton
+                  text={text}
+                  size={12}
+                  className="!bg-white/80 dark:!bg-stone-800/80 backdrop-blur-sm !rounded-md"
+                />
+              </div>
             </pre>
           ) : null;
         })()}
@@ -111,15 +128,18 @@ const EditFileItem = memo(function EditFileItem({
       >
         {canExpand && (
           <div className="mt-2 ml-4 pl-3 border-l-2 border-stone-200/60 dark:border-stone-700/50 max-h-80 overflow-y-auto min-w-0">
-            <div className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono">
+            <div className="group/args relative flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono">
               <span className="truncate">{filePath}</span>
+              <div className="absolute top-0.5 right-0.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+                <CopyButton text={filePath} size={12} />
+              </div>
             </div>
             {oldString && (
               <div className="mb-2">
                 <div className="text-xs text-red-500 dark:text-red-400 mb-1 font-medium">
                   -
                 </div>
-                <div className="overflow-y-auto rounded-md border border-red-200/60 dark:border-red-800/40 bg-red-50 dark:bg-red-950/30">
+                <div className="relative group overflow-y-auto rounded-md border border-red-200/60 dark:border-red-800/40 bg-red-50 dark:bg-red-950/30">
                   <DeferredCodeMirrorViewer
                     value={oldString}
                     filePath={filePath}
@@ -127,6 +147,13 @@ const EditFileItem = memo(function EditFileItem({
                     fontSize="0.75rem"
                     className="[&_.cm-editor]:bg-transparent dark:[&_.cm-editor]:bg-transparent"
                   />
+                  <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <CopyButton
+                      text={oldString}
+                      size={12}
+                      className="!bg-white/80 dark:!bg-stone-800/80 backdrop-blur-sm !rounded-md !border !border-red-200 dark:!border-red-800"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -157,8 +184,11 @@ const EditFileItem = memo(function EditFileItem({
               (() => {
                 const text = extractText(result);
                 return text ? (
-                  <pre className="text-xs text-stone-500 dark:text-stone-400 whitespace-pre-wrap break-words mt-1 overflow-y-auto min-w-0">
+                  <pre className="group/result relative text-xs text-stone-500 dark:text-stone-400 whitespace-pre-wrap break-words mt-1 overflow-y-auto min-w-0">
                     {text}
+                    <div className="absolute top-0.5 right-0.5 opacity-0 group-hover/result:opacity-100 transition-opacity">
+                      <CopyButton text={text} size={12} />
+                    </div>
                   </pre>
                 ) : null;
               })()}

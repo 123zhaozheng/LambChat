@@ -72,7 +72,7 @@ const ReadFileItem = memo(function ReadFileItem({
 
   const detailContent = hasContent && (
     <div className="p-4 sm:p-5 space-y-3">
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-sm text-stone-500 dark:text-stone-400 font-mono">
+      <div className="group/args relative flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-sm text-stone-500 dark:text-stone-400 font-mono">
         <span className="truncate">{filePath}</span>
         {(offset !== undefined || limit !== undefined) && (
           <span className="shrink-0 text-stone-400 dark:text-stone-500">
@@ -80,6 +80,9 @@ const ReadFileItem = memo(function ReadFileItem({
             {limit ? `-${(offset ?? 1) + limit}` : ""}
           </span>
         )}
+        <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+          <CopyButton text={filePath} size={12} />
+        </div>
       </div>
       {imageBlocks.length > 0 && (
         <div className="flex flex-wrap gap-3">
@@ -139,7 +142,7 @@ const ReadFileItem = memo(function ReadFileItem({
         {hasContent && (
           <div className="mt-2 ml-4 pl-3 border-l-2 border-stone-200/60 dark:border-stone-700/50 max-h-80 overflow-y-auto min-w-0">
             {filePath && (
-              <div className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono">
+              <div className="group/args relative flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono">
                 <span className="truncate">{filePath}</span>
                 {(offset !== undefined || limit !== undefined) && (
                   <span className="shrink-0 text-stone-400 dark:text-stone-500">
@@ -147,6 +150,9 @@ const ReadFileItem = memo(function ReadFileItem({
                     {limit ? `-${(offset ?? 1) + limit}` : ""}
                   </span>
                 )}
+                <div className="absolute top-0.5 right-0.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+                  <CopyButton text={filePath} size={12} />
+                </div>
               </div>
             )}
             {imageBlocks.length > 0 && (

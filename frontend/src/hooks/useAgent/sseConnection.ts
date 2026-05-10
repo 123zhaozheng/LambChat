@@ -51,6 +51,48 @@ export function clearReconnectTimeout(
   }
 }
 
+export type SSECloseAction = "terminal" | "retry";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isTerminalErrorPayload(data: unknown): boolean {
+  if (!isRecord(data)) {
+    return false;
+  }
+
+  return (
+    typeof data.type === "string" ||
+    typeof data.run_id === "string" ||
+    typeof data.trace_id === "string"
+  );
+}
+
+export function isTerminalSSEEvent(eventType: string, data?: unknown): boolean {
+  if (
+    eventType === "done" ||
+    eventType === "complete" ||
+    eventType === "user:cancel"
+  ) {
+    return true;
+  }
+
+  if (eventType === "error") {
+    return isTerminalErrorPayload(data);
+  }
+
+  return false;
+}
+
+export function getSSECloseAction({
+  receivedTerminalEvent,
+}: {
+  receivedTerminalEvent: boolean;
+}): SSECloseAction {
+  return receivedTerminalEvent ? "terminal" : "retry";
+}
+
 /**
  * Connect to SSE stream
  */
@@ -90,6 +132,8 @@ export async function connectToSSE(
   console.log(
     `[SSE] Connecting: session=${targetSessionId}, run_id=${targetRunId}`,
   );
+
+  let receivedTerminalEvent = false;
 
   setConnectionStatus("connecting");
   retryCountRef.current = 0;
@@ -137,17 +181,29 @@ export async function connectToSSE(
         onmessage: (event) => {
           if (event.event === "ping") return;
           const eventId = event.id || crypto.randomUUID();
+          let parsedData: Record<string, unknown>;
           try {
-            const parsedData = JSON.parse(event.data);
-            const timestamp = parsedData._timestamp as string | undefined;
-            const streamEvent: StreamEvent = {
-              event: event.event as EventType,
-              data: event.data,
-            };
-            handleStreamEvent(streamEvent, messageId, eventId, timestamp, ctx);
+            parsedData = JSON.parse(event.data);
           } catch {
             // Ignore parse errors
+            return;
           }
+          if (
+            event.event === "error" &&
+            !isTerminalSSEEvent(event.event, parsedData)
+          ) {
+            setConnectionStatus("reconnecting");
+            throw new Error("SSE transport error before terminal event");
+          }
+          if (isTerminalSSEEvent(event.event, parsedData)) {
+            receivedTerminalEvent = true;
+          }
+          const timestamp = parsedData._timestamp as string | undefined;
+          const streamEvent: StreamEvent = {
+            event: event.event as EventType,
+            data: event.data,
+          };
+          handleStreamEvent(streamEvent, messageId, eventId, timestamp, ctx);
         },
         onerror: (err) => {
           console.error("[SSE] Connection error:", err);
@@ -155,6 +211,11 @@ export async function connectToSSE(
         },
         onclose: () => {
           console.log("[SSE] Connection closed");
+          const closeAction = getSSECloseAction({ receivedTerminalEvent });
+          if (closeAction === "retry") {
+            setConnectionStatus("reconnecting");
+            throw new Error("SSE closed before terminal event");
+          }
           setConnectionStatus("disconnected");
           isConnectingRef.current = false;
           ctx.setIsInitializingSandbox(false);

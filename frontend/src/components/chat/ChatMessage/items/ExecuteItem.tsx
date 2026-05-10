@@ -64,7 +64,7 @@ const ExecuteItem = memo(function ExecuteItem({
 
   const detailContent = canExpand && (
     <div className="p-4 sm:p-5 space-y-3">
-      <div className="px-3 py-2.5 rounded-lg bg-stone-900 dark:bg-stone-950 text-sm font-mono flex items-center gap-2 flex-wrap">
+      <div className="group/args relative px-3 py-2.5 rounded-lg bg-stone-900 dark:bg-stone-950 text-sm font-mono flex items-center gap-2 flex-wrap">
         <span className="text-emerald-400 font-semibold">$</span>
         <span className="text-stone-200 break-all min-w-0">{command}</span>
         {timeout && (
@@ -72,6 +72,13 @@ const ExecuteItem = memo(function ExecuteItem({
             {timeout}s
           </span>
         )}
+        <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+          <CopyButton
+            text={command}
+            size={12}
+            className="!bg-white/10 hover:!bg-white/20 !text-stone-300 !border !border-stone-600"
+          />
+        </div>
       </div>
 
       {parsed.output && (
@@ -152,7 +159,7 @@ const ExecuteItem = memo(function ExecuteItem({
       >
         {canExpand && (
           <div className="mt-2 ml-4 pl-3 border-l-2 border-stone-200/60 dark:border-stone-700/50 space-y-2 max-h-80 overflow-y-auto min-w-0">
-            <div className="px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono flex items-center gap-2 flex-wrap">
+            <div className="group/args relative px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono flex items-center gap-2 flex-wrap">
               <span className="text-stone-700 dark:text-stone-200">$</span>
               <span className="text-emerald-600 dark:text-emerald-400 break-all min-w-0">
                 {command}
@@ -162,6 +169,9 @@ const ExecuteItem = memo(function ExecuteItem({
                   {timeout}s
                 </span>
               )}
+              <div className="absolute top-0.5 right-0.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+                <CopyButton text={command} size={12} />
+              </div>
             </div>
 
             {parsed.output && (

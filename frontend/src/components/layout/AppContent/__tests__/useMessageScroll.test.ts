@@ -959,7 +959,7 @@ test("does not re-arm streaming follow mode while mobile detach lock is active",
   );
 });
 
-test("does not start a fresh bottom scroll when the active stream finishes", () => {
+test("settles the bottom lock when the active stream finishes near the bottom", () => {
   assert.equal(
     getMessageUpdateScrollAction({
       previousMessages: [
@@ -977,6 +977,29 @@ test("does not start a fresh bottom scroll when the active stream finishes", () 
       isNearBottom: true,
       isLoadingHistory: false,
       shouldMaintainStreamLock: true,
+    }),
+    "request-scroll-to-bottom",
+  );
+});
+
+test("does not settle the bottom lock when a detached stream finishes", () => {
+  assert.equal(
+    getMessageUpdateScrollAction({
+      previousMessages: [
+        { id: "assistant-1", role: "assistant", isStreaming: true },
+      ],
+      nextMessages: [
+        { id: "assistant-1", role: "assistant", isStreaming: false },
+      ],
+      state: {
+        userScrolledUp: true,
+        autoScrollActive: false,
+        streamLockActive: false,
+        manualDetachFromStream: true,
+      },
+      isNearBottom: false,
+      isLoadingHistory: false,
+      shouldMaintainStreamLock: false,
     }),
     null,
   );

@@ -653,8 +653,10 @@ export function useMessageScroll(
         nextMessages: messages,
       })
     ) {
-      scrollCleanupRef.current?.();
-      scrollCleanupRef.current = null;
+      if (messageUpdateAction !== "request-scroll-to-bottom") {
+        scrollCleanupRef.current?.();
+        scrollCleanupRef.current = null;
+      }
       autoScrollActiveRef.current = false;
     }
 

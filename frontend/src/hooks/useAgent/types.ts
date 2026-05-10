@@ -27,6 +27,7 @@ export type EventType =
   | "token:usage"
   | "skills:changed"
   | "queue_update"
+  | "complete"
   | "done"
   | "error";
 

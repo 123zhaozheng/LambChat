@@ -12,7 +12,6 @@ shared caches.
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
 from typing import Any, Optional
 
 from src.infra.logging import get_logger
@@ -58,7 +57,7 @@ def set_cached_api_key(model_value: str, api_key: str) -> None:
     _api_key_cache[model_value] = api_key
 
 
-def _matches_allowed(model: Mapping[str, Any], allowed_set: set[str] | None) -> bool:
+def _matches_allowed(model: dict[str, Any], allowed_set: set[str] | None) -> bool:
     if allowed_set is None:
         return True
     return model.get("value") in allowed_set or model.get("id") in allowed_set
@@ -66,7 +65,7 @@ def _matches_allowed(model: Mapping[str, Any], allowed_set: set[str] | None) -> 
 
 def select_default_model(
     models: list[dict[str, Any]], allowed_models: Optional[list[str]] = None
-) -> Mapping[str, Any] | None:
+) -> dict[str, Any] | None:
     """Select the effective default model from already-available models."""
     allowed_set = set(allowed_models) if allowed_models is not None else None
     admin_default_id = getattr(settings, "DEFAULT_MODEL_ID", "") or ""

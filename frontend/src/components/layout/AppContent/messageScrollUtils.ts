@@ -177,6 +177,17 @@ export function shouldAutoScrollForMessageUpdate({
     return !manualDetachActive && appendedMessageCount === 1;
   }
 
+  if (
+    latestContinued &&
+    previousLatestMessage?.isStreaming === true &&
+    nextLatestMessage.isStreaming === false
+  ) {
+    return (
+      !manualDetachActive &&
+      (autoScrollActive || isNearBottom || shouldMaintainStreamLock)
+    );
+  }
+
   // Keep the existing bottom-lock loop running, but don't restart it on every
   // streaming update for the same assistant message. Repeated restarts cause
   // visible scroll jitter when message height is still changing.

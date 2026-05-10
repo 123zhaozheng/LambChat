@@ -39,12 +39,15 @@ const LsItem = memo(function LsItem({
 
   const detailContent = canExpand && (
     <div className="p-4 sm:p-5 space-y-3">
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-sm text-stone-500 dark:text-stone-400 font-mono">
+      <div className="group/args relative flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-sm text-stone-500 dark:text-stone-400 font-mono">
         <FolderOpen size={14} className="shrink-0 opacity-60" />
         <span className="truncate">{dirPath}</span>
         <span className="shrink-0 text-stone-400 dark:text-stone-500">
           {entries.length} items
         </span>
+        <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+          <CopyButton text={dirPath} size={12} />
+        </div>
       </div>
       <div className="relative group rounded-lg border border-stone-200/60 dark:border-stone-700/50 bg-stone-50 dark:bg-stone-900 overflow-auto max-h-[60vh]">
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -118,12 +121,15 @@ const LsItem = memo(function LsItem({
       >
         {canExpand && (
           <div className="mt-2 ml-4 pl-3 border-l-2 border-stone-200/60 dark:border-stone-700/50 max-h-80 overflow-y-auto min-w-0">
-            <div className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono">
+            <div className="group/args relative flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 text-xs text-stone-500 dark:text-stone-400 font-mono">
               <FolderOpen size={12} className="shrink-0 opacity-60" />
               <span className="truncate">{dirPath}</span>
               <span className="shrink-0 text-stone-400 dark:text-stone-500">
                 {t("chat.message.toolItemCount", { count: entries.length })}
               </span>
+              <div className="absolute top-0.5 right-0.5 opacity-0 group-hover/args:opacity-100 transition-opacity">
+                <CopyButton text={dirPath} size={12} />
+              </div>
             </div>
             <div className="relative group max-h-48 overflow-y-auto rounded-md border border-stone-200/60 dark:border-stone-700/50 bg-stone-50 dark:bg-stone-900">
               <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">

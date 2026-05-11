@@ -13,6 +13,7 @@ import {
 } from "react";
 import {
   authApi,
+  buildOAuthLoginUrl,
   getAccessToken,
   getRefreshToken,
   isAuthenticated,
@@ -255,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // OAuth 登录 - 直接导航到后端 OAuth 端点，由服务端重定向到提供商
   const loginWithOAuth = useCallback(async (provider: string) => {
-    window.location.href = `/api/auth/oauth/${provider}`;
+    window.location.href = buildOAuthLoginUrl(provider);
   }, []);
 
   // 处理 OAuth 回调
@@ -300,6 +301,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 刷新用户信息（同时更新动态权限）
   const refreshUser = useCallback(async () => {
     if (!isAuthenticated()) return;
+
+    const accessToken = getAccessToken();
+    setToken(accessToken);
 
     try {
       const currentUser = await authApi.getCurrentUser();

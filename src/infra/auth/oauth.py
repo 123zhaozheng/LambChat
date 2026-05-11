@@ -7,13 +7,16 @@ OAuth 认证服务
 import asyncio
 import base64
 import json
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import httpx
+import jwt
 from pydantic import BaseModel
 
 from src.infra.logging import get_logger
 from src.infra.user.storage import UserStorage
+from src.infra.utils.datetime import utc_now
 from src.kernel.config import settings
 from src.kernel.schemas.user import OAuthProvider, Token, User, UserCreate
 
@@ -24,6 +27,34 @@ logger = get_logger(__name__)
 
 # HTTP 请求超时设置（秒）
 HTTP_TIMEOUT = 10.0
+APPLE_CLIENT_SECRET_EXPIRE_DAYS = 180
+
+
+def _build_apple_client_secret() -> str:
+    """Build the Sign in with Apple client_secret JWT from private key settings."""
+    private_key = settings.OAUTH_APPLE_CLIENT_SECRET
+    team_id = settings.OAUTH_APPLE_TEAM_ID
+    key_id = settings.OAUTH_APPLE_KEY_ID
+    client_id = settings.OAUTH_APPLE_CLIENT_ID
+
+    if not private_key or not team_id or not key_id or not client_id:
+        return private_key
+
+    now = utc_now()
+    payload = {
+        "iss": team_id,
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(days=APPLE_CLIENT_SECRET_EXPIRE_DAYS)).timestamp()),
+        "aud": "https://appleid.apple.com",
+        "sub": client_id,
+    }
+    normalized_private_key = private_key.replace("\\n", "\n")
+    return jwt.encode(
+        payload,
+        normalized_private_key,
+        algorithm="ES256",
+        headers={"kid": key_id},
+    )
 
 
 class OAuthUserInfo(BaseModel):
@@ -49,7 +80,7 @@ class OAuthService:
 
     def _get_client(self, provider: OAuthProvider) -> Optional["AsyncOAuth2Client"]:
         """获取 OAuth 客户端"""
-        if provider.value in self._oauth_clients:
+        if provider != OAuthProvider.APPLE and provider.value in self._oauth_clients:
             return self._oauth_clients[provider.value]
 
         client_id, client_secret = self._get_client_credentials(provider)
@@ -63,7 +94,8 @@ class OAuthService:
             client_id=client_id,
             client_secret=client_secret,
         )
-        self._oauth_clients[provider.value] = client
+        if provider != OAuthProvider.APPLE:
+            self._oauth_clients[provider.value] = client
         return client
 
     def _get_client_credentials(self, provider: OAuthProvider) -> tuple[str, str]:
@@ -73,7 +105,7 @@ class OAuthService:
         elif provider == OAuthProvider.GITHUB:
             return settings.OAUTH_GITHUB_CLIENT_ID, settings.OAUTH_GITHUB_CLIENT_SECRET
         elif provider == OAuthProvider.APPLE:
-            return settings.OAUTH_APPLE_CLIENT_ID, settings.OAUTH_APPLE_CLIENT_SECRET
+            return settings.OAUTH_APPLE_CLIENT_ID, _build_apple_client_secret()
         return "", ""
 
     def _get_register_config(self, provider: OAuthProvider) -> Optional[Dict[str, Any]]:

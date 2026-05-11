@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from fastapi import Request
 
 from src.infra.logging import get_logger
+from src.kernel.config import settings
 
 from .rate_limiter import RateLimiter
 
@@ -62,6 +63,10 @@ def _get_frontend_url(request: Request) -> str:
     - 开发环境：Vite 代理会设置 X-Forwarded-Host
     - 生产环境：Nginx 等代理至少应传递 Host / X-Forwarded-Proto
     """
+    configured_base_url = getattr(settings, "APP_BASE_URL", "").rstrip("/")
+    if configured_base_url:
+        return configured_base_url
+
     forwarded_host = request.headers.get("x-forwarded-host")
     host = (forwarded_host or request.headers.get("host") or "").split(",")[0].strip()
     if host:
@@ -90,12 +95,12 @@ async def _store_oauth_state(provider: str, state: str, client_ip: str) -> None:
     Args:
         provider: OAuth provider name
         state: State token to store
-        client_ip: Client IP address for binding
+        client_ip: Client IP address retained for backwards-compatible call sites
     """
     from src.infra.storage.redis import get_redis_client
 
     redis = get_redis_client()
-    key = f"oauth:state:{provider}:{RateLimiter._safe_key_part(client_ip)}"
+    key = f"oauth:state:{provider}:{RateLimiter._safe_key_part(state)}"
     # Store state with 10 minute expiry
     await redis.setex(key, 600, state)
 
@@ -106,7 +111,7 @@ async def _verify_oauth_state(provider: str, state: str, client_ip: str) -> bool
     Args:
         provider: OAuth provider name
         state: State token to verify
-        client_ip: Client IP address for binding
+        client_ip: Client IP address retained for backwards-compatible call sites
 
     Returns:
         True if state is valid, False otherwise
@@ -114,7 +119,7 @@ async def _verify_oauth_state(provider: str, state: str, client_ip: str) -> bool
     from src.infra.storage.redis import get_redis_client
 
     redis = get_redis_client()
-    key = f"oauth:state:{provider}:{RateLimiter._safe_key_part(client_ip)}"
+    key = f"oauth:state:{provider}:{RateLimiter._safe_key_part(state)}"
 
     try:
         stored_state = await redis.get(key)

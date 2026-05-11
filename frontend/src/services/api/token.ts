@@ -4,6 +4,11 @@
 
 const TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
+const REDIRECT_PATH_KEY = "redirect_after_login";
+
+export function isSafeRedirectPath(path: string): boolean {
+  return path !== "/" && !path.startsWith("/auth/");
+}
 
 /**
  * 获取存储的 access token
@@ -76,12 +81,20 @@ export function isTokenExpired(token: string): boolean {
  * 获取登录后重定向路径
  */
 export function getRedirectPath(): string | null {
-  return sessionStorage.getItem("redirect_after_login");
+  const redirectPath = sessionStorage.getItem(REDIRECT_PATH_KEY);
+  if (!redirectPath) return null;
+
+  if (!isSafeRedirectPath(redirectPath)) {
+    sessionStorage.removeItem(REDIRECT_PATH_KEY);
+    return null;
+  }
+
+  return redirectPath;
 }
 
 /**
  * 清除重定向路径
  */
 export function clearRedirectPath(): void {
-  sessionStorage.removeItem("redirect_after_login");
+  sessionStorage.removeItem(REDIRECT_PATH_KEY);
 }

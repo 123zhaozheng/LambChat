@@ -3,6 +3,7 @@ import {
   clearTokens,
   getAccessToken,
   getRefreshToken,
+  isSafeRedirectPath,
   isTokenExpired,
   setTokens,
 } from "./token";
@@ -26,7 +27,7 @@ export function clearAuthState(): void {
 
 export function redirectToLogin(): void {
   const currentPath = window.location.pathname + window.location.search;
-  if (currentPath !== "/auth/login" && currentPath !== "/") {
+  if (isSafeRedirectPath(currentPath)) {
     sessionStorage.setItem("redirect_after_login", currentPath);
   }
   clearAuthState();

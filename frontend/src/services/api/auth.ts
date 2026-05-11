@@ -15,6 +15,14 @@ import { authFetch } from "./fetch";
 import { setTokens, clearTokens } from "./token";
 import { refreshTokens } from "./tokenManager";
 
+export function buildOAuthLoginUrl(
+  provider: string,
+  apiBase = API_BASE,
+): string {
+  const base = apiBase.replace(/\/$/, "");
+  return `${base}/api/auth/oauth/${provider}`;
+}
+
 export const authApi = {
   /**
    * 用户登录

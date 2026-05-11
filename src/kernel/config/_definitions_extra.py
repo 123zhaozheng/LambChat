@@ -480,7 +480,7 @@ EXTRA_SETTING_DEFINITIONS: dict[str, dict] = {
         "subcategory": "github",
         "description": "settingDesc.OAUTH_GITHUB_CLIENT_SECRET",
         "default": "",
-        "depends_on": "OAUTH_GOOGLE_ENABLED",
+        "depends_on": "OAUTH_GITHUB_ENABLED",
         "is_sensitive": True,
     },
     "OAUTH_APPLE_ENABLED": {

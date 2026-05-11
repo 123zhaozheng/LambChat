@@ -3,6 +3,7 @@ OAuth authentication routes
 """
 
 import secrets
+from inspect import isawaitable
 from typing import Annotated
 from urllib.parse import urlencode
 
@@ -95,7 +96,7 @@ async def oauth_login(request: Request, provider: OAuthProviderParam):
 
     # 从请求中获取前端 URL
     frontend_url = _get_frontend_url(request)
-    redirect_uri = f"{frontend_url}/api/auth/oauth/{provider}/callback"
+    redirect_uri = _oauth_redirect_uri(frontend_url, provider)
 
     # 获取授权 URL
     auth_url = oauth_service.get_authorization_url(oauth_provider, state, redirect_uri)
@@ -116,40 +117,114 @@ class OAuthCallbackRequest(BaseModel):
     state: str
 
 
-@router.post("/oauth/{provider}/callback")
-async def oauth_callback(
-    http_request: Request, provider: OAuthProviderParam, request: OAuthCallbackRequest
-):
-    """
-    处理 OAuth 回调
+def _oauth_redirect_uri(frontend_url: str, provider: str) -> str:
+    return f"{frontend_url}/api/auth/oauth/{provider}/callback"
 
-    接收授权码，交换 token 并返回 JWT。
-    """
+
+def _frontend_callback_url(frontend_url: str) -> str:
+    return f"{frontend_url}/auth/callback"
+
+
+def _token_fragment(token) -> str:
+    return urlencode(
+        {
+            "access_token": token.access_token,
+            "refresh_token": token.refresh_token,
+            "expires_in": token.expires_in,
+        }
+    )
+
+
+async def _verify_state(provider: str, state: str, client_ip: str) -> bool:
+    result = _verify_oauth_state(provider, state, client_ip)
+    if isawaitable(result):
+        result = await result
+    return bool(result)
+
+
+async def _exchange_oauth_token(
+    request: Request,
+    provider: str,
+    code: str,
+    state: str,
+):
     from src.infra.auth.oauth import get_oauth_service
 
     oauth_service = get_oauth_service()
     oauth_provider = OAuthProvider(provider)
 
+    frontend_url = _get_frontend_url(request)
+    redirect_uri = _oauth_redirect_uri(frontend_url, provider)
+    token = await oauth_service.handle_callback(oauth_provider, code, state, redirect_uri)
+    return frontend_url, token
+
+
+@router.post("/oauth/{provider}/callback")
+async def oauth_callback(http_request: Request, provider: OAuthProviderParam):
+    """
+    处理 OAuth 回调
+
+    接收授权码，交换 token。JSON 请求返回 JWT；Apple form_post 请求重定向到前端回调页。
+    """
+    content_type = http_request.headers.get("content-type", "").lower()
+    is_form_post = "application/x-www-form-urlencoded" in content_type or (
+        "multipart/form-data" in content_type
+    )
+
+    if is_form_post:
+        form = await http_request.form()
+        callback_request = OAuthCallbackRequest(
+            code=str(form.get("code") or ""),
+            state=str(form.get("state") or ""),
+        )
+    else:
+        try:
+            body = await http_request.json()
+            callback_request = OAuthCallbackRequest.model_validate(body)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid OAuth callback payload",
+            ) from exc
+
     # 验证 state 以防止 CSRF 攻击
     client_ip = _get_client_ip(http_request)
-    if not await _verify_oauth_state(provider, request.state, client_ip):
+    if not await _verify_state(provider, callback_request.state, client_ip):
         logger.warning("[OAuth] Invalid state for %s from %s", provider, client_ip)
+        if is_form_post:
+            frontend_url = _get_frontend_url(http_request)
+            error_params = urlencode({"error": "invalid_state", "provider": provider})
+            return RedirectResponse(
+                url=f"{frontend_url}/auth/login?{error_params}",
+                status_code=302,
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid OAuth state. Please try logging in again.",
         )
 
-    # 使用与发起 OAuth 时相同的方式获取 frontend_url，确保 redirect_uri 一致
-    frontend_url = _get_frontend_url(http_request)
-    redirect_uri = f"{frontend_url}/api/auth/oauth/{provider}/callback"
-
-    token = await oauth_service.handle_callback(
-        oauth_provider, request.code, request.state, redirect_uri
+    frontend_url, token = await _exchange_oauth_token(
+        http_request,
+        provider,
+        callback_request.code,
+        callback_request.state,
     )
     if not token:
+        if is_form_post:
+            error_params = urlencode({"error": "oauth_failed", "provider": provider})
+            return RedirectResponse(
+                url=f"{frontend_url}/auth/login?{error_params}",
+                status_code=302,
+            )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="OAuth authentication failed",
+        )
+
+    if is_form_post:
+        return RedirectResponse(
+            url=f"{_frontend_callback_url(frontend_url)}#{_token_fragment(token)}",
+            status_code=302,
         )
 
     return token
@@ -163,26 +238,20 @@ async def oauth_callback_get(request: Request, provider: OAuthProviderParam, cod
     接收授权码，交换 token 并重定向到前端页面。
     Token 通过 URL fragment (#) 传递，更安全且不会被服务器日志记录。
     """
-    from src.infra.auth.oauth import get_oauth_service
-
-    oauth_service = get_oauth_service()
-    oauth_provider = OAuthProvider(provider)
-
     # 使用与发起 OAuth 时相同的方式获取 frontend_url，确保 redirect_uri 一致
     frontend_url = _get_frontend_url(request)
-    redirect_uri = f"{frontend_url}/api/auth/oauth/{provider}/callback"
 
     # 验证 state 以防止 CSRF 攻击
     client_ip = _get_client_ip(request)
-    if not await _verify_oauth_state(provider, state, client_ip):
+    if not await _verify_state(provider, state, client_ip):
         logger.warning("[OAuth] Invalid state for %s from %s", provider, client_ip)
         error_params = urlencode({"error": "invalid_state", "provider": provider})
         return RedirectResponse(url=f"{frontend_url}/auth/login?{error_params}", status_code=302)
 
-    token = await oauth_service.handle_callback(oauth_provider, code, state, redirect_uri)
+    frontend_url, token = await _exchange_oauth_token(request, provider, code, state)
 
     # 构建重定向 URL 到前端的 OAuth 回调处理页面
-    callback_url = f"{frontend_url}/auth/callback"
+    callback_url = _frontend_callback_url(frontend_url)
 
     if not token:
         # 认证失败，重定向到登录页面并显示错误
@@ -191,11 +260,5 @@ async def oauth_callback_get(request: Request, provider: OAuthProviderParam, cod
 
     # 认证成功，通过 URL fragment 传递 token
     # URL fragment (# 后面的内容) 不会发送到服务器，更安全
-    fragment_params = urlencode(
-        {
-            "access_token": token.access_token,
-            "refresh_token": token.refresh_token,
-            "expires_in": token.expires_in,
-        }
-    )
+    fragment_params = _token_fragment(token)
     return RedirectResponse(url=f"{callback_url}#{fragment_params}", status_code=302)

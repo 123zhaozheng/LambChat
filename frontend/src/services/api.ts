@@ -25,7 +25,7 @@ export {
 export { authFetch } from "./api/fetch";
 
 // API modules
-export { authApi } from "./api/auth";
+export { authApi, buildOAuthLoginUrl } from "./api/auth";
 export { userApi } from "./api/user";
 export { roleApi } from "./api/role";
 export {

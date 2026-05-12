@@ -57,7 +57,8 @@ async def _validate_agent_id(agent_id: str | None, user: TokenPayload) -> None:
                 allowed.update(role.allowed_agents)
         if allowed and agent_id not in allowed:
             raise HTTPException(
-                status_code=403, detail=f"Agent '{agent_id}' is not allowed for your role"
+                status_code=403,
+                detail=f"Agent '{agent_id}' is not allowed for your role",
             )
 
 
@@ -470,9 +471,19 @@ async def get_channel_instance_status(
     if manager_class:
         try:
             manager = manager_class.get_instance()
-            status.connected = manager.is_connected(user.sub, instance_id)
-        except Exception:
-            pass
+            connected = manager.is_connected(user.sub, instance_id)
+            if not connected and status.enabled:
+                await manager.reload_user(user.sub, instance_id)
+                connected = manager.is_connected(user.sub, instance_id)
+            status.connected = connected
+        except Exception as e:
+            logger.warning(
+                "Failed to refresh %s channel status for user %s, instance %s: %s",
+                channel_type.value,
+                user.sub,
+                instance_id,
+                e,
+            )
 
     return status
 

@@ -16,11 +16,14 @@ class _FakeChannelClass:
 
 
 class _FakeRegistry:
+    def __init__(self, manager_class=None) -> None:
+        self._manager_class = manager_class
+
     def get_channel_class(self, channel_type: ChannelType):
         return _FakeChannelClass
 
     def get_manager_class(self, channel_type: ChannelType):
-        return None
+        return self._manager_class
 
 
 class _FakeStorage:
@@ -43,6 +46,23 @@ class _FakeStorage:
         self, user_id: str, channel_type: ChannelType, instance_id: str, metadata
     ):
         return SimpleNamespace(instance_id=instance_id)
+
+    async def get_status(self, user_id: str, channel_type: ChannelType, instance_id: str):
+        return SimpleNamespace(channel_type=channel_type, enabled=True, connected=False)
+
+
+class _FakeManager:
+    def __init__(self) -> None:
+        self.reload_calls: list[tuple[str, str]] = []
+        self.connected = False
+
+    def is_connected(self, user_id: str, instance_id: str) -> bool:
+        return self.connected
+
+    async def reload_user(self, user_id: str, instance_id: str) -> bool:
+        self.reload_calls.append((user_id, instance_id))
+        self.connected = True
+        return True
 
 
 class _FakeProjectStorage:
@@ -102,6 +122,30 @@ async def test_update_channel_rejects_unknown_project_id(
 
     assert exc_info.value.status_code == 400
     assert storage.update_calls == 0
+
+
+@pytest.mark.asyncio
+async def test_status_starts_enabled_channel_when_manager_is_disconnected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    storage = _FakeStorage()
+    manager = _FakeManager()
+    manager_class = type(
+        "_StatusManagerClass",
+        (),
+        {"get_instance": classmethod(lambda cls: manager)},
+    )
+    monkeypatch.setattr(channels_route, "get_registry", lambda: _FakeRegistry(manager_class))
+
+    status = await channels_route.get_channel_instance_status(
+        ChannelType.FEISHU,
+        "instance-1",
+        user=SimpleNamespace(sub="user-1", roles=[]),
+        storage=storage,
+    )
+
+    assert manager.reload_calls == [("user-1", "instance-1")]
+    assert status.connected is True
 
 
 async def _async_noop(*args, **kwargs) -> None:

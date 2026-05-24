@@ -179,7 +179,7 @@ def build_conversation_config(
             conversation_config["persona_avatar"] = request.persona_snapshot.avatar
     if request.project_id:
         conversation_config["project_id"] = request.project_id
-    if request.team_id:
+    if agent_id == "team" and request.team_id:
         conversation_config["team_id"] = request.team_id
     return conversation_config
 

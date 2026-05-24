@@ -107,7 +107,9 @@ async def create_persona_preset(
 ) -> str:
     """Create a new persona preset (AI character/role) for the current user.
     The persona is defined by its system_prompt which controls how the AI behaves.
-    Write a detailed, specific system_prompt for best results."""
+    Write a detailed, specific system_prompt for best results.
+    When assembling a Team and no existing persona fits a needed role, create that
+    role here first, then pass the returned preset.id into create_agent_team."""
     user_id = _get_user_id(runtime)
     if not user_id:
         return _json({"error": "No user context available"})

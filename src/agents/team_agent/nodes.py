@@ -29,15 +29,19 @@ from src.agents.core.subagent_prompts import (
 )
 from src.agents.core.thinking import build_thinking_config
 from src.agents.fast_agent.prompt import FAST_SYSTEM_PROMPT
+from src.agents.search_agent.prompt import (
+    SANDBOX_RUNTIME_SECTION as SEARCH_SANDBOX_RUNTIME_SECTION,
+)
+from src.agents.search_agent.prompt import (
+    SANDBOX_SYSTEM_PROMPT as SEARCH_SANDBOX_SYSTEM_PROMPT,
+)
 from src.agents.team_agent.context import TeamAgentContext
 from src.agents.team_agent.prompt import (
-    SANDBOX_RUNTIME_SECTION,
-    SANDBOX_SYSTEM_PROMPT,
-    TEAM_ROUTER_SYSTEM_PROMPT,
     build_team_member_subagent_type,
-    build_team_members_description,
+    build_team_router_system_prompt,
     build_team_subagent_avatars,
     build_team_subagent_display_names,
+    summarize_role_system_prompt,
 )
 from src.infra.agent import AgentEventProcessor
 from src.infra.agent.middleware import (
@@ -67,6 +71,47 @@ logger = get_logger(__name__)
 # ============================================================================
 # 节点函数
 # ============================================================================
+
+
+def build_no_team_fallback_system_prompt(*, sandbox_active: bool) -> str:
+    """Choose the single-agent fallback prompt when no explicit team is selected."""
+    if sandbox_active:
+        return SEARCH_SANDBOX_SYSTEM_PROMPT
+    return FAST_SYSTEM_PROMPT
+
+
+async def resolve_runtime_team(
+    *,
+    team_id: str | None,
+    context: TeamAgentContext,
+    user_input: str,
+):
+    """Resolve an explicit team; no team means single-agent fallback."""
+    del user_input
+    if not context.user_id:
+        return None
+
+    if team_id:
+        try:
+            from src.infra.team.manager import get_team_manager
+
+            tm = get_team_manager()
+            team = await tm.resolve_team_for_runtime(team_id, owner_user_id=context.user_id)
+            if team:
+                logger.info(
+                    f"[TeamAgent] Resolved team '{team.name}' "
+                    f"with {len(team.active_members)} active members"
+                )
+                return team
+            logger.info("[TeamAgent] Team resolved to None (no active members or not found)")
+            raise ValueError("team_not_found_or_unavailable")
+        except Exception as e:
+            if isinstance(e, ValueError) and str(e) == "team_not_found_or_unavailable":
+                raise
+            logger.warning(f"[TeamAgent] Failed to resolve team: {e}")
+            raise ValueError("team_not_found_or_unavailable") from e
+
+    return None
 
 
 async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dict[str, Any]:
@@ -123,27 +168,12 @@ async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dic
     assistant_id = f"assistant-{tenant_id}"
 
     # ── 团队解析 ──
-    team = None
-    team_id = configurable.get("team_id")
-    if team_id and context.user_id:
-        try:
-            from src.infra.team.manager import get_team_manager
-
-            tm = get_team_manager()
-            team = await tm.resolve_team_for_runtime(team_id, owner_user_id=context.user_id)
-            if team:
-                logger.info(
-                    f"[TeamAgent] Resolved team '{team.name}' "
-                    f"with {len(team.active_members)} active members"
-                )
-            else:
-                logger.info("[TeamAgent] Team resolved to None (no active members or not found)")
-                raise ValueError("team_not_found_or_unavailable")
-        except Exception as e:
-            if isinstance(e, ValueError) and str(e) == "team_not_found_or_unavailable":
-                raise
-            logger.warning(f"[TeamAgent] Failed to resolve team: {e}")
-            raise ValueError("team_not_found_or_unavailable") from e
+    user_input = state.get("input", "")
+    team = await resolve_runtime_team(
+        team_id=configurable.get("team_id"),
+        context=context,
+        user_input=user_input,
+    )
 
     # ── 系统提示 ──
     persona_sections = build_persona_prompt_sections(configurable.get("persona_system_prompt"))
@@ -159,9 +189,29 @@ async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dic
             logger.warning(f"Failed to build skills prompt: {e}")
 
     memory_guide = get_memory_guide() if settings.ENABLE_MEMORY else ""
+    role_system_prompts: dict[str, str] = {}
+    role_summaries: dict[str, str] = {}
+
+    if team and team.active_members:
+        try:
+            from src.infra.persona_preset.manager import get_persona_preset_manager
+
+            preset_mgr = get_persona_preset_manager()
+            for member in team.active_members:
+                preset_snapshot = await preset_mgr.use_preset(
+                    member.persona_preset_id,
+                    user_id=context.user_id or "default",
+                    is_admin=False,
+                )
+                role_system_prompts[member.member_id] = preset_snapshot.system_prompt
+                summary = summarize_role_system_prompt(preset_snapshot.system_prompt)
+                if summary:
+                    role_summaries[member.member_id] = summary
+        except Exception as e:
+            logger.warning(f"[TeamAgent] Failed to resolve team member preset prompts: {e}")
+            raise ValueError("team_member_preset_unavailable") from e
 
     if team:
-        team_members_desc = build_team_members_description(team)
         default_role = "general-purpose"
         if team.default_member_id:
             default_member = next(
@@ -179,9 +229,10 @@ async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dic
                 if team.active_members
                 else "general-purpose"
             )
-        system_prompt = TEAM_ROUTER_SYSTEM_PROMPT.format(
-            team_members_description=team_members_desc,
+        system_prompt = build_team_router_system_prompt(
+            team,
             default_role=default_role,
+            role_summaries=role_summaries,
         )
     else:
         system_prompt = FAST_SYSTEM_PROMPT
@@ -227,7 +278,10 @@ async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dic
                 assistant_id,
                 user_id=context.user_id,
             )
-            system_prompt = f"{SANDBOX_SYSTEM_PROMPT}\n\n{system_prompt}"
+            if team:
+                system_prompt = f"{SEARCH_SANDBOX_SYSTEM_PROMPT}\n\n{system_prompt}"
+            else:
+                system_prompt = build_no_team_fallback_system_prompt(sandbox_active=True)
             logger.info(
                 f"[TeamAgent] Sandbox enabled, using sandbox backend for assistant: {assistant_id}"
             )
@@ -302,40 +356,18 @@ async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dic
     if team and team.active_members:
         # ── 多角色子代理 ──
         try:
-            from src.infra.persona_preset.manager import get_persona_preset_manager
-
-            preset_mgr = get_persona_preset_manager()
             subagent_display_names = build_team_subagent_display_names(team)
             subagent_avatars = build_team_subagent_avatars(team)
 
             for member in team.active_members:
                 subagent_type = build_team_member_subagent_type(member)
                 role_name = member.role_name or subagent_type
-                try:
-                    # 解析 persona preset 获取 system_prompt
-                    preset_snapshot = await preset_mgr.use_preset(
-                        member.persona_preset_id,
-                        user_id=context.user_id or "default",
-                        is_admin=False,
-                    )
-                    role_prompt = build_role_subagent_prompt(
-                        role_name=role_name,
-                        role_system_prompt=preset_snapshot.system_prompt,
-                        team_name=team.name,
-                        team_instructions=team.team_instructions or None,
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"[TeamAgent] Failed to resolve preset for member "
-                        f"'{member.role_name}' ({member.persona_preset_id}): {e}. "
-                        f"Using fallback prompt."
-                    )
-                    role_prompt = build_role_subagent_prompt(
-                        role_name=role_name,
-                        role_system_prompt="",
-                        team_name=team.name,
-                        team_instructions=team.team_instructions or None,
-                    )
+                role_prompt = build_role_subagent_prompt(
+                    role_name=role_name,
+                    role_system_prompt=role_system_prompts[member.member_id],
+                    team_name=team.name,
+                    team_instructions=team.team_instructions or None,
+                )
 
                 custom_subagents.append(
                     {
@@ -355,7 +387,8 @@ async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dic
                 f"[TeamAgent] Built {len(custom_subagents)} role subagents for team '{team.name}'"
             )
         except Exception as e:
-            logger.error(f"[TeamAgent] Failed to build team subagents: {e}, falling back to single")
+            logger.error(f"[TeamAgent] Failed to build team subagents: {e}")
+            raise ValueError("team_subagents_unavailable") from e
 
     # Fallback: single general-purpose subagent
     if not custom_subagents:
@@ -379,7 +412,7 @@ async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dic
         if s
     ]
     if sandbox_backend and sandbox_work_dir:
-        _prompt_sections.append(SANDBOX_RUNTIME_SECTION.format(work_dir=sandbox_work_dir))
+        _prompt_sections.append(SEARCH_SANDBOX_RUNTIME_SECTION.format(work_dir=sandbox_work_dir))
     if _prompt_sections:
         user_middleware.append(SectionPromptMiddleware(sections=_prompt_sections))
     if sandbox_backend:
@@ -432,7 +465,6 @@ async def team_router_node(state: Dict[str, Any], config: RunnableConfig) -> Dic
     }
 
     # 构建传入的新消息（包含附件）
-    user_input = state.get("input", "")
     if supports_vision:
         attachments = await inline_image_attachments_as_data_urls(attachments)
     new_message = build_human_message(user_input, attachments, supports_vision=supports_vision)

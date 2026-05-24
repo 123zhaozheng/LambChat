@@ -46,7 +46,7 @@ test("welcome page only projects @ mentions to welcome cards before a role or te
   );
   assert.match(
     welcomePageSource,
-    /onMentionQueryChange=\{\s*shouldProjectMentionsToWelcome \? handleMentionQueryChange : undefined\s*\}/,
+    /onMentionQueryChange=\{\s*shouldProjectMentionsToWelcome\s*\?\s*handleMentionQueryChange\s*:\s*undefined\s*\}/,
   );
 });
 

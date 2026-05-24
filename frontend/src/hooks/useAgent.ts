@@ -547,6 +547,7 @@ export function useAgent(options?: UseAgentOptions): UseAgentReturn {
           ...options?.getAgentOptions?.(),
           ...agentOptions,
         };
+        const requestTeamId = currentAgent === "team" ? selectedTeamId : null;
 
         const submitData = (await sessionApi.submitChat(
           currentAgent,
@@ -559,7 +560,7 @@ export function useAgent(options?: UseAgentOptions): UseAgentReturn {
           disabledMcpTools,
           personaPresetId,
           enabledSkills,
-          selectedTeamId,
+          requestTeamId,
         )) as {
           session_id: string;
           run_id: string;
@@ -600,7 +601,7 @@ export function useAgent(options?: UseAgentOptions): UseAgentReturn {
           if (projectId) {
             conversationConfig.project_id = projectId;
           }
-          if (selectedTeamId) {
+          if (currentAgent === "team" && selectedTeamId) {
             conversationConfig.team_id = selectedTeamId;
           }
 
@@ -648,7 +649,7 @@ export function useAgent(options?: UseAgentOptions): UseAgentReturn {
             persona_preset_id: personaPresetId,
             disabled_mcp_tools: disabledMcpTools,
           };
-          if (selectedTeamId) {
+          if (currentAgent === "team" && selectedTeamId) {
             conversationConfig.team_id = selectedTeamId;
           }
 

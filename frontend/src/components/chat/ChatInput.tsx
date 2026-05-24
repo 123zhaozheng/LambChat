@@ -475,13 +475,8 @@ export const ChatInput = memo(function ChatInput({
 
   const hasContent = !!input.trim() && !disabled;
   const hasUploadingAttachment = attachments.some((a) => a.isUploading);
-  const requiresTeamSelection = currentAgent === "team" && !selectedTeamId;
   const canSubmit =
-    hasContent &&
-    canSend &&
-    !isLoading &&
-    !hasUploadingAttachment &&
-    !requiresTeamSelection;
+    hasContent && canSend && !isLoading && !hasUploadingAttachment;
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

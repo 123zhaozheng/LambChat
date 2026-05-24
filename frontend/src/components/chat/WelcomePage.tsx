@@ -283,15 +283,9 @@ export const WelcomePage = memo(function WelcomePage({
     }
   }, [shouldProjectMentionsToWelcome]);
 
-  const showTeamCards =
-    currentAgent === "team" &&
-    !selectedTeamId &&
-    (mentionQuery !== null || welcomeTeamCards.length > 0 || teamCardsLoading);
+  const showTeamCards = currentAgent === "team" && !selectedTeamId;
   const showPersonaCards =
-    isAgentReady &&
-    currentAgent !== "team" &&
-    !selectedPersonaPresetId &&
-    (mentionQuery !== null || roleCards.length > 0 || personaPresetsLoading);
+    isAgentReady && currentAgent !== "team" && !selectedPersonaPresetId;
   const showStarterPrompts =
     isAgentReady &&
     currentAgent !== "team" &&
@@ -313,7 +307,6 @@ export const WelcomePage = memo(function WelcomePage({
     currentAgent === "team" ? teamStarterPrompts : personaStarterPrompts;
   const displayCards = mentionQuery ? filteredCards : roleCards;
   const displayTeamCards = mentionQuery ? filteredTeamCards : welcomeTeamCards;
-  const showChoiceCards = showPersonaCards || showTeamCards;
   const personaSkeletonCount = getWelcomePersonaSkeletonCount(
     personaPresetsLoading,
     displayCards.length,
@@ -322,6 +315,12 @@ export const WelcomePage = memo(function WelcomePage({
     teamCardsLoading,
     displayTeamCards.length,
   );
+  // Whether to show the choice-card gallery section (persona or team).
+  // Always true when agent is ready and no selection is made, so that
+  // skeleton cards hold the space from the very first render.
+  const showGallerySection = showPersonaCards || showTeamCards;
+  // Whether the gallery has any real content (used for container width variant)
+  const showChoiceCards = showGallerySection;
 
   return (
     <div
@@ -513,7 +512,8 @@ export const WelcomePage = memo(function WelcomePage({
                         imgClassName="h-full w-full object-cover"
                         iconSize={22}
                         style={{
-                          backgroundColor: "var(--theme-primary-light)",
+                          background:
+                            "linear-gradient(135deg, var(--theme-primary-light) 0%, color-mix(in srgb, var(--theme-primary) 10%, var(--theme-bg-card)) 100%)",
                           color: "var(--theme-primary)",
                         }}
                       />
@@ -597,7 +597,8 @@ export const WelcomePage = memo(function WelcomePage({
                         iconSize={22}
                         fallbackIcon={<UserRound size={22} />}
                         style={{
-                          backgroundColor: "var(--theme-primary-light)",
+                          background:
+                            "linear-gradient(135deg, var(--theme-primary-light) 0%, color-mix(in srgb, var(--theme-primary) 10%, var(--theme-bg-card)) 100%)",
                           color: "var(--theme-primary)",
                         }}
                       />

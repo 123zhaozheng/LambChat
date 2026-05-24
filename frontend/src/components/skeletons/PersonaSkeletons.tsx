@@ -21,7 +21,16 @@ export function PersonaPlazaSkeleton() {
                     ][i % 3]
                   }, var(--theme-bg-card))`,
                 }}
-              />
+              >
+                {/* Banner overlay — status pill + pin/favorite buttons */}
+                <div className="absolute bottom-1.5 left-3">
+                  <SkeletonLine width="w-10" className="!h-3.5 !rounded-full" />
+                </div>
+                <div className="absolute bottom-1.5 right-3 flex gap-1">
+                  <div className="skeleton-line size-5 rounded" />
+                  <div className="skeleton-line size-5 rounded" />
+                </div>
+              </div>
               {/* Card body */}
               <div className="flex flex-1 flex-col -mt-3 pt-5 p-5">
                 <div className="flex items-start gap-3">
@@ -30,6 +39,11 @@ export function PersonaPlazaSkeleton() {
                     <SkeletonLine
                       width={i % 2 === 0 ? "w-3/4" : "w-1/2"}
                       className="!h-4"
+                    />
+                    {/* Metadata line — scope, status, usage count */}
+                    <SkeletonLine
+                      width="w-3/5"
+                      className="!h-2.5 mt-1 !opacity-50"
                     />
                   </div>
                 </div>
@@ -40,22 +54,37 @@ export function PersonaPlazaSkeleton() {
                     className="!h-3"
                   />
                 </div>
+                {/* Tags */}
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   <SkeletonLine width="w-14" className="!h-5 !rounded-full" />
-                  <SkeletonLine width="w-20" className="!h-5 !rounded-full" />
+                  <SkeletonLine width="w-10" className="!h-5 !rounded-full" />
+                  <SkeletonLine width="w-16" className="!h-5 !rounded-full" />
                 </div>
-                {/* Footer buttons */}
+                {/* Footer — skill count on left, action buttons on right */}
                 <div
-                  className="mt-4 flex gap-2 border-t pt-3"
+                  className="mt-4 flex items-center justify-between border-t pt-3"
                   style={{ borderColor: "var(--theme-border)" }}
                 >
-                  <SkeletonLine width="w-16" className="!h-8 !rounded-lg" />
-                  <SkeletonLine width="w-16" className="!h-8 !rounded-lg" />
+                  <SkeletonLine width="w-12" className="!h-3 !opacity-50" />
+                  <div className="flex gap-1.5">
+                    <SkeletonLine width="w-12" className="!h-7 !rounded-lg" />
+                    <SkeletonLine width="w-12" className="!h-7 !rounded-lg" />
+                    <SkeletonLine width="w-12" className="!h-7 !rounded-lg" />
+                    <SkeletonLine width="w-12" className="!h-7 !rounded-lg" />
+                  </div>
                 </div>
                 <div className="flex-1" />
               </div>
             </div>
           ))}
+        </div>
+        {/* Pagination placeholder */}
+        <div className="glass-divider px-3 py-3 sm:px-6 mt-2">
+          <div className="flex items-center justify-center gap-2">
+            <div className="skeleton-line size-8 rounded-lg" />
+            <div className="skeleton-line w-24 h-3" />
+            <div className="skeleton-line size-8 rounded-lg" />
+          </div>
         </div>
       </div>
     </div>

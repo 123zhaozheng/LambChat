@@ -13,6 +13,7 @@ from src.infra.tool.env_var_tool import get_env_var_tools
 from src.infra.tool.image_generation_tool import get_image_generation_tool
 from src.infra.tool.mcp_client import MCPToolWithRetry
 from src.infra.tool.persona_preset_tool import get_persona_preset_tools
+from src.infra.tool.team_tool import get_team_tools
 from src.kernel.config import settings
 from src.kernel.schemas.mcp import (
     MCPServerResponse,
@@ -36,6 +37,7 @@ def build_internal_tools() -> list[BaseTool]:
 
     tools.extend(get_env_var_tools())
     tools.extend(get_persona_preset_tools())
+    tools.extend(get_team_tools())
     return tools
 
 

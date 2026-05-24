@@ -31,7 +31,7 @@ test("team toolbar chip only renders after a team is selected", () => {
     /currentAgent === "team" && onSelectTeam && selectedTeamId/,
   );
   assert.match(toolbarSource, /onActivePanelChange\("team"\)/);
-  assert.match(toolbarSource, /Team selected/);
+  assert.match(toolbarSource, /chat\.teamSelected/);
   assert.doesNotMatch(toolbarSource, /Select team/);
   assert.match(toolbarSource, /text-\[var\(--theme-primary\)\]/);
   assert.doesNotMatch(toolbarSource, /text-amber-500/);
@@ -62,7 +62,7 @@ test("team selector uses the persona selector interaction surfaces", () => {
     teamPickerSource,
     /z-\[250\][\s\S]*sm:max-w-3xl[\s\S]*xl:max-w-6xl/,
   );
-  assert.match(teamPickerSource, /grid auto-grid-cols gap-4/);
+  assert.match(teamPickerSource, /grid auto-grid-cols gap-3/);
   assert.match(teamPickerSource, /pps-card__action/);
   assert.match(teamPickerSource, /handleSelect\(team\.id\)/);
   assert.match(teamPickerSource, /onSelect\(teamId\)/);

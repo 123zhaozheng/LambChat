@@ -11,18 +11,18 @@ export function FilesContentSkeleton() {
           className="absolute inset-0"
           style={{ backgroundColor: "var(--theme-bg)" }}
         />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-stone-200/60 dark:bg-stone-700/40" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-theme-border/60" />
         <div className="relative px-3 @sm:px-4 @md:px-6 py-2 @md:py-3">
           <div className="flex items-center justify-between gap-2 @sm:gap-3 w-full">
             <div className="flex flex-wrap gap-1.5 sm:gap-2 items-center">
               <div className="skeleton-line h-9 w-16 sm:w-20 rounded-lg" />
               <div className="skeleton-line h-9 w-14 rounded-lg" />
-              <div className="skeleton-line h-9 w-20 sm:w-24 rounded-lg hidden @md:block" />
+              <div className="skeleton-line h-9 w-20 sm:w-24 rounded-lg hidden @lg:block" />
               <div className="skeleton-line h-9 w-14 rounded-lg" />
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <div className="skeleton-line h-9 w-[120px] @sm:w-[160px] @md:w-[200px] rounded-lg" />
-              <div className="skeleton-line h-9 w-9 rounded-lg hidden @md:block" />
+              <div className="skeleton-line h-9 w-9 rounded-lg hidden @sm:block" />
             </div>
           </div>
         </div>
@@ -71,12 +71,9 @@ export function FilesContentSkeleton() {
 /** Single file card skeleton — matches GridCard structure */
 function FileCardSkeleton({ i }: { i: number }) {
   return (
-    <div
-      className="flex flex-col overflow-hidden rounded-xl border border-stone-200/60 dark:border-stone-700/40"
-      style={{ backgroundColor: "var(--theme-bg-card, #fff)" }}
-    >
-      {/* File header */}
-      <div className="flex items-center gap-2 px-2.5 py-2.5 border-b border-stone-100 dark:border-stone-800/80">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-theme-border bg-theme-bg-card">
+      {/* File header — no border-b in real GridCard */}
+      <div className="flex items-center gap-2 px-2.5 py-2.5">
         <div className="skeleton-line size-4 rounded shrink-0" />
         <SkeletonLine
           width={i === 0 ? "w-3/4" : i === 1 ? "w-1/2" : "w-2/3"}
@@ -84,8 +81,8 @@ function FileCardSkeleton({ i }: { i: number }) {
         />
         <div className="skeleton-line size-7 rounded-md shrink-0" />
       </div>
-      {/* Preview area */}
-      <div className="aspect-[16/9] bg-stone-50/80 dark:bg-stone-800/20 flex items-center justify-center">
+      {/* Preview area — uses theme bg */}
+      <div className="aspect-[16/9] bg-theme-bg-subtle flex items-center justify-center">
         <div className="skeleton-line size-8 rounded-lg" />
       </div>
       {/* Meta footer */}

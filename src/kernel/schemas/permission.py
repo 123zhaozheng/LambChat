@@ -183,6 +183,19 @@ PERMISSION_METADATA: dict[str, dict[str, str]] = {
         "label": "管理智能体",
         "description": "创建、修改和删除智能体配置（管理员权限）",
     },
+    # Team
+    Permission.TEAM_READ.value: {
+        "label": "查看团队",
+        "description": "查看自己的智能体团队",
+    },
+    Permission.TEAM_WRITE.value: {
+        "label": "管理团队",
+        "description": "创建和修改自己的智能体团队",
+    },
+    Permission.TEAM_DELETE.value: {
+        "label": "删除团队",
+        "description": "删除自己的智能体团队",
+    },
     # Model
     Permission.MODEL_ADMIN.value: {
         "label": "管理模型",
@@ -335,6 +348,14 @@ PERMISSION_GROUPS_CONFIG: list[PermissionGroupConfig] = [
         "permissions": [
             Permission.AGENT_READ.value,
             Permission.AGENT_ADMIN.value,
+        ],
+    },
+    {
+        "name": "智能体团队",
+        "permissions": [
+            Permission.TEAM_READ.value,
+            Permission.TEAM_WRITE.value,
+            Permission.TEAM_DELETE.value,
         ],
     },
     {

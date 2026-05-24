@@ -1,11 +1,43 @@
 """Persona preset storage."""
 
+import re
 from typing import Any, Optional
 
 from bson import ObjectId
 
 from src.infra.utils.datetime import utc_now
 from src.kernel.config import settings
+
+_SEARCH_TOKEN_RE = re.compile(r"[A-Za-z0-9_]+|[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]+")
+
+
+def _build_persona_search_terms(text: str | None) -> list[str]:
+    """Build role-search terms without broad single-character CJK matches."""
+    if not text:
+        return []
+
+    terms: list[str] = []
+    seen: set[str] = set()
+
+    def add(term: str) -> None:
+        clean = term.strip().lower()
+        if not clean or clean in seen:
+            return
+        seen.add(clean)
+        terms.append(clean)
+
+    for match in _SEARCH_TOKEN_RE.finditer(text):
+        token = match.group(0)
+        if token.isascii():
+            add(token)
+            continue
+
+        add(token)
+        if len(token) > 2:
+            for index in range(len(token) - 1):
+                add(token[index : index + 2])
+
+    return terms[:32]
 
 
 class PersonaPresetStorage:
@@ -330,12 +362,27 @@ class PersonaPresetStorage:
             query["tags"] = tag
         if q:
             query["$and"] = query.get("$and", [])
-            query["$and"].append(
-                {
-                    "$or": [
-                        {"name": {"$regex": q, "$options": "i"}},
-                        {"description": {"$regex": q, "$options": "i"}},
-                    ]
-                }
-            )
+            search_terms = _build_persona_search_terms(q)
+            if not search_terms:
+                query["$and"].append({"_id": {"$in": []}})
+            else:
+                query["$and"].append(
+                    {
+                        "$or": [
+                            {
+                                "$or": [
+                                    {"name": {"$regex": term, "$options": "i"}},
+                                    {"description": {"$regex": term, "$options": "i"}},
+                                    {"tags": {"$elemMatch": {"$regex": term, "$options": "i"}}},
+                                    {
+                                        "skill_names": {
+                                            "$elemMatch": {"$regex": term, "$options": "i"}
+                                        }
+                                    },
+                                ]
+                            }
+                            for term in search_terms
+                        ]
+                    }
+                )
         return query

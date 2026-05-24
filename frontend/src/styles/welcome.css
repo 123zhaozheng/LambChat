@@ -138,7 +138,27 @@
 
 .welcome-persona-card {
   min-height: auto;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--theme-text) 3%, transparent);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--theme-text) 3%, transparent),
+    0 0 0 0.5px color-mix(in srgb, var(--theme-border) 30%, transparent);
+}
+
+.welcome-persona-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 3px;
+  border-radius: 0 1.5px 1.5px 0;
+  background: var(--theme-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.welcome-persona-card:hover::before {
+  opacity: 0.5;
 }
 
 .welcome-persona-card:hover {
@@ -153,7 +173,18 @@
 }
 
 .welcome-persona-avatar {
-  box-shadow: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--theme-primary) 8%, transparent),
+    0 2px 8px -2px color-mix(in srgb, var(--theme-primary) 12%, transparent);
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+
+.welcome-persona-card:hover .welcome-persona-avatar {
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--theme-primary) 16%, transparent),
+    0 4px 14px -2px color-mix(in srgb, var(--theme-primary) 22%, transparent);
 }
 
 .welcome-persona-name-row {
@@ -210,7 +241,7 @@
 }
 
 .welcome-skeleton-line {
-  height: 0.4rem;
+  height: 0.75rem;
   border-radius: 999px;
 }
 
@@ -300,15 +331,33 @@
 }
 
 .dark .welcome-persona-card {
-  box-shadow: 0 1px 2px color-mix(in srgb, black 12%, transparent);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, black 12%, transparent),
+    0 0 0 0.5px color-mix(in srgb, var(--theme-border) 20%, transparent);
+}
+
+.dark .welcome-persona-card:hover::before {
+  opacity: 0.35;
 }
 
 .dark .welcome-persona-card:not(.welcome-persona-skeleton) {
   background: linear-gradient(
     135deg,
     var(--theme-bg-card) 0%,
-    color-mix(in srgb, var(--theme-primary) 3%, var(--theme-bg-card)) 100%
+    color-mix(in srgb, var(--theme-primary) 4%, var(--theme-bg-card)) 100%
   );
+}
+
+.dark .welcome-persona-avatar {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--theme-primary) 10%, transparent),
+    0 2px 10px -2px color-mix(in srgb, var(--theme-primary) 16%, transparent);
+}
+
+.dark .welcome-persona-card:hover .welcome-persona-avatar {
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--theme-primary) 18%, transparent),
+    0 4px 16px -2px color-mix(in srgb, var(--theme-primary) 25%, transparent);
 }
 
 @media (max-width: 639px) {

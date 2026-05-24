@@ -79,6 +79,11 @@ class Permission(str, Enum):
     AGENT_READ = "agent:read"
     AGENT_ADMIN = "agent:admin"
 
+    # Team
+    TEAM_READ = "team:read"
+    TEAM_WRITE = "team:write"
+    TEAM_DELETE = "team:delete"
+
     # Model
     MODEL_ADMIN = "model:admin"
 

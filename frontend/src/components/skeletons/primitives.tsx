@@ -63,12 +63,6 @@ export function SkeletonList({
               ? "py-2.5"
               : "px-2 sm:px-3 py-2 sm:py-2.5 xl:py-3 sm:gap-3 xl:gap-4 sm:rounded-xl"
           }`}
-          style={{
-            backgroundColor:
-              i === 0
-                ? "var(--theme-bg-card, color-mix(in srgb, var(--theme-bg) 80%, white))"
-                : undefined,
-          }}
         >
           {compact ? (
             <SkeletonLine width={i % 2 === 0 ? "w-3/4" : "w-1/2"} />

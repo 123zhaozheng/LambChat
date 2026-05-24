@@ -1,20 +1,13 @@
 from __future__ import annotations
 
-import pytest
-from fastapi import HTTPException
-
 from src.api.routes.chat_validation import validate_team_agent_request
 from src.kernel.schemas.agent import AgentRequest
 
 
-def test_validate_team_agent_request_requires_team_id() -> None:
+def test_validate_team_agent_request_allows_missing_team_id_for_fallback() -> None:
     request = AgentRequest(message="hello")
 
-    with pytest.raises(HTTPException) as exc:
-        validate_team_agent_request("team", request)
-
-    assert exc.value.status_code == 400
-    assert exc.value.detail == "team_id_required"
+    validate_team_agent_request("team", request)
 
 
 def test_validate_team_agent_request_allows_team_id() -> None:
@@ -27,3 +20,11 @@ def test_validate_team_agent_request_ignores_other_agents() -> None:
     request = AgentRequest(message="hello")
 
     validate_team_agent_request("search", request)
+
+
+def test_conversation_metadata_scopes_team_id_to_team_agent() -> None:
+    from pathlib import Path
+
+    source = Path("src/api/routes/chat.py").read_text()
+
+    assert 'if agent_id == "team" and request.team_id:' in source

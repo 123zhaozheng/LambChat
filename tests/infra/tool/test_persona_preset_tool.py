@@ -60,6 +60,15 @@ def _admin_user() -> TokenPayload:
     )
 
 
+def test_create_persona_preset_description_guides_team_role_creation() -> None:
+    from src.infra.tool import persona_preset_tool
+
+    description = persona_preset_tool.create_persona_preset.description
+
+    assert "create_agent_team" in description
+    assert "no existing persona fits" in description.lower()
+
+
 @pytest.mark.asyncio
 async def test_update_persona_preset_tool_promotes_named_user_preset_to_global(
     monkeypatch: pytest.MonkeyPatch,

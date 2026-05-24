@@ -53,22 +53,24 @@ function UserMessageSkeleton({
   return (
     <div className="w-full px-2 py-3 sm:py-4 sm:px-4 group">
       <div className="mx-auto flex max-w-3xl lg:max-w-4xl xl:max-w-5xl justify-end px-2">
-        <div
-          className={`flex flex-col items-stretch max-w-[90%] ${msg.bubble}`}
-        >
+        <div className={`flex flex-col items-end max-w-[90%] ${msg.bubble}`}>
           <div
-            className="rounded-3xl w-full px-5 py-2 shadow-sm border"
+            className="rounded-3xl max-w-full px-5 py-2 shadow-sm border"
             style={{
               background:
                 "linear-gradient(135deg, var(--theme-primary-light), var(--theme-bg))",
               borderColor: "var(--theme-border)",
             }}
           >
-            <div className="leading-relaxed text-[15px] sm:text-base space-y-1.5">
+            <div className="leading-relaxed text-[15px] sm:text-base">
               {msg.lines.map((w, li) => (
                 <SkeletonLine key={li} width={w} />
               ))}
             </div>
+          </div>
+          <div className="flex justify-end mt-2 gap-1">
+            <div className="skeleton-line size-7 rounded-lg" />
+            <div className="skeleton-line size-7 rounded-lg" />
           </div>
         </div>
       </div>
@@ -81,12 +83,17 @@ function AssistantMessageSkeleton() {
   return (
     <div className="group w-full animate-[fade-in_0.3s_ease-out] scroll-mt-6 rounded-2xl">
       <div className="mx-auto flex flex-col max-w-3xl lg:max-w-4xl xl:max-w-5xl px-4 sm:px-6">
-        {/* Avatar + name */}
-        <div className="mb-3 flex items-center gap-2">
-          <div className="skeleton-line size-6 rounded-full shrink-0" />
+        {/* Avatar + name + timestamp */}
+        <div className="mb-3 flex flex-nowrap items-center gap-2">
+          <div className="skeleton-line size-5 sm:size-6 rounded-full shrink-0" />
           <SkeletonLine
             width="w-16 sm:w-20"
             className="!h-[18px] sm:!h-[20px]"
+          />
+          <div className="flex-1" />
+          <SkeletonLine
+            width="w-12"
+            className="!h-3 !opacity-0 sm:!opacity-50"
           />
         </div>
         {/* Response content skeleton */}
@@ -103,6 +110,13 @@ function AssistantMessageSkeleton() {
               <div className="skeleton-line w-1/3 h-2 sm:h-[7px] rounded-full" />
             </div>
           </div>
+        </div>
+        {/* Bottom action buttons row */}
+        <div className="flex items-center gap-1 px-2">
+          <div className="skeleton-line size-7 rounded-md" />
+          <div className="skeleton-line size-7 rounded-md" />
+          <div className="skeleton-line size-7 rounded-md hidden sm:block" />
+          <div className="skeleton-line size-7 rounded-md hidden sm:block" />
         </div>
       </div>
     </div>
@@ -168,27 +182,26 @@ export function ChatSkeletonMessagesOnly({ count = 3 }: { count?: number }) {
 /** Shared ChatInput skeleton — matches real ChatInput rounded-3xl container + toolbar */
 function ChatInputSkeleton() {
   return (
-    <div className="shrink-0 sm:px-4 pb-3 pt-1">
+    <div className="shrink-0 sm:px-4 pb-3">
       <div className="mx-auto max-w-3xl lg:max-w-4xl xl:max-w-5xl px-2">
         <div
-          className="flex flex-col w-full rounded-3xl px-1 border"
+          className="chat-input-container flex flex-col relative w-full rounded-3xl px-1 border"
           style={{
             backgroundColor: "var(--theme-bg-card)",
             borderColor: "var(--theme-border)",
             boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
           }}
         >
-          {/* Textarea area */}
+          {/* Textarea area — matches real: px-2.5 pt-1 */}
           <div className="px-2.5 pt-1">
             <div className="pt-[10px] min-h-[40px] sm:min-h-[44px]">
               <div className="skeleton-line h-3 w-3/5 rounded" />
             </div>
           </div>
-          {/* Toolbar — matches real toolbar: gap-1 sm:gap-2 */}
+          {/* Toolbar — matches real toolbar: gap-1 sm:gap-2, overflow-x-auto */}
           <div className="flex justify-between flex-nowrap pt-3 pb-3 px-2 mx-0.5 max-w-full">
-            <div className="flex items-center gap-1 sm:gap-2 self-end flex-1 min-w-0">
+            <div className="flex items-center gap-1 sm:gap-2 self-end flex-1 min-w-0 min-h-10 overflow-x-auto no-scrollbar">
               <div className="skeleton-line h-8 w-8 rounded-lg shrink-0" />
-              <div className="skeleton-line h-8 w-8 rounded-lg shrink-0 hidden sm:block" />
             </div>
             <div className="self-end flex shrink-0">
               <div className="skeleton-line size-8 rounded-full" />
@@ -207,16 +220,16 @@ function ChatInputSkeleton() {
 /** Skeleton for the welcome page (greeting + input + suggestions) */
 export function WelcomeSkeleton() {
   return (
-    <div className="welcome-root relative flex h-full flex-col items-center justify-center px-4 overflow-hidden animate-fade-in">
+    <div className="welcome-root relative flex h-full flex-col items-center justify-center px-4 animate-fade-in">
       {/* Hero section */}
       <div className="welcome-hero relative flex flex-col items-center mb-3 sm:mb-4 md:mb-5 xl:mb-6 2xl:mb-7 w-full max-w-[90vw]">
         {/* Mobile icon */}
         <div className="sm:hidden relative mb-3">
-          <div className="skeleton-line size-10 rounded-full shadow-md ring-1 ring-stone-200/60 dark:ring-stone-700/40" />
+          <div className="skeleton-line size-12 rounded-full shadow-md ring-1 ring-stone-200/60 dark:ring-stone-700/40" />
         </div>
         {/* Greeting line — desktop icon inline */}
         <div className="max-w-[90vw] w-full flex items-center justify-center">
-          <div className="skeleton-line size-10 2xl:size-12 rounded-full hidden sm:inline-block shrink-0 shadow-md ring-1 ring-stone-200/60 dark:ring-stone-700/40 mr-4" />
+          <div className="skeleton-line size-14 2xl:size-16 rounded-full hidden sm:inline-block shrink-0 shadow-md ring-1 ring-stone-200/60 dark:ring-stone-700/40 mr-4" />
           <SkeletonLine
             width="w-48 sm:w-64 md:w-72 lg:w-80 xl:w-[22rem] 2xl:w-96"
             className="!h-[1.65rem] sm:!h-8 md:!h-9 lg:!h-[2.35rem] xl:!h-[2.4rem] 2xl:!h-10 !rounded-lg"
@@ -240,14 +253,13 @@ export function WelcomeSkeleton() {
           }}
         >
           {/* Textarea area */}
-          <div className="px-2.5 py-2 flex items-start gap-2">
+          <div className="px-2.5 pt-1 flex items-start gap-2">
             <div className="skeleton-line h-3 w-3/5 rounded flex-1 mt-3 min-h-[30px]" />
           </div>
           {/* Toolbar */}
           <div className="flex justify-between flex-nowrap pt-3 pb-3 px-2 mx-0.5 max-w-full">
             <div className="flex items-center gap-1 sm:gap-2 self-end flex-1 min-w-0">
               <div className="skeleton-line h-8 w-8 rounded-lg shrink-0" />
-              <div className="skeleton-line h-8 w-8 rounded-lg shrink-0 hidden sm:block" />
             </div>
             <div className="self-end flex shrink-0">
               <div className="skeleton-line size-8 rounded-full" />

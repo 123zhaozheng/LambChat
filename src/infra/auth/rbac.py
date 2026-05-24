@@ -162,6 +162,10 @@ class RBACManager:
                     Permission.CHANNEL_DELETE.value,
                     # Agent
                     Permission.AGENT_READ.value,
+                    # Team
+                    Permission.TEAM_READ.value,
+                    Permission.TEAM_WRITE.value,
+                    Permission.TEAM_DELETE.value,
                     # Marketplace
                     Permission.MARKETPLACE_READ.value,
                     Permission.MARKETPLACE_PUBLISH.value,
@@ -184,6 +188,8 @@ class RBACManager:
                     Permission.CHANNEL_READ.value,
                     # Agent
                     Permission.AGENT_READ.value,
+                    # Team
+                    Permission.TEAM_READ.value,
                     # Marketplace
                     Permission.MARKETPLACE_READ.value,
                     # Persona Preset

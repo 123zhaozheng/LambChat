@@ -10,15 +10,15 @@ export function PanelHeaderSkeleton({
     <div className="panel-header">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          {/* Icon box — matches real PanelHeader: size-12 rounded-xl gradient + shadow + ring */}
+          {/* Icon box — matches real PanelHeader: size-12 lg:size-14 rounded-xl gradient + shadow + ring */}
           <div
-            className="flex size-12 flex-shrink-0 items-center justify-center rounded-xl shadow-sm ring-1 ring-stone-200/60 dark:ring-stone-700/50"
+            className="flex size-12 flex-shrink-0 items-center justify-center rounded-xl shadow-sm ring-1 ring-stone-200/60 dark:ring-stone-700/50 lg:size-14"
             style={{
               background:
                 "linear-gradient(to bottom right, var(--theme-bg-card), color-mix(in srgb, var(--theme-bg) 80%, white))",
             }}
           >
-            <div className="skeleton-line size-6 rounded-md" />
+            <div className="skeleton-line size-5 lg:size-[22px] rounded-md" />
           </div>
           <div className="min-w-0">
             <SkeletonLine
@@ -38,7 +38,7 @@ export function PanelHeaderSkeleton({
         </div>
       </div>
       {hasSearch && (
-        <div className="mt-2 flex items-center gap-2 sm:mt-3">
+        <div className="mt-2 flex items-center gap-2 sm:mt-3 lg:mt-4">
           <div className="skeleton-line h-10 flex-1 rounded-lg" />
         </div>
       )}

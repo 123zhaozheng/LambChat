@@ -30,3 +30,8 @@ test("team agent placeholder says @ switches teams", () => {
     /mentionMode === "team"[\s\S]*chat\.teamPlaceholder/,
   );
 });
+
+test("team agent can submit without selecting an existing team", () => {
+  assert.doesNotMatch(chatInputSource, /requiresTeamSelection/);
+  assert.doesNotMatch(chatInputSource, /!\s*requiresTeamSelection/);
+});

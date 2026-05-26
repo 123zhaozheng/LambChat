@@ -25,9 +25,13 @@ class _FakePayloadStore:
 class _FakeTaskExecutor:
     def __init__(self) -> None:
         self.run_calls: list[dict] = []
+        self.status_calls: list[tuple] = []
 
     async def run_task(self, **kwargs) -> None:
         self.run_calls.append(kwargs)
+
+    async def _update_session_status(self, *args, **kwargs) -> None:
+        self.status_calls.append((args, kwargs))
 
 
 class _CancelledTaskExecutor:
@@ -63,6 +67,14 @@ class _FakeStorage:
 
     async def get_by_session_id(self, session_id: str):
         return SimpleNamespace(metadata=self.metadata)
+
+
+class _FakeLimiter:
+    def __init__(self) -> None:
+        self.release_calls: list[tuple[str, str, bool]] = []
+
+    async def release(self, user_id: str, run_id: str, dequeue: bool = True) -> None:
+        self.release_calls.append((user_id, run_id, dequeue))
 
 
 @pytest.mark.asyncio
@@ -108,6 +120,90 @@ async def test_run_agent_task_loads_payload_and_invokes_executor(
 
 
 @pytest.mark.asyncio
+async def test_run_agent_task_imports_default_executor_when_registry_is_cold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = {
+        "session_id": "session-1",
+        "run_id": "run-1",
+        "trace_id": "trace-1",
+        "agent_id": "search",
+        "message": "hello",
+        "display_message": "hello display",
+        "user_id": "user-1",
+        "executor_key": "agent_stream",
+        "user_message_written": True,
+    }
+    payload_store = _FakePayloadStore(payload)
+    task_executor = _FakeTaskExecutor()
+    limiter = _FakeLimiter()
+    task_manager = SimpleNamespace(
+        _run_info={},
+        _ensure_executor=lambda: task_executor,
+    )
+    calls = {"registry": 0, "imports": []}
+
+    async def _executor_fn(*args, **kwargs):
+        if False:
+            yield None
+
+    def _get_registered_executor(key: str):
+        calls["registry"] += 1
+        return None if calls["registry"] == 1 else _executor_fn
+
+    def _import_module(name: str):
+        calls["imports"].append(name)
+        return SimpleNamespace()
+
+    monkeypatch.setattr(arq_worker, "get_task_manager", lambda: task_manager)
+    monkeypatch.setattr(arq_worker, "get_registered_executor", _get_registered_executor)
+    monkeypatch.setattr(arq_worker, "get_concurrency_limiter", lambda: limiter)
+    monkeypatch.setattr(arq_worker, "import_module", _import_module, raising=False)
+
+    await arq_worker.run_agent_task({"payload_store": payload_store}, "run-1")
+
+    assert calls["imports"] == ["src.api.routes.chat"]
+    assert task_executor.run_calls
+    assert payload_store.deleted == ["run-1"]
+    assert limiter.release_calls == [("user-1", "run-1", True)]
+
+
+@pytest.mark.asyncio
+async def test_run_agent_task_cleans_up_when_executor_is_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = {
+        "session_id": "session-1",
+        "run_id": "run-1",
+        "trace_id": "trace-1",
+        "agent_id": "search",
+        "message": "hello",
+        "display_message": "hello display",
+        "user_id": "user-1",
+        "executor_key": "missing_executor",
+        "user_message_written": True,
+    }
+    payload_store = _FakePayloadStore(payload)
+    task_executor = _FakeTaskExecutor()
+    limiter = _FakeLimiter()
+    task_manager = SimpleNamespace(
+        _run_info={},
+        _ensure_executor=lambda: task_executor,
+    )
+
+    monkeypatch.setattr(arq_worker, "get_task_manager", lambda: task_manager)
+    monkeypatch.setattr(arq_worker, "get_registered_executor", lambda key: None)
+    monkeypatch.setattr(arq_worker, "get_concurrency_limiter", lambda: limiter)
+
+    await arq_worker.run_agent_task({"payload_store": payload_store}, "run-1")
+
+    assert task_executor.run_calls == []
+    assert task_executor.status_calls
+    assert payload_store.deleted == ["run-1"]
+    assert limiter.release_calls == [("user-1", "run-1", True)]
+
+
+@pytest.mark.asyncio
 async def test_run_agent_task_marks_recoverable_and_deletes_payload_when_cancelled(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -125,6 +221,7 @@ async def test_run_agent_task_marks_recoverable_and_deletes_payload_when_cancell
     payload_store = _FakePayloadStore(payload)
     task_executor = _CancelledTaskExecutor()
     recoverable_failures: list[tuple[str, str, str]] = []
+    limiter = _FakeLimiter()
 
     async def _fake_mark_recoverable_failure(
         session_id: str,
@@ -145,6 +242,7 @@ async def test_run_agent_task_marks_recoverable_and_deletes_payload_when_cancell
 
     monkeypatch.setattr(arq_worker, "get_task_manager", lambda: task_manager)
     monkeypatch.setattr(arq_worker, "get_registered_executor", lambda key: _executor_fn)
+    monkeypatch.setattr(arq_worker, "get_concurrency_limiter", lambda: limiter)
 
     with pytest.raises(asyncio.CancelledError):
         await arq_worker.run_agent_task({"payload_store": payload_store}, "run-1")
@@ -152,6 +250,7 @@ async def test_run_agent_task_marks_recoverable_and_deletes_payload_when_cancell
     assert task_executor.run_calls
     assert recoverable_failures == [("session-1", "run-1", "Server shutdown")]
     assert payload_store.deleted == ["run-1"]
+    assert limiter.release_calls == [("user-1", "run-1", False)]
 
 
 @pytest.mark.asyncio
@@ -172,6 +271,7 @@ async def test_run_agent_task_does_not_mark_user_cancelled_run_recoverable(
     payload_store = _FakePayloadStore(payload)
     task_executor = _CancelledTaskExecutor()
     recoverable_failures: list[tuple[str, str, str]] = []
+    limiter = _FakeLimiter()
 
     async def _fake_mark_recoverable_failure(
         session_id: str,
@@ -200,12 +300,14 @@ async def test_run_agent_task_does_not_mark_user_cancelled_run_recoverable(
 
     monkeypatch.setattr(arq_worker, "get_task_manager", lambda: task_manager)
     monkeypatch.setattr(arq_worker, "get_registered_executor", lambda key: _executor_fn)
+    monkeypatch.setattr(arq_worker, "get_concurrency_limiter", lambda: limiter)
 
     await arq_worker.run_agent_task({"payload_store": payload_store}, "run-1")
 
     assert task_executor.run_calls
     assert recoverable_failures == []
     assert payload_store.deleted == ["run-1"]
+    assert limiter.release_calls == [("user-1", "run-1", True)]
 
 
 @pytest.mark.asyncio
@@ -225,6 +327,7 @@ async def test_run_agent_task_deletes_payload_after_task_interrupted(
     }
     payload_store = _FakePayloadStore(payload)
     task_executor = _InterruptedTaskExecutor()
+    limiter = _FakeLimiter()
     task_manager = SimpleNamespace(
         _run_info={},
         _ensure_executor=lambda: task_executor,
@@ -236,11 +339,13 @@ async def test_run_agent_task_deletes_payload_after_task_interrupted(
 
     monkeypatch.setattr(arq_worker, "get_task_manager", lambda: task_manager)
     monkeypatch.setattr(arq_worker, "get_registered_executor", lambda key: _executor_fn)
+    monkeypatch.setattr(arq_worker, "get_concurrency_limiter", lambda: limiter)
 
     await arq_worker.run_agent_task({"payload_store": payload_store}, "run-1")
 
     assert task_executor.run_calls
     assert payload_store.deleted == ["run-1"]
+    assert limiter.release_calls == [("user-1", "run-1", True)]
 
 
 @pytest.mark.asyncio
@@ -296,6 +401,7 @@ async def test_run_agent_task_deletes_payload_after_success(
     }
     payload_store = _FakePayloadStore(payload)
     task_executor = _FakeTaskExecutor()
+    limiter = _FakeLimiter()
     task_manager = SimpleNamespace(
         _run_info={},
         _ensure_executor=lambda: task_executor,
@@ -307,7 +413,9 @@ async def test_run_agent_task_deletes_payload_after_success(
 
     monkeypatch.setattr(arq_worker, "get_task_manager", lambda: task_manager)
     monkeypatch.setattr(arq_worker, "get_registered_executor", lambda key: _executor_fn)
+    monkeypatch.setattr(arq_worker, "get_concurrency_limiter", lambda: limiter)
 
     await arq_worker.run_agent_task({"payload_store": payload_store}, "run-1")
 
     assert payload_store.deleted == ["run-1"]
+    assert limiter.release_calls == [("user-1", "run-1", True)]

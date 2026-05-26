@@ -1,17 +1,30 @@
 from __future__ import annotations
 
 import asyncio
+from importlib import import_module
 from typing import Any
 
 from src.infra.logging import get_logger
 
 from .arq_payloads import TaskArqPayloadStore
-from .concurrency import get_registered_executor
+from .concurrency import get_concurrency_limiter, get_registered_executor
 from .exceptions import TaskInterruptedError
 from .manager import get_task_manager
 from .status import TaskStatus
 
 logger = get_logger(__name__)
+
+
+def _resolve_executor(executor_key: str) -> Any:
+    executor_fn = get_registered_executor(executor_key)
+    if executor_fn is not None:
+        return executor_fn
+
+    if executor_key == "agent_stream":
+        import_module("src.api.routes.chat")
+        return get_registered_executor(executor_key)
+
+    return None
 
 
 async def _is_user_cancelled_run(task_manager: Any, session_id: str, run_id: str) -> bool:
@@ -36,6 +49,17 @@ async def _is_user_cancelled_run(task_manager: Any, session_id: str, run_id: str
     )
 
 
+async def _release_concurrency_slot(user_id: str | None, run_id: str, *, dequeue: bool) -> None:
+    if not user_id:
+        return
+
+    try:
+        limiter = get_concurrency_limiter()
+        await limiter.release(user_id, run_id, dequeue=dequeue)
+    except Exception as e:
+        logger.warning("Failed to release arq concurrency slot: %s", e)
+
+
 async def run_agent_task(ctx: dict[str, Any], run_id: str) -> None:
     """Run a previously persisted LambChat task from an arq worker."""
     payload_store: TaskArqPayloadStore = ctx.get("payload_store") or TaskArqPayloadStore()
@@ -44,13 +68,24 @@ async def run_agent_task(ctx: dict[str, Any], run_id: str) -> None:
         logger.warning("Missing arq task payload for run_id=%s", run_id)
         return
 
-    executor_fn = get_registered_executor(str(payload["executor_key"]))
-    if executor_fn is None:
-        logger.error("No executor registered for arq task run_id=%s", run_id)
-        return
-
     task_manager = get_task_manager()
     task_executor = task_manager._ensure_executor()
+
+    executor_key = str(payload["executor_key"])
+    executor_fn = _resolve_executor(executor_key)
+    if executor_fn is None:
+        error_message = f"No executor registered for key '{executor_key}'"
+        logger.error("%s: run_id=%s", error_message, run_id)
+        await task_executor._update_session_status(
+            payload["session_id"],
+            TaskStatus.FAILED,
+            error_message,
+            run_id=run_id,
+        )
+        await payload_store.delete(run_id)
+        await _release_concurrency_slot(payload.get("user_id"), run_id, dequeue=True)
+        return
+
     task_manager._run_info[run_id] = {
         "session_id": payload["session_id"],
         "trace_id": payload.get("trace_id"),
@@ -81,10 +116,12 @@ async def run_agent_task(ctx: dict[str, Any], run_id: str) -> None:
         )
     except TaskInterruptedError:
         await payload_store.delete(run_id)
+        await _release_concurrency_slot(payload.get("user_id"), run_id, dequeue=True)
         logger.info("Deleted arq payload after user interruption: run_id=%s", run_id)
     except asyncio.CancelledError:
         if await _is_user_cancelled_run(task_manager, payload["session_id"], run_id):
             await payload_store.delete(run_id)
+            await _release_concurrency_slot(payload.get("user_id"), run_id, dequeue=True)
             logger.info("Deleted arq payload after user cancellation: run_id=%s", run_id)
             return
         await task_manager._mark_run_recoverable_failure(
@@ -93,12 +130,14 @@ async def run_agent_task(ctx: dict[str, Any], run_id: str) -> None:
             "Server shutdown",
         )
         await payload_store.delete(run_id)
+        await _release_concurrency_slot(payload.get("user_id"), run_id, dequeue=False)
         raise
     except Exception:
         logger.warning("Keeping arq task payload for retry: run_id=%s", run_id)
         raise
     else:
         await payload_store.delete(run_id)
+        await _release_concurrency_slot(payload.get("user_id"), run_id, dequeue=True)
 
 
 class WorkerSettings:

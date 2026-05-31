@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 
 from src.api.deps import require_permissions
-from src.api.routes.upload import _read_upload_file_limited
+from src.api.routes.upload import _read_upload_file_limited, get_s3_enabled
 from src.infra.skill.binary import guess_mime_type, is_binary_file, parse_binary_ref
 from src.infra.skill.marketplace import MarketplaceStorage
 from src.infra.skill.storage import SkillStorage
@@ -50,7 +50,7 @@ def sanitize_file_path(path: str) -> str:
 
 
 def _get_skill_upload_max_size() -> tuple[int, int]:
-    if settings.S3_ENABLED:
+    if get_s3_enabled():
         max_size_bytes = int(settings.S3_MAX_FILE_SIZE)
     else:
         max_size_bytes = int(settings.FILE_UPLOAD_MAX_SIZE_DOCUMENT) * 1024 * 1024
@@ -516,9 +516,6 @@ async def get_skill_file(
     # 检查是否为二进制文件引用
     binary_ref = parse_binary_ref(content)
     if binary_ref:
-        from src.infra.storage.s3 import get_storage_service
-
-        get_storage_service()
         file_url = f"/api/upload/file/{binary_ref.storage_key}"
         return {
             "content": content,

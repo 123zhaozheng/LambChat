@@ -147,7 +147,7 @@ async def _read_upload_file_limited(
 
 def get_s3_enabled() -> bool:
     """Get S3 enabled status from cached settings"""
-    return bool(settings.S3_ENABLED)
+    return _parse_bool(settings.S3_ENABLED)
 
 
 async def get_s3_config_from_settings() -> S3Config:

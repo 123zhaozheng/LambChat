@@ -8,6 +8,7 @@ from typing import Optional
 
 from src.infra.auth.jwt import create_access_token, create_refresh_token
 from src.infra.role.storage import RoleStorage
+from src.infra.storage.s3.service import get_or_init_storage, get_s3_enabled
 from src.infra.user.storage import UserStorage
 from src.kernel.config import settings
 from src.kernel.schemas.user import Token, User, UserCreate, UserListResponse, UserUpdate
@@ -155,9 +156,10 @@ class UserManager:
         async def cleanup_s3_files(uid: str):
             """Background task to delete user's S3 files"""
             try:
-                from src.infra.storage.s3 import get_storage_service
+                if not get_s3_enabled():
+                    return
 
-                storage = get_storage_service()
+                storage = await get_or_init_storage()
                 if storage and hasattr(storage, "_config") and storage._config.bucket_name:
                     await storage.delete_user_files(uid)
             except Exception:

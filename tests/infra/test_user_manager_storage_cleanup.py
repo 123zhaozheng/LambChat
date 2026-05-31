@@ -1,0 +1,103 @@
+from __future__ import annotations
+
+import asyncio
+
+import pytest
+
+from src.infra.storage.s3.service import get_storage_service, init_storage
+from src.infra.storage.s3.types import S3Config, S3Provider
+from src.infra.user.manager import UserManager
+from src.kernel.config import settings
+
+
+class _UserStorage:
+    async def delete(self, user_id: str) -> bool:
+        return True
+
+
+@pytest.mark.asyncio
+async def test_delete_user_skips_s3_cleanup_when_s3_is_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await init_storage(
+        S3Config(
+            provider=S3Provider.MINIO,
+            endpoint_url="http://minio.example.test:9000",
+            bucket_name="old-bucket",
+        )
+    )
+    storage = get_storage_service()
+    calls: list[str] = []
+
+    async def delete_user_files(user_id: str) -> int:
+        calls.append(user_id)
+        return 1
+
+    monkeypatch.setattr(storage, "delete_user_files", delete_user_files)
+    monkeypatch.setattr(settings, "S3_ENABLED", False, raising=False)
+
+    manager = UserManager()
+    manager.storage = _UserStorage()
+
+    assert await manager.delete_user("user-1") is True
+    await asyncio.sleep(0)
+
+    assert calls == []
+
+
+@pytest.mark.asyncio
+async def test_delete_user_treats_string_false_as_s3_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await init_storage(
+        S3Config(
+            provider=S3Provider.MINIO,
+            endpoint_url="http://minio.example.test:9000",
+            bucket_name="old-bucket",
+        )
+    )
+    storage = get_storage_service()
+    calls: list[str] = []
+
+    async def delete_user_files(user_id: str) -> int:
+        calls.append(user_id)
+        return 1
+
+    monkeypatch.setattr(storage, "delete_user_files", delete_user_files)
+    monkeypatch.setattr(settings, "S3_ENABLED", "false", raising=False)
+
+    manager = UserManager()
+    manager.storage = _UserStorage()
+
+    assert await manager.delete_user("user-1") is True
+    await asyncio.sleep(0)
+
+    assert calls == []
+
+
+@pytest.mark.asyncio
+async def test_delete_user_uses_initialized_storage_when_s3_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    class _Storage:
+        _config = type("_Config", (), {"bucket_name": "bucket"})()
+
+        async def delete_user_files(self, user_id: str) -> int:
+            calls.append(user_id)
+            return 1
+
+    async def get_or_init_storage():
+        return _Storage()
+
+    monkeypatch.setattr(settings, "S3_ENABLED", True, raising=False)
+    monkeypatch.setattr("src.infra.user.manager.get_or_init_storage", get_or_init_storage)
+
+    manager = UserManager()
+    manager.storage = _UserStorage()
+
+    assert await manager.delete_user("user-1") is True
+    await asyncio.sleep(0)
+
+    assert calls == ["user-1"]

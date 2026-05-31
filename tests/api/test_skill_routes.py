@@ -183,6 +183,16 @@ async def test_preview_zip_rejects_oversized_upload_before_parsing(
     assert exc.value.detail == "Failed to read file content"
 
 
+def test_skill_upload_size_treats_string_false_as_local(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(skill_route.settings, "S3_ENABLED", "false", raising=False)
+    monkeypatch.setattr(skill_route.settings, "S3_MAX_FILE_SIZE", 99 * 1024 * 1024, raising=False)
+    monkeypatch.setattr(skill_route.settings, "FILE_UPLOAD_MAX_SIZE_DOCUMENT", 1, raising=False)
+
+    assert skill_route._get_skill_upload_max_size() == (1024 * 1024, 1)
+
+
 @pytest.mark.asyncio
 async def test_update_skill_preference_returns_updated_skill(
     monkeypatch: pytest.MonkeyPatch,

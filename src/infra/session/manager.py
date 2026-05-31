@@ -12,10 +12,10 @@ from src.infra.session.trace_storage import get_trace_storage
 from src.infra.storage.checkpoint import (
     build_messages_from_trace_events,
     clone_checkpoints_for_fork,
+    delete_checkpoints_for_thread,
     seed_checkpoint_from_messages,
 )
-from src.infra.storage.s3 import get_storage_service
-from src.infra.storage.s3.service import get_s3_enabled
+from src.infra.storage.s3.service import get_or_init_storage, get_s3_enabled
 from src.infra.upload.file_record import FileRecordStorage
 from src.infra.utils.datetime import utc_now, utc_now_iso
 from src.kernel.exceptions import NotFoundError, SessionError
@@ -123,7 +123,7 @@ class SessionManager:
         if not keys:
             return 0
 
-        storage = get_storage_service() if get_s3_enabled() else None
+        storage = await get_or_init_storage() if get_s3_enabled() else None
         deleted = 0
         for key in keys:
             record = await self._file_record_storage.find_by_key(key)
@@ -159,7 +159,13 @@ class SessionManager:
         except Exception as e:
             logger.warning(f"Failed to cleanup revealed files for session {session_id}: {e}")
         # 再删除 session
-        return await self.storage.delete(session_id)
+        deleted = await self.storage.delete(session_id)
+        if deleted:
+            try:
+                await delete_checkpoints_for_thread(session_id)
+            except Exception as e:
+                logger.warning(f"Failed to cleanup checkpoints for session {session_id}: {e}")
+        return deleted
 
     async def list_sessions(
         self,

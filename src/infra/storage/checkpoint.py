@@ -12,6 +12,7 @@ Checkpoint 存储实现
 
 import asyncio
 import copy
+import inspect
 import time
 from collections import OrderedDict
 from typing import Any, Optional
@@ -35,6 +36,7 @@ _MEMORY_SAVER_CLEANUP_INTERVAL = max(
     1,
 )
 _FORK_CHECKPOINT_SCAN_PAGE_SIZE = 25
+_DISABLED_CHECKPOINT_BACKENDS = {"", "0", "false", "none", "off", "disabled"}
 
 # MongoDB Checkpointer 单例
 _mongo_checkpointer: Optional[BaseCheckpointSaver[Any]] = None
@@ -144,6 +146,12 @@ def close_mongo_checkpointer():
     if _mongo_checkpointer is not None:
         _mongo_checkpointer = None
         logger.info("MongoDB checkpointer reference released")
+
+
+def is_checkpoint_backend_enabled() -> bool:
+    """Return whether persistent checkpoint storage is configured."""
+    backend = str(getattr(settings, "CHECKPOINT_BACKEND", "mongodb") or "").strip().lower()
+    return backend not in _DISABLED_CHECKPOINT_BACKENDS
 
 
 async def get_pg_checkpointer() -> BaseCheckpointSaver[Any] | None:
@@ -442,6 +450,27 @@ async def seed_checkpoint_from_messages(
         checkpoint["channel_versions"],
     )
     return 1
+
+
+async def delete_checkpoints_for_thread(thread_id: str) -> None:
+    """Delete persisted checkpoint state for a LangGraph thread/session."""
+    if not thread_id or not is_checkpoint_backend_enabled():
+        return
+
+    saver = await get_async_checkpointer(thread_id=thread_id)
+    async_delete = getattr(saver, "adelete_thread", None)
+    if callable(async_delete):
+        await async_delete(thread_id)
+        return
+
+    sync_delete = getattr(saver, "delete_thread", None)
+    if callable(sync_delete):
+        result = sync_delete(thread_id)
+        if inspect.isawaitable(result):
+            await result
+        return
+
+    logger.warning("Checkpointer does not support thread deletion: %s", type(saver).__name__)
 
 
 def build_messages_from_trace_events(traces: list[dict]) -> list[object]:

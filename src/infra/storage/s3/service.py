@@ -422,7 +422,7 @@ def get_s3_enabled() -> bool:
     """Get S3 enabled status from settings"""
     from src.kernel.config import settings
 
-    return bool(settings.S3_ENABLED)
+    return _parse_bool(settings.S3_ENABLED)
 
 
 async def get_s3_config_from_settings() -> S3Config:
@@ -464,17 +464,16 @@ async def get_or_init_storage() -> S3StorageService:
     This is the single entry-point that infra-layer code should use
     instead of importing from API routes.
     """
-    s3_enabled = get_s3_enabled()
-    if s3_enabled:
+    if get_s3_enabled():
         config = await get_s3_config_from_settings()
-        await init_storage(config)
     else:
-        # Auto-enable local storage when S3 is not configured
-        svc = get_storage_service()
-        if svc._backend is None:
-            from src.kernel.config import settings
+        from src.kernel.config import settings
 
-            storage_path = getattr(settings, "LOCAL_STORAGE_PATH", "./uploads") or "./uploads"
-            config = S3Config(provider=S3Provider.LOCAL, storage_path=storage_path)
-            await init_storage(config)
+        storage_path = getattr(settings, "LOCAL_STORAGE_PATH", "./uploads") or "./uploads"
+        config = S3Config(provider=S3Provider.LOCAL, storage_path=storage_path)
+
+    svc = get_storage_service()
+    if svc._config != config:
+        await svc.close()
+        svc.configure(config)
     return get_storage_service()

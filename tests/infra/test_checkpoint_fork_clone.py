@@ -146,3 +146,40 @@ def test_build_messages_from_trace_events_preserves_user_and_assistant_text() ->
     assert [type(message).__name__ for message in messages] == ["HumanMessage", "AIMessage"]
     assert messages[0].content == "hello"
     assert messages[1].content == "hi there"
+
+
+@pytest.mark.asyncio
+async def test_delete_checkpoints_for_thread_uses_checkpointer_delete(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _Saver:
+        def __init__(self) -> None:
+            self.deleted_threads: list[str] = []
+
+        async def adelete_thread(self, thread_id: str) -> None:
+            self.deleted_threads.append(thread_id)
+
+    saver = _Saver()
+
+    async def _fake_get_async_checkpointer(thread_id: str | None = None):
+        assert thread_id == "session-1"
+        return saver
+
+    monkeypatch.setattr(checkpoint_mod, "get_async_checkpointer", _fake_get_async_checkpointer)
+
+    await checkpoint_mod.delete_checkpoints_for_thread("session-1")
+
+    assert saver.deleted_threads == ["session-1"]
+
+
+@pytest.mark.asyncio
+async def test_delete_checkpoints_for_thread_skips_when_checkpoint_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _fail_get_async_checkpointer(thread_id: str | None = None):
+        raise AssertionError(f"should not initialize checkpointer for {thread_id}")
+
+    monkeypatch.setattr(checkpoint_mod.settings, "CHECKPOINT_BACKEND", "none")
+    monkeypatch.setattr(checkpoint_mod, "get_async_checkpointer", _fail_get_async_checkpointer)
+
+    await checkpoint_mod.delete_checkpoints_for_thread("session-1")

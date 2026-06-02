@@ -125,7 +125,7 @@ class Settings(BaseSettings):
     TASK_BACKEND: str = "arq"  # local | arq
     ARQ_EMBEDDED_WORKER: bool = True
     ARQ_QUEUE_NAME: str = "lambchat:arq"
-    ARQ_WORKER_MAX_JOBS: int = 2
+    ARQ_WORKER_MAX_JOBS: int = 64
     ARQ_JOB_TIMEOUT_SECONDS: int = 86400
     TASK_STARTUP_CLEANUP_CONCURRENCY: int = 16
 

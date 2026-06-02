@@ -843,7 +843,7 @@ SETTING_DEFINITIONS: dict[str, dict] = {
         "subcategory": "task",
         "description": "settingDesc.ARQ_EMBEDDED_WORKER",
         "default": True,
-        "depends_on": "TASK_BACKEND",
+        "depends_on": {"key": "TASK_BACKEND", "value": "arq"},
     },
     "ARQ_QUEUE_NAME": {
         "type": SettingType.STRING,
@@ -851,15 +851,15 @@ SETTING_DEFINITIONS: dict[str, dict] = {
         "subcategory": "task",
         "description": "settingDesc.ARQ_QUEUE_NAME",
         "default": "lambchat:arq",
-        "depends_on": "TASK_BACKEND",
+        "depends_on": {"key": "TASK_BACKEND", "value": "arq"},
     },
     "ARQ_WORKER_MAX_JOBS": {
         "type": SettingType.NUMBER,
         "category": SettingCategory.REDIS,
         "subcategory": "task",
         "description": "settingDesc.ARQ_WORKER_MAX_JOBS",
-        "default": 2,
-        "depends_on": "TASK_BACKEND",
+        "default": 64,
+        "depends_on": {"key": "TASK_BACKEND", "value": "arq"},
     },
     "ARQ_JOB_TIMEOUT_SECONDS": {
         "type": SettingType.NUMBER,
@@ -867,7 +867,7 @@ SETTING_DEFINITIONS: dict[str, dict] = {
         "subcategory": "task",
         "description": "settingDesc.ARQ_JOB_TIMEOUT_SECONDS",
         "default": 86400,
-        "depends_on": "TASK_BACKEND",
+        "depends_on": {"key": "TASK_BACKEND", "value": "arq"},
     },
     "TASK_STARTUP_CLEANUP_CONCURRENCY": {
         "type": SettingType.NUMBER,
@@ -875,7 +875,7 @@ SETTING_DEFINITIONS: dict[str, dict] = {
         "subcategory": "task",
         "description": "settingDesc.TASK_STARTUP_CLEANUP_CONCURRENCY",
         "default": 16,
-        "depends_on": "TASK_BACKEND",
+        "depends_on": {"key": "TASK_BACKEND", "value": "arq"},
         "frontend_visible": False,
     },
     # ============================================

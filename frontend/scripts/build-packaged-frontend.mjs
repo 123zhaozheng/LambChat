@@ -5,7 +5,7 @@ const appUrl = process.env.LAMBCHAT_APP_URL || process.env.VITE_API_BASE || "";
 
 if (!appUrl) {
   console.error(
-    "Missing LAMBCHAT_APP_URL. Example: LAMBCHAT_APP_URL=https://chat.example.com pnpm mobile:build",
+    "Missing LAMBCHAT_APP_URL. Example: LAMBCHAT_APP_URL=https://chat.example.com pnpm packaged:build",
   );
   process.exit(1);
 }
@@ -17,6 +17,7 @@ const result = spawnSync(pnpmCommand, ["build"], {
   shell: process.platform === "win32",
   env: {
     ...process.env,
+    LAMBCHAT_APP_URL: normalizedAppUrl,
     VITE_API_BASE: normalizedAppUrl,
   },
 });

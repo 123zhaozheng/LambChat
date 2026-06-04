@@ -50,11 +50,21 @@ test("mobile package scripts generate and validate branded native images", () =>
   const assetScript = readRepoFile(
     "frontend/scripts/generate-branded-assets.mjs",
   );
+  const packagedBuildScript = readRepoFile(
+    "frontend/scripts/build-packaged-frontend.mjs",
+  );
 
-  assert.match(packageJson.scripts["mobile:sync"], /brand:assets/);
-  assert.match(packageJson.scripts["mobile:build"], /brand:assets/);
+  assert.match(packageJson.scripts["packaged:build"], /brand:assets/);
+  assert.match(
+    packageJson.scripts["packaged:build"],
+    /build-packaged-frontend/,
+  );
+  assert.match(packageJson.scripts["mobile:sync"], /packaged:build/);
+  assert.match(packageJson.scripts["mobile:build"], /packaged:build/);
   assert.match(packageJson.scripts["brand:assets"], /generate-branded-assets/);
   assert.match(packageJson.scripts["brand:assets:check"], /--check/);
+  assert.match(packagedBuildScript, /VITE_API_BASE:\s*normalizedAppUrl/);
+  assert.match(packagedBuildScript, /LAMBCHAT_APP_URL:\s*normalizedAppUrl/);
   assert.match(assetScript, /LambChat/);
   assert.match(assetScript, /public\/icons\/icon-512\.png/);
   assert.match(assetScript, /scalePngNearest/);
@@ -65,7 +75,9 @@ test("desktop package script bundles the frontend before Tauri packaging", () =>
   const script = readRepoFile("frontend/scripts/package-desktop.mjs");
 
   assert.match(script, /VITE_API_BASE:\s*normalizedAppUrl/);
-  assert.match(script, /spawnSync\(pnpmCommand, \["build"\]/);
+  assert.match(script, /LAMBCHAT_APP_URL:\s*normalizedAppUrl/);
+  assert.match(script, /spawnSync\(pnpmCommand, \["packaged:build"\]/);
+  assert.doesNotMatch(script, /spawnSync\(pnpmCommand, \["build"\]/);
   assert.match(script, /tauriCliPackage = "@tauri-apps\/cli@2\.11\.2"/);
   assert.match(script, /"icon", "public\/icons\/icon-512\.png"/);
   assert.match(script, /TAURI_BUNDLES/);

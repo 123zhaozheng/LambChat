@@ -18,7 +18,7 @@ APP_BASE_URL=https://lambchat.example.com
 
 ## 桌面端
 
-桌面端使用 Tauri 直接打包。脚本会先构建前端静态资源，再把 `frontend/dist` 作为本地前端资源打进桌面安装包。接口地址通过 `VITE_API_BASE` 固化为 `LAMBCHAT_APP_URL`，所以安装后的桌面 App 会连接已部署的 LambChat 服务，不依赖远程网页壳。
+桌面端使用 Tauri 直接打包，并和移动端共用同一个 `packaged:build` 前端构建入口。脚本会先生成 LambChat 品牌资源并构建前端静态资源，再把 `frontend/dist` 作为本地前端资源打进桌面安装包。接口地址通过 `VITE_API_BASE` 固化为 `LAMBCHAT_APP_URL`，所以安装后的桌面 App 会连接已部署的 LambChat 服务，不依赖远程网页壳。
 
 ```bash
 cd frontend

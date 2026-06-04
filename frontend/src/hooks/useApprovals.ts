@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { PendingApproval } from "../types";
 import { authFetch } from "../services/api/fetch";
-
-const API_BASE = "";
+import { API_BASE } from "../services/api/config";
 
 interface UseApprovalsOptions {
   sessionId: string | null;

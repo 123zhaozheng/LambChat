@@ -1,4 +1,5 @@
 import { authFetch } from "./fetch";
+import { API_BASE } from "./config";
 
 export interface RevealedFileCardPreview {
   kind:
@@ -122,12 +123,14 @@ export const revealedFileApi = {
     if (params.sort_order) sp.set("sort_order", params.sort_order);
     if (params.favorites_only) sp.set("favorites_only", "true");
     const qs = sp.toString();
-    return authFetch<RevealedFileListResponse>(`/api/files/revealed?${qs}`);
+    return authFetch<RevealedFileListResponse>(
+      `${API_BASE}/api/files/revealed?${qs}`,
+    );
   },
 
   async toggleFavorite(fileId: string): Promise<{ is_favorite: boolean }> {
     return authFetch<{ is_favorite: boolean }>(
-      `/api/files/revealed/${fileId}/favorite`,
+      `${API_BASE}/api/files/revealed/${fileId}/favorite`,
       {
         method: "PATCH",
       },
@@ -135,7 +138,9 @@ export const revealedFileApi = {
   },
 
   async getStats(): Promise<Record<string, number>> {
-    return authFetch<Record<string, number>>("/api/files/revealed/stats");
+    return authFetch<Record<string, number>>(
+      `${API_BASE}/api/files/revealed/stats`,
+    );
   },
 
   async listGrouped(
@@ -152,7 +157,7 @@ export const revealedFileApi = {
     if (params.favorites_only) sp.set("favorites_only", "true");
     const qs = sp.toString();
     return authFetch<RevealedFileGroupedListResponse>(
-      `/api/files/revealed/grouped?${qs}`,
+      `${API_BASE}/api/files/revealed/grouped?${qs}`,
     );
   },
 
@@ -161,6 +166,6 @@ export const revealedFileApi = {
   > {
     return authFetch<
       { session_id: string; session_name: string | null; file_count: number }[]
-    >("/api/files/revealed/sessions");
+    >(`${API_BASE}/api/files/revealed/sessions`);
   },
 };

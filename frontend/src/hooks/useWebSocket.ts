@@ -4,6 +4,7 @@ import {
   refreshAccessToken,
 } from "../services/api/tokenManager";
 import { getRefreshToken } from "../services/api";
+import { buildWebSocketUrl } from "../services/api/config";
 
 export interface TaskCompleteNotification {
   type: "task:complete";
@@ -114,11 +115,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         return;
       }
 
-      // Determine WebSocket URL based on current location
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const host = window.location.host;
       // Token sent after connection (more secure than URL query param)
-      const wsUrl = `${protocol}//${host}/ws`;
+      const wsUrl = buildWebSocketUrl("/ws");
 
       console.log("[WebSocket] Connecting to:", wsUrl);
 

@@ -4,6 +4,7 @@
  */
 
 import { authFetch } from "./fetch";
+import { API_BASE } from "./config";
 import type {
   Feedback,
   FeedbackCreate,
@@ -11,8 +12,6 @@ import type {
   FeedbackStats,
   RatingValue,
 } from "../../types/feedback";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 export const feedbackApi = {
   /**

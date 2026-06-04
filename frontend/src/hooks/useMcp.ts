@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import i18n from "i18next";
 import { authFetch } from "../services/api/fetch";
+import { API_BASE } from "../services/api/config";
 import type {
   MCPServerResponse,
   MCPServersResponse,
@@ -13,7 +14,8 @@ import type {
   MCPServerMoveResponse,
 } from "../types";
 
-const API_BASE = "/api/mcp";
+const MCP_API_BASE = `${API_BASE}/api/mcp`;
+const ADMIN_MCP_API_BASE = `${API_BASE}/api/admin/mcp`;
 
 interface MCPListParams {
   skip?: number;
@@ -28,7 +30,7 @@ function buildMCPListUrl(params: MCPListParams = {}): string {
     searchParams.set("limit", String(params.limit));
   if (params.q) searchParams.set("q", params.q);
   const query = searchParams.toString();
-  return `${API_BASE}/${query ? `?${query}` : ""}`;
+  return `${MCP_API_BASE}/${query ? `?${query}` : ""}`;
 }
 
 export function useMCP(options?: { listParams?: MCPListParams }) {
@@ -66,7 +68,7 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
   const getServer = useCallback(
     async (name: string): Promise<MCPServerResponse | null> => {
       try {
-        return await authFetch<MCPServerResponse>(`${API_BASE}/${name}`);
+        return await authFetch<MCPServerResponse>(`${MCP_API_BASE}/${name}`);
       } catch (err) {
         setError(
           err instanceof Error
@@ -88,7 +90,7 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
       setIsLoading(true);
       setError(null);
       try {
-        const baseUrl = isSystem ? "/api/admin/mcp" : API_BASE;
+        const baseUrl = isSystem ? ADMIN_MCP_API_BASE : MCP_API_BASE;
         const data: MCPServerResponse = await authFetch(`${baseUrl}/`, {
           method: "POST",
           body: JSON.stringify(server),
@@ -119,7 +121,7 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
       setIsLoading(true);
       setError(null);
       try {
-        const baseUrl = isSystem ? "/api/admin/mcp" : API_BASE;
+        const baseUrl = isSystem ? ADMIN_MCP_API_BASE : MCP_API_BASE;
         const data: MCPServerResponse = await authFetch(
           `${baseUrl}/${encodeURIComponent(name)}`,
           {
@@ -149,7 +151,7 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
       setIsLoading(true);
       setError(null);
       try {
-        const baseUrl = isSystem ? "/api/admin/mcp" : API_BASE;
+        const baseUrl = isSystem ? ADMIN_MCP_API_BASE : MCP_API_BASE;
         await authFetch(`${baseUrl}/${encodeURIComponent(name)}`, {
           method: "DELETE",
         });
@@ -176,7 +178,7 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
       setError(null);
       try {
         const data: MCPServerToggleResponse = await authFetch(
-          `${API_BASE}/${name}/toggle`,
+          `${MCP_API_BASE}/${name}/toggle`,
           {
             method: "PATCH",
           },
@@ -203,10 +205,13 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
       setIsLoading(true);
       setError(null);
       try {
-        const data: MCPImportResponse = await authFetch(`${API_BASE}/import`, {
-          method: "POST",
-          body: JSON.stringify(request),
-        });
+        const data: MCPImportResponse = await authFetch(
+          `${MCP_API_BASE}/import`,
+          {
+            method: "POST",
+            body: JSON.stringify(request),
+          },
+        );
         await fetchServers();
         return data;
       } catch (err) {
@@ -229,7 +234,7 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
       setIsLoading(true);
       setError(null);
       try {
-        return await authFetch<MCPExportResponse>(`${API_BASE}/export`);
+        return await authFetch<MCPExportResponse>(`${MCP_API_BASE}/export`);
       } catch (err) {
         setError(
           err instanceof Error
@@ -252,7 +257,7 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
       setError(null);
       try {
         const data: MCPServerMoveResponse = await authFetch(
-          `/api/admin/mcp/${encodeURIComponent(name)}/promote`,
+          `${ADMIN_MCP_API_BASE}/${encodeURIComponent(name)}/promote`,
           {
             method: "POST",
             body: JSON.stringify({ target_user_id: ownerUserId }),
@@ -284,7 +289,7 @@ export function useMCP(options?: { listParams?: MCPListParams }) {
       setError(null);
       try {
         const data: MCPServerMoveResponse = await authFetch(
-          `/api/admin/mcp/${encodeURIComponent(name)}/demote`,
+          `${ADMIN_MCP_API_BASE}/${encodeURIComponent(name)}/demote`,
           {
             method: "POST",
             body: JSON.stringify({ target_user_id: targetUserId }),

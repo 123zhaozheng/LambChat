@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import i18n from "i18next";
 import { authenticatedRequest } from "../services/api/authenticatedRequest";
+import { API_BASE } from "../services/api/config";
 import type {
   ToolInfo,
   ToolState,
@@ -8,7 +9,7 @@ import type {
   ToolCategory,
 } from "../types";
 
-const API_BASE = "/api";
+const TOOLS_API_BASE = `${API_BASE}/api`;
 
 export function useTools() {
   const [tools, setTools] = useState<ToolState[]>([]);
@@ -24,7 +25,7 @@ export function useTools() {
           ? toolName.split(":")[1]
           : toolName;
         await authenticatedRequest(
-          `${API_BASE}/mcp/${encodeURIComponent(
+          `${TOOLS_API_BASE}/mcp/${encodeURIComponent(
             serverName,
           )}/tools/${encodeURIComponent(baseName)}`,
           {
@@ -51,7 +52,7 @@ export function useTools() {
         ? `?agent_id=${encodeURIComponent(agentId)}`
         : "";
       const response = await authenticatedRequest(
-        `${API_BASE}/tools${queryParams}`,
+        `${TOOLS_API_BASE}/tools${queryParams}`,
         {
           headers: { "Content-Type": "application/json" },
         },

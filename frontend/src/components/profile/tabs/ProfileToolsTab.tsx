@@ -9,10 +9,11 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { authenticatedRequest } from "../../../services/api/authenticatedRequest";
+import { API_BASE } from "../../../services/api/config";
 import { SkeletonBlock, SkeletonLine } from "../../skeletons";
 import type { ToolInfo } from "../../../types";
 
-const API_BASE = "/api";
+const TOOLS_API_BASE = `${API_BASE}/api`;
 
 interface GroupedTools {
   serverName: string;
@@ -28,7 +29,7 @@ export function ProfileToolsTab() {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await authenticatedRequest(`${API_BASE}/tools`);
+      const response = await authenticatedRequest(`${TOOLS_API_BASE}/tools`);
       if (!response.ok) throw new Error(t("tools.loadFailed"));
       const data = await response.json();
       setTools(data.tools || []);
@@ -58,7 +59,7 @@ export function ProfileToolsTab() {
 
       try {
         const response = await authenticatedRequest(
-          `${API_BASE}/mcp/${encodeURIComponent(
+          `${TOOLS_API_BASE}/mcp/${encodeURIComponent(
             tool.server,
           )}/tools/${encodeURIComponent(baseName)}`,
           {

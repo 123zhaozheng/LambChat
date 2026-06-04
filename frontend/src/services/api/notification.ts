@@ -1,12 +1,11 @@
 import { authFetch } from "./fetch";
+import { API_BASE } from "./config";
 import type {
   Notification,
   NotificationCreate,
   NotificationListResponse,
   NotificationUpdate,
 } from "../../types/notification";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 export const notificationApi = {
   async getActive(): Promise<Notification[]> {

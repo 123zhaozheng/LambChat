@@ -919,19 +919,26 @@ def create_wecom_message_handler(
 
             # Cancel any previous running task for this session
             # This matches Web UI behavior where sending a new message cancels the previous run
+            previous_run_cancelled = False
             try:
                 cancel_result = await task_manager.cancel(session_id, user_id=user_id)
                 if cancel_result.get("success") or cancel_result.get("cancelled_locally"):
+                    previous_run_cancelled = True
                     logger.info(
                         "[WeCom] Cancelled previous run for session %s: %s",
                         session_id,
                         cancel_result.get("message", ""),
                     )
-                    # Wait briefly for the cancelled run's _process_events to exit,
-                    # so it doesn't race with our new reply on the same chat.
-                    await asyncio.sleep(0.5)
             except Exception as e:
                 logger.debug("[WeCom] No previous run to cancel for session %s: %s", session_id, e)
+
+            # When a previous run is cancelled, create a fresh session so the
+            # new message is processed from a clean checkpoint.  Otherwise the
+            # agent inherits the cancelled run's partial assistant response from
+            # the LangGraph checkpointer and treats the new user message as a
+            # follow-up rather than a fresh request.
+            if previous_run_cancelled:
+                session_id = await _create_new_wecom_session(chat_id)
 
             collector = WeComResponseCollector(
                 manager=manager,

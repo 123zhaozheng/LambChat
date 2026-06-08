@@ -88,6 +88,7 @@ _LIFESPAN_BACKGROUND_TASK_NAMES = (
     "models_preload_task",
     "stale_task_cleanup_task",
     "feishu_task",
+    "wecom_task",
 )
 
 
@@ -279,6 +280,17 @@ async def _stop_feishu_channels_for_shutdown(app: FastAPI) -> None:
         logger.info("Feishu channels stopped")
     except Exception as e:
         logger.warning(f"Failed to stop Feishu channels: {e}")
+
+
+async def _stop_wecom_channels_for_shutdown(app: FastAPI) -> None:
+    await _cancel_background_tasks(app, "wecom_task")
+    try:
+        from src.infra.channel.wecom import stop_wecom_channels
+
+        await stop_wecom_channels()
+        logger.info("WeCom channels stopped")
+    except Exception as e:
+        logger.warning(f"Failed to stop WeCom channels: {e}")
 
 
 async def _cancel_lifespan_background_tasks_for_shutdown(app: FastAPI) -> None:
@@ -476,6 +488,21 @@ async def lifespan(app: FastAPI):
     _feishu_task = asyncio.create_task(_start_feishu())
     app.state.feishu_task = _feishu_task
 
+    # Start WeCom channels in background (don't block app startup)
+    async def _start_wecom():
+        try:
+            from src.infra.channel.wecom.handler import setup_wecom_handler
+
+            await setup_wecom_handler(
+                default_agent=settings.DEFAULT_AGENT,
+                show_tools=True,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to start WeCom channels: {e}")
+
+    _wecom_task = asyncio.create_task(_start_wecom())
+    app.state.wecom_task = _wecom_task
+
     async def _reset_memory_monitor_after_startup() -> None:
         try:
             await memory_monitor.reset_baseline()
@@ -499,6 +526,7 @@ async def lifespan(app: FastAPI):
 
         # 先关闭飞书长连接并释放 lease，避免快速重启时旧锁阻止新实例启动。
         await _stop_feishu_channels_for_shutdown(app)
+        await _stop_wecom_channels_for_shutdown(app)
         # 再统一取消 lifespan 后台任务，让各任务自己的 finally 在依赖关闭前完成。
         await _cancel_lifespan_background_tasks_for_shutdown(app)
 

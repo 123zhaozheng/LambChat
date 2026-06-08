@@ -379,7 +379,7 @@ export function ChannelPanel({
   // Get icon based on channel type
   const getChannelIcon = () => {
     switch (channelType) {
-      case "wechat":
+      case "wecom":
         return (
           <MessageCircle
             size={18}

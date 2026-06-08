@@ -20,6 +20,11 @@ from src.infra.channel.manager import (
     stop_channels,
 )
 from src.infra.channel.registry import ChannelRegistry, get_registry
+from src.infra.channel.wecom import (
+    WeComResponseCollector,
+    create_wecom_message_handler,
+    setup_wecom_handler,
+)
 
 __all__ = [
     # Base classes
@@ -41,4 +46,8 @@ __all__ = [
     "create_feishu_message_handler",
     "execute_feishu_agent",
     "setup_feishu_handler",
+    # WeCom Handler
+    "WeComResponseCollector",
+    "create_wecom_message_handler",
+    "setup_wecom_handler",
 ]

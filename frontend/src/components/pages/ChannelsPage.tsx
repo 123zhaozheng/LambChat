@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { BotMessageSquare, Bot, Radio, Plus, MoreVertical } from "lucide-react";
+import { BotMessageSquare, Bot, Building2, Radio, Plus, MoreVertical } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
@@ -13,6 +13,7 @@ import { APP_NAME } from "../../constants";
 import { channelApi } from "../../services/api/channel";
 import { ChannelPanel } from "../panels/ChannelPanel";
 import { FeishuPanel } from "../panels/channel/feishu/FeishuPanel";
+import { WeComPanel } from "../panels/channel/wecom/WeComPanel";
 import { PanelHeader } from "../common/PanelHeader";
 import { ChannelsGridSkeleton } from "../skeletons";
 import { SkillBaseCard } from "../common/SkillBaseCard";
@@ -29,7 +30,9 @@ import { formatDate } from "../../utils/datetime";
 const CHANNEL_ICONS: Record<string, React.FC<{ className?: string }>> = {
   BotMessageSquare,
   "message-circle": Bot,
+  "building-2": Building2,
   feishu: BotMessageSquare,
+  wecom: Building2,
 };
 
 // Get icon component
@@ -153,6 +156,25 @@ export function ChannelsPage() {
           : null;
       return (
         <FeishuPanel
+          instanceId={selectedInstance}
+          initialConfig={instance}
+          initialStatus={status}
+          isLoading={false}
+          onClose={closeSidebar}
+        />
+      );
+    }
+
+    if (selectedChannel === "wecom") {
+      const instance = instances[selectedChannel]?.find(
+        (i) => i.instance_id === selectedInstance,
+      );
+      const status =
+        selectedInstance !== "new"
+          ? statuses[`${selectedChannel}:${selectedInstance}`]
+          : null;
+      return (
+        <WeComPanel
           instanceId={selectedInstance}
           initialConfig={instance}
           initialStatus={status}

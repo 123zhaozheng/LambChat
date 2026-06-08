@@ -16,6 +16,7 @@ class ChannelType(str, Enum):
     """Supported channel types."""
 
     FEISHU = "feishu"
+    WECOM = "wecom"
     # Future channels:
     # WECHAT = "wechat"
     # DINGTALK = "dingtalk"

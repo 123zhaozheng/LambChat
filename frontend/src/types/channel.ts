@@ -4,7 +4,7 @@
 
 export type ChannelType =
   | "feishu"
-  | "wechat"
+  | "wecom"
   | "dingtalk"
   | "slack"
   | "telegram"

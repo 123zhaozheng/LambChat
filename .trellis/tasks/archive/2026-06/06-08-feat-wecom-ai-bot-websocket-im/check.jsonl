@@ -1,0 +1,5 @@
+{"file": ".trellis/research/wecom-websocket-integration.md", "reason": "Verify WeCom SDK API usage, streaming protocol, timeout values (5s callback, 6min stream), message format correctness"}
+{"file": ".trellis/research/wecom-vs-feishu-comparison.md", "reason": "Verify WeCom implementation correctly maps to Feishu patterns, no missing architectural differences"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Check code quality: type hints, test coverage, error handling patterns"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Verify WeComChannel properly reuses BaseChannel/UserChannelManager abstractions and Feishu patterns"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify backend WeComConfig schema matches frontend WeComPanel form fields"}

@@ -1,0 +1,14 @@
+{"file": ".trellis/research/wecom-websocket-integration.md", "reason": "WeCom AI Bot WS protocol details, SDK API reference, streaming protocol, message callback structure, open-source project examples"}
+{"file": ".trellis/research/wecom-vs-feishu-comparison.md", "reason": "WeCom vs Feishu architecture mapping, connection lifecycle comparison, config schema comparison, capability differences, implementation complexity estimate"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend spec index for discovering relevant conventions and patterns"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Backend directory structure conventions for placing new wecom channel files correctly"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Error handling patterns to follow for WS connection errors, timeout handling, and retry logic"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Logging conventions for channel connection state changes and message processing"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Database patterns for WeComConfig storage integration"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend quality standards for tests, type hints, and code style"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Cross-layer data flow between backend WeComConfig and frontend WeComPanel"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse patterns from FeishuChannel/FeishuChannelManager for WeComChannel/WeComChannelManager"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend spec index for discovering UI component conventions"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Frontend directory structure for placing WeComPanel components"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Component patterns for channel panel UI (FeishuPanel is the reference)"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Type safety conventions for WeComConfigResponse/WeComConfigStatus types"}

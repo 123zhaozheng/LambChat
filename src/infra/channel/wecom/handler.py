@@ -927,6 +927,9 @@ def create_wecom_message_handler(
                         session_id,
                         cancel_result.get("message", ""),
                     )
+                    # Wait briefly for the cancelled run's _process_events to exit,
+                    # so it doesn't race with our new reply on the same chat.
+                    await asyncio.sleep(0.5)
             except Exception as e:
                 logger.debug("[WeCom] No previous run to cancel for session %s: %s", session_id, e)
 
@@ -1018,6 +1021,22 @@ def create_wecom_message_handler(
                 run_id=run_id,
                 show_tools=show_tools,
             )
+
+            # Check if this run is still the active run for the session.
+            # If a newer message arrived and cancelled this run, skip sending
+            # the reply to avoid duplicate/conflicting messages.
+            current_session = await task_manager.storage.get_by_session_id(session_id)
+            current_run_id = (
+                current_session.metadata.get("current_run_id")
+                if current_session and current_session.metadata
+                else None
+            )
+            if current_run_id and current_run_id != run_id:
+                logger.info(
+                    "[WeCom] Run %s superseded by %s, skipping reply for chat %s",
+                    run_id, current_run_id, chat_id,
+                )
+                return
 
             streamed = await collector.finalize_stream_message()
             if not streamed:

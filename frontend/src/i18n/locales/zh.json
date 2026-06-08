@@ -1004,8 +1004,6 @@
     "waitingForScan": "等待扫码"
   },
   "wecom": {
-    "autoTranscribeAudio": "自动转写语音",
-    "autoTranscribeAudioDesc": "接收语音消息时作为附件传给 Agent，并提示转写",
     "behavior": "行为设置",
     "botId": "机器人 ID",
     "botIdPlaceholder": "bot_xxxxxxxxxx",
@@ -1036,6 +1034,8 @@
     "saveError": "保存企业微信配置失败",
     "saveSuccess": "企业微信配置已保存",
     "secretRequired": "机器人密钥为必填项",
+    "segmentedReply": "分段回复",
+    "segmentedReplyDesc": "超长回复自动分段发送，显示为多条消息",
     "sendThinkingMessage": "发送思考占位消息",
     "sendThinkingMessageDesc": "在 5 秒回调期限内发送占位消息",
     "setupGuide": "设置指南",

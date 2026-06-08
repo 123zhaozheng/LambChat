@@ -16,7 +16,6 @@ from src.infra.logging import get_logger
 from src.infra.storage.redis import create_redis_client
 from src.kernel.schemas.channel import ChannelType
 from src.kernel.schemas.wecom import (
-    DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
     WeComConfig,
     WeComGroupPolicy,
 )
@@ -88,9 +87,7 @@ class WeComChannelManager(UserChannelManager):
             group_policy=WeComGroupPolicy(config_dict.get("group_policy") or "mention"),
             stream_reply=config_dict.get("stream_reply", True),
             send_thinking_message=config_dict.get("send_thinking_message", True),
-            auto_transcribe_audio=config_dict.get("auto_transcribe_audio", True),
-            audio_transcribe_prompt=config_dict.get("audio_transcribe_prompt")
-            or DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
+            segmented_reply=config_dict.get("segmented_reply", True),
             websocket_url=config_dict.get("websocket_url") or "wss://openws.work.weixin.qq.com",
             enabled=config_dict.get("enabled", True),
         )

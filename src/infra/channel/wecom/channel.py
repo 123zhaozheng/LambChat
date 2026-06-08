@@ -18,7 +18,6 @@ from src.infra.logging import get_logger
 from src.infra.storage.redis import get_redis_client
 from src.kernel.schemas.channel import ChannelCapability, ChannelType
 from src.kernel.schemas.wecom import (
-    DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
     WeComConfig,
     WeComGroupPolicy,
 )
@@ -126,17 +125,11 @@ class WeComChannel(BaseChannel):
                     "description": "在 5 秒回调期限内发送思考占位消息",
                     "default": True,
                 },
-                "auto_transcribe_audio": {
+                "segmented_reply": {
                     "type": "boolean",
-                    "title": "自动转写语音",
-                    "description": "让 Agent 转写接收到的语音附件",
+                    "title": "超长回复自动分段",
+                    "description": "超长回复自动分段发送",
                     "default": True,
-                },
-                "audio_transcribe_prompt": {
-                    "type": "string",
-                    "title": "语音转写提示词",
-                    "description": "收到语音消息时发送给 Agent 的提示词",
-                    "default": DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
                 },
                 "websocket_url": {
                     "type": "string",
@@ -196,20 +189,12 @@ class WeComChannel(BaseChannel):
                 "default": True,
             },
             {
-                "name": "auto_transcribe_audio",
-                "title": "自动转写语音",
+                "name": "segmented_reply",
+                "title": "超长回复自动分段",
                 "type": "toggle",
                 "required": False,
                 "sensitive": False,
                 "default": True,
-            },
-            {
-                "name": "audio_transcribe_prompt",
-                "title": "语音转写提示词",
-                "type": "textarea",
-                "required": False,
-                "sensitive": False,
-                "default": DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
             },
         ]
 
@@ -352,27 +337,33 @@ class WeComChannel(BaseChannel):
     def _extract_common_fields(self, frame: Any) -> dict[str, Any] | None:
         """Extract common fields from a message callback frame.
 
-        WeCom SDK WsFrame places chatid/chattype/from/msgid/aibotid at the
-        top level of the frame dict, while message-type-specific content
-        (text, image, file, etc.) is nested inside body.
+        WeCom SDK WsFrame structure:
+          - frame top-level: cmd, headers, body, errcode, errmsg
+          - body: msgid, chattype, from, msgtype, text/image/file/voice/video, aibotid
+          - chatid: present in group chats; ABSENT in single chats
+          - For single chats, chatid = sender's userid (per WeCom API convention)
 
         Returns a dict with keys: msgid, chat_type, chat_id, sender_id, msg_type
         or None if dedup check fails.
         """
         body = _frame_body(frame)
 
-        # Prioritize top-level, fallback to body for metadata fields
-        msgid = _frame_top(frame, "msgid") or body.get("msgid", "")
+        msgid = body.get("msgid", "")
         if not msgid:
             return None
 
-        chat_type = _frame_top(frame, "chattype") or body.get("chattype", "single")
-        chat_id = _frame_top(frame, "chatid") or body.get("chatid", "")
+        chat_type = body.get("chattype", "single")
+        chat_id = body.get("chatid", "")
 
-        from_info = frame.get("from", {}) if hasattr(frame, "get") else body.get("from", {})
+        from_info = body.get("from", {})
         sender_id = from_info.get("userid", "unknown") if isinstance(from_info, dict) else "unknown"
 
-        msg_type = _frame_top(frame, "msgtype") or body.get("msgtype", "text")
+        # Single chats do not include chatid — use sender's userid instead
+        # (per WeCom send_message API: 单聊填用户的 userid，群聊填对应群聊的 chatid)
+        if not chat_id and chat_type == "single" and sender_id != "unknown":
+            chat_id = sender_id
+
+        msg_type = body.get("msgtype", "text")
 
         return {
             "msgid": msgid,
@@ -426,7 +417,7 @@ class WeComChannel(BaseChannel):
                 "reply_chat_id": chat_id,
                 "frame_id": _frame_top(frame, "frame_id"),
                 "req_id": _frame_top(frame, "req_id"),
-                "aibotid": _frame_top(frame, "aibotid") or body.get("aibotid", ""),
+                "aibotid": body.get("aibotid", ""),
             }
 
             await self._handle_message(
@@ -580,16 +571,9 @@ class WeComChannel(BaseChannel):
             voice_url = voice_info.get("voice_url", "") if isinstance(voice_info, dict) else ""
             aes_key = voice_info.get("aes_key", "") if isinstance(voice_info, dict) else ""
 
-            content_parts = ["[voice]"]
-            if getattr(self.config, "auto_transcribe_audio", True):
-                content_parts.append(
-                    getattr(
-                        self.config,
-                        "audio_transcribe_prompt",
-                        DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
-                    )
-                    or DEFAULT_AUDIO_TRANSCRIBE_PROMPT
-                )
+            # WeCom auto-transcribes voice messages — use the transcribed text if available
+            transcribed = voice_info.get("content", "") if isinstance(voice_info, dict) else ""
+            content = transcribed if transcribed else "[voice]"
 
             metadata = {
                 "message_id": msgid,
@@ -606,7 +590,7 @@ class WeComChannel(BaseChannel):
             await self._handle_message(
                 sender_id=sender_id,
                 chat_id=chat_id,
-                content="\n".join(content_parts),
+                content=content,
                 metadata=metadata,
             )
 
@@ -734,8 +718,7 @@ class WeComChannel(BaseChannel):
         """Handle user entering chat event - send welcome message within 5s deadline."""
         self._update_activity_time()
         body = _frame_body(frame)
-        # chatid is at top level of WsFrame, fallback to body
-        chatid = _frame_top(frame, "chatid") or body.get("chatid", "")
+        chatid = body.get("chatid", "")
         logger.info(
             f"WeCom user entered chat for bot of user {self.config.user_id}: "
             f"chatid={chatid}"
@@ -766,8 +749,7 @@ class WeComChannel(BaseChannel):
         """Handle template card button click event - forward as user message."""
         self._update_activity_time()
         body = _frame_body(frame)
-        # chatid/from/chattype are at top level of WsFrame, fallback to body
-        chatid = _frame_top(frame, "chatid") or body.get("chatid", "")
+        chatid = body.get("chatid", "")
 
         logger.info(
             f"WeCom template card event for bot of user {self.config.user_id}: "
@@ -787,9 +769,13 @@ class WeComChannel(BaseChannel):
         if not action_name and not action_value:
             return
 
-        from_info = frame.get("from", {}) if hasattr(frame, "get") else body.get("from", {})
+        from_info = body.get("from", {})
         sender_id = from_info.get("userid", "unknown") if isinstance(from_info, dict) else "unknown"
-        chat_type = _frame_top(frame, "chattype") or body.get("chattype", "single")
+        chat_type = body.get("chattype", "single")
+
+        # Single chats: use sender_id as chatid for aibot_send_msg
+        if not chatid and chat_type == "single" and sender_id != "unknown":
+            chatid = sender_id
 
         content = (
             f"[card_action: {action_name}={action_value}]"
@@ -798,7 +784,7 @@ class WeComChannel(BaseChannel):
         )
 
         metadata = {
-            "message_id": _frame_top(frame, "msgid") or body.get("msgid", ""),
+            "message_id": body.get("msgid", ""),
             "chat_type": chat_type,
             "msg_type": "template_card_event",
             "sender_id": sender_id,
@@ -1032,8 +1018,8 @@ class WeComChannel(BaseChannel):
     async def send_image(self, chat_id: str, image_path: str, **kwargs: Any) -> bool:
         """Send an image to a chat via WeCom AI Bot media upload.
 
-        Uses the community SDK's reply_media (if a pending frame exists) or
-        send_media_message (proactive push) to upload and send the image.
+        Two-step flow: upload_media(file_bytes) -> media_id,
+        then reply_media(frame, media_id) or send_media_message(chatid, media_id).
 
         Args:
             chat_id: The target chat/conversation ID.
@@ -1049,16 +1035,32 @@ class WeComChannel(BaseChannel):
             )
             return False
 
-        if not hasattr(self._ws_client, "reply_media"):
+        if not hasattr(self._ws_client, "upload_media"):
             logger.warning(
-                "WeCom SDK does not support reply_media (requires wecom-aibot-sdk>=1.0.7)"
+                "WeCom SDK does not support upload_media (requires wecom-aibot-sdk>=1.0.7)"
             )
             return False
 
         try:
+            import os
+
+            if not os.path.isfile(image_path):
+                logger.warning(f"WeCom image file not found: {image_path}")
+                return False
+
+            with open(image_path, "rb") as f:
+                file_bytes = f.read()
+
+            file_name = os.path.basename(image_path) or "image.png"
+
+            upload_result = await self._ws_client.upload_media(
+                file_bytes, type="image", filename=file_name
+            )
+            media_id = upload_result["media_id"]
+
             frame = kwargs.get("frame") or self._pending_frames.get(chat_id)
-            if frame:
-                await self._ws_client.reply_media(frame, image_path)
+            if frame and hasattr(self._ws_client, "reply_media"):
+                await self._ws_client.reply_media(frame, "image", media_id)
             else:
                 if not hasattr(self._ws_client, "send_media_message"):
                     logger.warning(
@@ -1066,7 +1068,7 @@ class WeComChannel(BaseChannel):
                         "(requires wecom-aibot-sdk>=1.0.7)"
                     )
                     return False
-                await self._ws_client.send_media_message(chat_id, image_path)
+                await self._ws_client.send_media_message(chat_id, "image", media_id)
             logger.info(
                 f"WeCom image sent to chat {chat_id} for user {self.config.user_id}"
             )
@@ -1081,13 +1083,13 @@ class WeComChannel(BaseChannel):
     async def send_file(self, chat_id: str, file_path: str, file_name: str = "", **kwargs: Any) -> bool:
         """Send a file to a chat via WeCom AI Bot media upload.
 
-        Uses the community SDK's reply_media (if a pending frame exists) or
-        send_media_message (proactive push) to upload and send the file.
+        Two-step flow: upload_media(file_bytes) -> media_id,
+        then reply_media(frame, media_id) or send_media_message(chatid, media_id).
 
         Args:
             chat_id: The target chat/conversation ID.
             file_path: Local file path of the file to send.
-            file_name: Display name for the file (used for logging only).
+            file_name: Display name for the file.
             **kwargs: Additional options (frame override).
 
         Returns:
@@ -1099,16 +1101,32 @@ class WeComChannel(BaseChannel):
             )
             return False
 
-        if not hasattr(self._ws_client, "reply_media"):
+        if not hasattr(self._ws_client, "upload_media"):
             logger.warning(
-                "WeCom SDK does not support reply_media (requires wecom-aibot-sdk>=1.0.7)"
+                "WeCom SDK does not support upload_media (requires wecom-aibot-sdk>=1.0.7)"
             )
             return False
 
         try:
+            import os
+
+            if not os.path.isfile(file_path):
+                logger.warning(f"WeCom file not found: {file_path}")
+                return False
+
+            with open(file_path, "rb") as f:
+                file_bytes = f.read()
+
+            safe_name = file_name or os.path.basename(file_path) or "file.bin"
+
+            upload_result = await self._ws_client.upload_media(
+                file_bytes, type="file", filename=safe_name
+            )
+            media_id = upload_result["media_id"]
+
             frame = kwargs.get("frame") or self._pending_frames.get(chat_id)
-            if frame:
-                await self._ws_client.reply_media(frame, file_path)
+            if frame and hasattr(self._ws_client, "reply_media"):
+                await self._ws_client.reply_media(frame, "file", media_id)
             else:
                 if not hasattr(self._ws_client, "send_media_message"):
                     logger.warning(
@@ -1116,10 +1134,10 @@ class WeComChannel(BaseChannel):
                         "(requires wecom-aibot-sdk>=1.0.7)"
                     )
                     return False
-                await self._ws_client.send_media_message(chat_id, file_path)
+                await self._ws_client.send_media_message(chat_id, "file", media_id)
             logger.info(
                 f"WeCom file sent to chat {chat_id} for user {self.config.user_id}"
-                f"{f': {file_name}' if file_name else ''}"
+                f"{f': {safe_name}' if safe_name else ''}"
             )
             return True
 

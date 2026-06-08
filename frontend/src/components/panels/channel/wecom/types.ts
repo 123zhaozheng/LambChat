@@ -9,8 +9,7 @@ export type WeComConfigResponse = ChannelConfigResponse["config"] & {
   group_policy: "open" | "mention";
   stream_reply?: boolean;
   send_thinking_message?: boolean;
-  auto_transcribe_audio?: boolean;
-  audio_transcribe_prompt?: string;
+  segmented_reply?: boolean;
   websocket_url?: string;
 };
 

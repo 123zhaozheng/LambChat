@@ -12,7 +12,7 @@ import { ChannelConfigSkeleton } from "../../../skeletons";
 import { EditorSidebar } from "../../../common/EditorSidebar";
 import { ConfirmDialog } from "../../../common/ConfirmDialog";
 import { channelApi } from "../../../../services/api/channel";
-import { DEFAULT_AUDIO_TRANSCRIBE_PROMPT } from "./constants";
+import { WECOM_DEFAULTS } from "./constants";
 import { WeComPanelForm } from "./WeComPanelForm";
 import type {
   WeComConfigResponse,
@@ -49,10 +49,7 @@ export function WeComPanel({
   const [groupPolicy, setGroupPolicy] = useState<"open" | "mention">("mention");
   const [streamReply, setStreamReply] = useState(true);
   const [sendThinkingMessage, setSendThinkingMessage] = useState(true);
-  const [autoTranscribeAudio, setAutoTranscribeAudio] = useState(true);
-  const [audioTranscribePrompt, setAudioTranscribePrompt] = useState(
-    DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
-  );
+  const [segmentedReply, setSegmentedReply] = useState<boolean>(WECOM_DEFAULTS.segmentedReply);
   const [agentId, setAgentId] = useState<string | null>(null);
   const [modelId, setModelId] = useState<string | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
@@ -92,11 +89,7 @@ export function WeComPanel({
       setGroupPolicy(wecomConfig?.group_policy || "mention");
       setStreamReply(wecomConfig?.stream_reply ?? true);
       setSendThinkingMessage(wecomConfig?.send_thinking_message ?? true);
-      setAutoTranscribeAudio(wecomConfig?.auto_transcribe_audio ?? true);
-      setAudioTranscribePrompt(
-        wecomConfig?.audio_transcribe_prompt ||
-          DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
-      );
+      setSegmentedReply(wecomConfig?.segmented_reply ?? WECOM_DEFAULTS.segmentedReply);
       const initialAgentId = initialConfig.agent_id || null;
       setAgentId(initialAgentId);
       setModelId(initialConfig.model_id || null);
@@ -117,8 +110,7 @@ export function WeComPanel({
       setGroupPolicy("mention");
       setStreamReply(true);
       setSendThinkingMessage(true);
-      setAutoTranscribeAudio(true);
-      setAudioTranscribePrompt(DEFAULT_AUDIO_TRANSCRIBE_PROMPT);
+      setSegmentedReply(WECOM_DEFAULTS.segmentedReply);
       setAgentId(null);
       setModelId(null);
       setTeamId(null);
@@ -143,8 +135,7 @@ export function WeComPanel({
         setGroupPolicy("mention");
         setStreamReply(true);
         setSendThinkingMessage(true);
-        setAutoTranscribeAudio(true);
-        setAudioTranscribePrompt(DEFAULT_AUDIO_TRANSCRIBE_PROMPT);
+        setSegmentedReply(WECOM_DEFAULTS.segmentedReply);
         setStatus(null);
         setAgentId(null);
         setModelId(null);
@@ -169,11 +160,7 @@ export function WeComPanel({
         setGroupPolicy(wecomConfig.group_policy || "mention");
         setStreamReply(wecomConfig.stream_reply ?? true);
         setSendThinkingMessage(wecomConfig.send_thinking_message ?? true);
-        setAutoTranscribeAudio(wecomConfig.auto_transcribe_audio ?? true);
-        setAudioTranscribePrompt(
-          wecomConfig.audio_transcribe_prompt ||
-            DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
-        );
+        setSegmentedReply(wecomConfig.segmented_reply ?? WECOM_DEFAULTS.segmentedReply);
         const loadedAgentId = configResponse.agent_id || null;
         setAgentId(loadedAgentId);
         setModelId(configResponse.model_id || null);
@@ -194,8 +181,7 @@ export function WeComPanel({
         setGroupPolicy("mention");
         setStreamReply(true);
         setSendThinkingMessage(true);
-        setAutoTranscribeAudio(true);
-        setAudioTranscribePrompt(DEFAULT_AUDIO_TRANSCRIBE_PROMPT);
+        setSegmentedReply(WECOM_DEFAULTS.segmentedReply);
         setAgentId(null);
         setModelId(null);
         setTeamId(null);
@@ -250,8 +236,7 @@ export function WeComPanel({
           group_policy: groupPolicy,
           stream_reply: streamReply,
           send_thinking_message: sendThinkingMessage,
-          auto_transcribe_audio: autoTranscribeAudio,
-          audio_transcribe_prompt: audioTranscribePrompt,
+          segmented_reply: segmentedReply,
           enabled,
         };
 
@@ -281,8 +266,7 @@ export function WeComPanel({
             group_policy: groupPolicy,
             stream_reply: streamReply,
             send_thinking_message: sendThinkingMessage,
-            auto_transcribe_audio: autoTranscribeAudio,
-            audio_transcribe_prompt: audioTranscribePrompt,
+            segmented_reply: segmentedReply,
           },
           agent_id: agentId,
           model_id: modelId,
@@ -325,8 +309,7 @@ export function WeComPanel({
       setGroupPolicy("mention");
       setStreamReply(true);
       setSendThinkingMessage(true);
-      setAutoTranscribeAudio(true);
-      setAudioTranscribePrompt(DEFAULT_AUDIO_TRANSCRIBE_PROMPT);
+      setSegmentedReply(WECOM_DEFAULTS.segmentedReply);
       setAgentId(null);
       setModelId(null);
       setTeamId(null);
@@ -380,8 +363,7 @@ export function WeComPanel({
       groupPolicy={groupPolicy}
       streamReply={streamReply}
       sendThinkingMessage={sendThinkingMessage}
-      autoTranscribeAudio={autoTranscribeAudio}
-      audioTranscribePrompt={audioTranscribePrompt}
+      segmentedReply={segmentedReply}
       agentId={agentId}
       modelId={modelId}
       teamId={teamId}
@@ -393,8 +375,7 @@ export function WeComPanel({
       setGroupPolicy={setGroupPolicy}
       setStreamReply={setStreamReply}
       setSendThinkingMessage={setSendThinkingMessage}
-      setAutoTranscribeAudio={setAutoTranscribeAudio}
-      setAudioTranscribePrompt={setAudioTranscribePrompt}
+      setSegmentedReply={setSegmentedReply}
       setAgentId={handleAgentIdChange}
       setModelId={setModelId}
       setTeamId={setTeamId}

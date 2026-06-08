@@ -6,9 +6,11 @@ WeCom (企业微信) 消息处理器模块
 """
 
 import asyncio
+import os
 import time
 import uuid
 from datetime import datetime, timezone
+from tempfile import NamedTemporaryFile
 from typing import Any, AsyncGenerator, Callable, Optional, cast
 
 from src.infra.channel.wecom.channel import WeComChannel
@@ -84,6 +86,58 @@ async def _create_new_wecom_session(chat_id: str) -> str:
     return session_id
 
 
+# ── 长消息分段 ────────────────────────────────────────────────────────
+
+WECOM_MESSAGE_BYTE_LIMIT = 2048  # UTF-8 byte limit per WeCom markdown message
+
+
+def _split_by_utf8_byte_limit(text: str, byte_limit: int = WECOM_MESSAGE_BYTE_LIMIT) -> list[str]:
+    """Split text into chunks that don't exceed byte_limit UTF-8 bytes.
+
+    Uses binary search to find safe split points that don't break multi-byte characters.
+    Tries to split on paragraph breaks (\\n\\n), then line breaks (\\n), then character boundaries.
+    """
+    if not text:
+        return []
+
+    encoded = text.encode("utf-8")
+    if len(encoded) <= byte_limit:
+        return [text]
+
+    chunks: list[str] = []
+    remaining = text
+
+    while remaining:
+        encoded = remaining.encode("utf-8")
+        if len(encoded) <= byte_limit:
+            chunks.append(remaining)
+            break
+
+        # Binary search for the maximum prefix that fits in byte_limit
+        lo, hi = 0, len(remaining)
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if len(remaining[:mid].encode("utf-8")) <= byte_limit:
+                lo = mid
+            else:
+                hi = mid - 1
+
+        # Try to split on paragraph break within the prefix
+        split_pos = lo
+        last_para = remaining.rfind("\n\n", 0, lo)
+        if last_para > 0:
+            split_pos = last_para + 2
+        else:
+            last_line = remaining.rfind("\n", 0, lo)
+            if last_line > 0:
+                split_pos = last_line + 1
+
+        chunks.append(remaining[:split_pos])
+        remaining = remaining[split_pos:]
+
+    return chunks
+
+
 # ── WeComResponseCollector ────────────────────────────────────────────
 
 
@@ -109,6 +163,7 @@ class WeComResponseCollector:
         chat_type: str | None = None,
         stream_reply: bool = True,
         send_thinking_message: bool = True,
+        segmented_reply: bool = True,
         instance_id: str | None = None,
     ):
         self.manager = manager
@@ -119,12 +174,14 @@ class WeComResponseCollector:
         self.chat_type = chat_type
         self.stream_reply = stream_reply
         self.send_thinking_message = send_thinking_message
+        self.segmented_reply = segmented_reply
         self.instance_id = instance_id
 
         # 内容收集
         self.text_parts: list[str] = []
         self.tools_used: list[str] = []
         self.files_to_reveal: list[dict] = []
+        self._sent_file_keys: set[str] = set()
 
         # 流式状态
         self._stream_id: str | None = None
@@ -367,8 +424,120 @@ class WeComResponseCollector:
             self.tools_used.append(tool_name)
 
     def add_file_to_reveal(self, file_info: dict) -> None:
-        """添加待展示的文件（PR3 实现 upload_media 后使用）"""
+        """添加待展示的文件"""
         self.files_to_reveal.append(file_info)
+
+    async def upload_and_send_files(self) -> None:
+        """上传文件并发送到 WeCom。
+
+        从 S3 storage 下载文件到临时文件，通过 upload_media 上传获取 media_id，
+        再通过 send_media_message 主动推送到 WeCom。
+        """
+        from src.infra.channel.feishu.handler_helpers import (
+            FEISHU_REVEAL_DOWNLOAD_CHUNK_SIZE,
+            _download_storage_object_to_file,
+        )
+        from src.infra.storage.s3.service import get_or_init_storage
+
+        if not self.files_to_reveal:
+            return
+
+        client = self._get_client()
+        if not client:
+            return
+
+        if not hasattr(client, "_ws_client") or not hasattr(
+            client._ws_client, "upload_media"
+        ):
+            logger.warning(
+                "[WeCom] SDK does not support upload_media (requires wecom-aibot-sdk>=1.0.7)"
+            )
+            return
+
+        try:
+            storage = await get_or_init_storage()
+        except Exception as e:
+            logger.error("[WeCom] Failed to init storage: %s", e)
+            return
+
+        backend = storage._get_backend()
+
+        for file_info in self.files_to_reveal:
+            try:
+                file_name = file_info.get("name", "unknown")
+                file_key = file_info.get("key", "")
+
+                if not file_key:
+                    logger.warning("[WeCom] No key for file %s", file_name)
+                    continue
+                if file_key in self._sent_file_keys:
+                    continue
+
+                logger.info(
+                    "[WeCom] Reading file %s from storage, key=%s",
+                    file_name,
+                    file_key,
+                )
+
+                safe_suffix = os.path.basename(file_name) or "file"
+                with NamedTemporaryFile(
+                    prefix="lambchat-wecom-", suffix=f"-{safe_suffix}"
+                ) as tmp:
+                    size = await _download_storage_object_to_file(
+                        backend,
+                        file_key,
+                        tmp,
+                        chunk_size=FEISHU_REVEAL_DOWNLOAD_CHUNK_SIZE,
+                    )
+                    if size <= 0:
+                        logger.warning(
+                            "[WeCom] File not found or empty: %s", file_key
+                        )
+                        continue
+
+                    logger.info(
+                        "[WeCom] Downloaded file %s, size: %d bytes",
+                        file_name,
+                        size,
+                    )
+
+                    # Read file bytes from temp file
+                    tmp.seek(0)
+                    file_bytes = tmp.read()
+
+                # Map file type to WeCom media type
+                file_type = str(file_info.get("type") or "").lower()
+                mime_type = str(file_info.get("mime_type") or "").lower()
+                if file_type == "image" or mime_type.startswith("image/"):
+                    media_type = "image"
+                else:
+                    media_type = "file"
+
+                # Step 1: Upload to get media_id
+                upload_result = await client._ws_client.upload_media(
+                    file_bytes, type=media_type, filename=file_name
+                )
+                media_id = upload_result["media_id"]
+
+                # Step 2: Send via send_media_message (proactive, frame may be gone)
+                if hasattr(client._ws_client, "send_media_message"):
+                    await client._ws_client.send_media_message(
+                        self.chat_id, media_type, media_id
+                    )
+                    self._sent_file_keys.add(file_key)
+                    logger.info("[WeCom] Sent %s: %s", media_type, file_name)
+                else:
+                    logger.warning(
+                        "[WeCom] SDK does not support send_media_message "
+                        "(requires wecom-aibot-sdk>=1.0.7)"
+                    )
+
+            except Exception as e:
+                logger.error(
+                    "[WeCom] Failed to upload file %s: %s",
+                    file_info.get("name"),
+                    e,
+                )
 
     def _get_client(self) -> WeComChannel | None:
         """获取当前用户的 WeComChannel 实例"""
@@ -423,6 +592,7 @@ class WeComResponseCollector:
 
         流式消息已因 6 分钟超时被 finalize（包含当时已有的内容）。
         此方法发送完整的最终结果作为新消息。
+        如果 segmented_reply 启用且内容超过字节限制，自动分段发送。
         """
         client = self._get_client()
         if not client:
@@ -430,6 +600,25 @@ class WeComResponseCollector:
 
         final_content = self._current_stream_content()
         final_text = final_content.strip() or " "
+
+        # 分段发送：超过字节限制时自动拆分
+        if self.segmented_reply and len(final_text.encode("utf-8")) > WECOM_MESSAGE_BYTE_LIMIT:
+            chunks = _split_by_utf8_byte_limit(final_text)
+            all_success = True
+            for i, chunk in enumerate(chunks):
+                success = await client.send_proactive_message(self.chat_id, chunk)
+                if not success:
+                    all_success = False
+                    logger.warning(
+                        "[WeCom] Failed to send timeout fallback part %d/%d for chat %s",
+                        i + 1, len(chunks), self.chat_id,
+                    )
+            if all_success:
+                logger.info(
+                    "[WeCom] Sent timeout fallback (%d parts) to chat %s",
+                    len(chunks), self.chat_id,
+                )
+            return all_success
 
         success = await client.send_proactive_message(self.chat_id, final_text)
         if success:
@@ -448,6 +637,7 @@ class WeComResponseCollector:
         """发送非流式回复（完整消息）。
 
         用于流式回复失败或被禁用时的回退方案。
+        如果 segmented_reply 启用且内容超过字节限制，自动分段发送。
         """
         if self._stream_finalized:
             return True
@@ -473,6 +663,28 @@ class WeComResponseCollector:
             metadata_parts.append(f"📎 {', '.join(file_names)}")
         if metadata_parts:
             content += "\n\n---\n" + " · ".join(metadata_parts)
+
+        # 分段发送：超过字节限制时自动拆分
+        if self.segmented_reply and len(content.encode("utf-8")) > WECOM_MESSAGE_BYTE_LIMIT:
+            chunks = _split_by_utf8_byte_limit(content)
+            all_success = True
+            for i, chunk in enumerate(chunks):
+                success = await client.send_proactive_message(self.chat_id, chunk)
+                if not success:
+                    all_success = False
+                    logger.warning(
+                        "[WeCom] Failed to send segmented message part %d/%d to %s",
+                        i + 1, len(chunks), self.chat_id,
+                    )
+            if all_success:
+                reply_info = (
+                    f" (reply to {self.reply_to_msgid})" if self.reply_to_msgid else ""
+                )
+                logger.info(
+                    "[WeCom] Segmented message (%d parts) sent to %s%s",
+                    len(chunks), self.chat_id, reply_info,
+                )
+            return all_success
 
         success = await client.reply_message(self.chat_id, content)
         if success:
@@ -597,6 +809,7 @@ def create_wecom_message_handler(
             channel_name: str | None = None
             stream_reply = True
             send_thinking_message = True
+            segmented_reply = True
             ch_storage = None
 
             if instance_id:
@@ -620,6 +833,7 @@ def create_wecom_message_handler(
                     channel_name = ch_config.get("name")
                     stream_reply = bool(ch_config.get("stream_reply", True))
                     send_thinking_message = bool(ch_config.get("send_thinking_message", True))
+                    segmented_reply = bool(ch_config.get("segmented_reply", True))
 
             # Persona preset resolution
             if persona_preset_id:
@@ -712,6 +926,7 @@ def create_wecom_message_handler(
                 chat_type=chat_type_from_msg,
                 stream_reply=stream_reply,
                 send_thinking_message=send_thinking_message,
+                segmented_reply=segmented_reply,
                 instance_id=instance_id,
             )
 
@@ -795,6 +1010,8 @@ def create_wecom_message_handler(
             if not streamed:
                 await collector.send_message()
 
+            await collector.upload_and_send_files()
+
             logger.info(f"[WeCom] Message processing completed for {chat_id}")
 
         except Exception as e:
@@ -843,8 +1060,45 @@ async def _process_events(
 
             elif event_type == EVENT_TOOL_RESULT:
                 tool_name = data.get("tool", "")
-                logger.debug(f"[WeCom] tool:result event: tool={tool_name}")
-                # 文件上传/发送处理将在 PR3 实现（需 upload_media 支持）
+                result = data.get("result", {})
+                if isinstance(result, dict):
+                    from src.infra.channel.feishu.handler_helpers import (
+                        _extract_tool_media_files,
+                    )
+
+                    file_infos = _extract_tool_media_files(result)
+
+                    # Also handle reveal_file direct result format:
+                    # {"key": "...", "url": "...", "name": "...", "type": "image", ...}
+                    # This format has no "images" or "blocks" wrapper, so
+                    # _extract_tool_media_files returns [] for it.
+                    if not file_infos and "key" in result and "url" in result:
+                        file_type = str(result.get("type") or "").lower()
+                        mime_type = str(result.get("mime_type") or "").lower()
+                        if file_type in {"image", "file", "audio", "video", "document"} or mime_type:
+                            media_type = file_type
+                            if file_type == "document":
+                                media_type = "file"
+                            elif mime_type.startswith("image/"):
+                                media_type = "image"
+                            elif mime_type.startswith("audio/"):
+                                media_type = "audio"
+                            elif mime_type.startswith("video/"):
+                                media_type = "video"
+                            file_infos.append({
+                                "key": result["key"],
+                                "name": result.get("name", "unknown"),
+                                "type": media_type,
+                                "mime_type": mime_type or "application/octet-stream",
+                                "url": result.get("url", ""),
+                            })
+
+                    for fi in file_infos:
+                        collector.add_file_to_reveal(fi)
+                        logger.info(
+                            "[WeCom] Added tool media file to reveal: %s",
+                            fi.get("name"),
+                        )
 
             elif event_type in ("done", "complete", "error"):
                 break

@@ -8,11 +8,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.infra.utils.datetime import utc_now
 
-DEFAULT_AUDIO_TRANSCRIBE_PROMPT = (
-    "Please transcribe and understand this voice message. "
-    "Use the audio_transcribe tool for the attached audio when needed."
-)
-
 
 class WeComGroupPolicy(str, Enum):
     """Group message handling policy."""
@@ -34,13 +29,7 @@ class WeComConfigBase(BaseModel):
     send_thinking_message: bool = Field(
         True, description="在 5 秒回调期限内发送思考占位消息"
     )
-    auto_transcribe_audio: bool = Field(
-        True, description="让 Agent 转写接收到的语音附件"
-    )
-    audio_transcribe_prompt: str = Field(
-        DEFAULT_AUDIO_TRANSCRIBE_PROMPT,
-        description="收到语音消息时发送给 Agent 的提示词",
-    )
+    segmented_reply: bool = Field(True, description="超长回复自动分段发送")
     websocket_url: str = Field(
         "wss://openws.work.weixin.qq.com",
         description="私有化部署的 WebSocket 地址",
@@ -64,8 +53,7 @@ class WeComConfigUpdate(BaseModel):
     group_policy: Optional[WeComGroupPolicy] = None
     stream_reply: Optional[bool] = None
     send_thinking_message: Optional[bool] = None
-    auto_transcribe_audio: Optional[bool] = None
-    audio_transcribe_prompt: Optional[str] = None
+    segmented_reply: Optional[bool] = None
     websocket_url: Optional[str] = None
     enabled: Optional[bool] = None
 
@@ -90,8 +78,7 @@ class WeComConfigResponse(BaseModel):
     group_policy: WeComGroupPolicy = WeComGroupPolicy.MENTION
     stream_reply: bool = True
     send_thinking_message: bool = True
-    auto_transcribe_audio: bool = True
-    audio_transcribe_prompt: str = DEFAULT_AUDIO_TRANSCRIBE_PROMPT
+    segmented_reply: bool = True
     websocket_url: str = "wss://openws.work.weixin.qq.com"
     enabled: bool = True
     created_at: Optional[datetime] = None

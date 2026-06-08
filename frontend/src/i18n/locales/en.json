@@ -1004,8 +1004,6 @@
     "waitingForScan": "Waiting for scan"
   },
   "wecom": {
-    "autoTranscribeAudio": "Audio Transcription",
-    "autoTranscribeAudioDesc": "Attach voice messages and ask the agent to transcribe them",
     "behavior": "Behavior Settings",
     "botId": "Bot ID",
     "botIdPlaceholder": "bot_xxxxxxxxxx",
@@ -1036,6 +1034,8 @@
     "saveError": "Failed to save WeCom configuration",
     "saveSuccess": "WeCom configuration saved",
     "secretRequired": "Bot Secret is required",
+    "segmentedReply": "Segmented Reply",
+    "segmentedReplyDesc": "Automatically split long replies into multiple messages",
     "sendThinkingMessage": "Thinking Placeholder",
     "sendThinkingMessageDesc": "Send a placeholder within the 5-second callback deadline",
     "setupGuide": "Setup Guide",

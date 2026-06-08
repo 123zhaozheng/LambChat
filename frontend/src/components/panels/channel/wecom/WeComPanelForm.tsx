@@ -8,7 +8,6 @@ import { ChannelAgentSelect } from "../ChannelAgentSelect";
 import { ChannelModelSelect } from "../ChannelModelSelect";
 import { ChannelPersonaSelect } from "../ChannelPersonaSelect";
 import { ChannelTeamSelect } from "../ChannelTeamSelect";
-import { DEFAULT_AUDIO_TRANSCRIBE_PROMPT } from "./constants";
 import type { WeComConfigStatus } from "./types";
 
 interface WeComPanelFormProps {
@@ -23,8 +22,7 @@ interface WeComPanelFormProps {
   groupPolicy: "open" | "mention";
   streamReply: boolean;
   sendThinkingMessage: boolean;
-  autoTranscribeAudio: boolean;
-  audioTranscribePrompt: string;
+  segmentedReply: boolean;
   agentId: string | null;
   modelId: string | null;
   teamId: string | null;
@@ -36,8 +34,7 @@ interface WeComPanelFormProps {
   setGroupPolicy: (value: "open" | "mention") => void;
   setStreamReply: (value: boolean) => void;
   setSendThinkingMessage: (value: boolean) => void;
-  setAutoTranscribeAudio: (value: boolean) => void;
-  setAudioTranscribePrompt: (value: string) => void;
+  setSegmentedReply: (value: boolean) => void;
   setAgentId: (value: string | null) => void;
   setModelId: (value: string | null) => void;
   setTeamId: (value: string | null) => void;
@@ -88,8 +85,7 @@ export function WeComPanelForm({
   groupPolicy,
   streamReply,
   sendThinkingMessage,
-  autoTranscribeAudio,
-  audioTranscribePrompt,
+  segmentedReply,
   agentId,
   modelId,
   teamId,
@@ -101,8 +97,7 @@ export function WeComPanelForm({
   setGroupPolicy,
   setStreamReply,
   setSendThinkingMessage,
-  setAutoTranscribeAudio,
-  setAudioTranscribePrompt,
+  setSegmentedReply,
   setAgentId,
   setModelId,
   setTeamId,
@@ -295,38 +290,29 @@ export function WeComPanelForm({
           </div>
         </div>
 
-        {/* Audio */}
+        {/* Segmented Reply */}
         <div className="es-field">
           <div className="flex items-center justify-between gap-3">
             <div>
               <label className="es-label">
-                {t("wecom.autoTranscribeAudio", "自动转写语音")}
+                {t("wecom.segmentedReply", "分段回复")}
               </label>
               <p className="es-hint mt-0.5">
                 {t(
-                  "wecom.autoTranscribeAudioDesc",
-                  "接收语音消息时作为附件传给 Agent，并提示转写",
+                  "wecom.segmentedReplyDesc",
+                  "超长回复自动分段发送，显示为多条消息",
                 )}
               </p>
             </div>
             <WeComToggle
-              checked={autoTranscribeAudio}
-              onChange={setAutoTranscribeAudio}
+              checked={segmentedReply}
+              onChange={setSegmentedReply}
               ariaLabel={t(
-                "wecom.autoTranscribeAudio",
-                "Audio Transcription",
+                "wecom.segmentedReply",
+                "Segmented Reply",
               )}
             />
           </div>
-          {autoTranscribeAudio && (
-            <textarea
-              value={audioTranscribePrompt}
-              onChange={(e) => setAudioTranscribePrompt(e.target.value)}
-              rows={3}
-              className="glass-input es-input mt-3 min-h-[5rem] resize-y"
-              placeholder={DEFAULT_AUDIO_TRANSCRIBE_PROMPT}
-            />
-          )}
         </div>
 
         {/* Group Policy */}

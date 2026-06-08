@@ -917,6 +917,19 @@ def create_wecom_message_handler(
             session_id = await _get_wecom_session_id(chat_id)
             task_manager = get_task_manager()
 
+            # Cancel any previous running task for this session
+            # This matches Web UI behavior where sending a new message cancels the previous run
+            try:
+                cancel_result = await task_manager.cancel(session_id, user_id=user_id)
+                if cancel_result.get("success") or cancel_result.get("cancelled_locally"):
+                    logger.info(
+                        "[WeCom] Cancelled previous run for session %s: %s",
+                        session_id,
+                        cancel_result.get("message", ""),
+                    )
+            except Exception as e:
+                logger.debug("[WeCom] No previous run to cancel for session %s: %s", session_id, e)
+
             collector = WeComResponseCollector(
                 manager=manager,
                 user_id=user_id,

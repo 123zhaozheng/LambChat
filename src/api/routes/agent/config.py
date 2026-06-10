@@ -356,6 +356,17 @@ async def set_role_wecom_config(
         segmented_reply=config_data.segmented_reply,
         session_ttl_hours=config_data.session_ttl_hours,
     )
+
+    # Notify the WeCom bot manager to reload this role's bot
+    try:
+        from src.infra.agent.wecom.manager import get_wecom_bot_manager
+
+        manager = get_wecom_bot_manager()
+        if manager._running:
+            await manager.reload_role(role_id)
+    except Exception as e:
+        logger.warning("Failed to reload WeCom bot for role %s: %s", role_id, e)
+
     return config
 
 
@@ -372,6 +383,16 @@ async def delete_role_wecom_config(
         from src.kernel.exceptions import NotFoundError
 
         raise NotFoundError(f"角色 '{role_id}' 未配置企业微信")
+
+    # Notify the WeCom bot manager to reload this role's bot
+    try:
+        from src.infra.agent.wecom.manager import get_wecom_bot_manager
+
+        manager = get_wecom_bot_manager()
+        if manager._running:
+            await manager.reload_role(role_id)
+    except Exception as e:
+        logger.warning("Failed to reload WeCom bot for role %s after delete: %s", role_id, e)
 
     return {"message": "企业微信配置已删除"}
 

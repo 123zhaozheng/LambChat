@@ -52,15 +52,6 @@ class _FakeSessionManager:
         return self.delete_results.get(session_id, True)
 
 
-class _FakeWeComConfigStorage:
-    def __init__(self) -> None:
-        self.clear_calls: list[tuple[str, str]] = []
-
-    async def clear_project_id(self, project_id: str, user_id: str) -> int:
-        self.clear_calls.append((project_id, user_id))
-        return 1
-
-
 class _FakeRevealedStorage:
     async def clear_project_id(self, project_id: str) -> int:
         return 1
@@ -75,23 +66,18 @@ class _FakeDeferredTools:
 
 
 @pytest.mark.asyncio
-async def test_delete_project_clears_channel_config_project_references(
+async def test_delete_project_clears_session_project_references(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     project = SimpleNamespace(id="project-1", user_id="user-1", type="channel")
     project_storage = _FakeProjectStorage(project)
     session_storage = _FakeSessionStorage()
-    wecom_storage = _FakeWeComConfigStorage()
 
     monkeypatch.setattr(project_route, "get_project_storage", lambda: project_storage)
     monkeypatch.setattr(project_route, "SessionStorage", lambda: session_storage)
     monkeypatch.setattr(
         "src.infra.revealed_file.storage.get_revealed_file_storage",
         lambda: _FakeRevealedStorage(),
-    )
-    monkeypatch.setattr(
-        "src.infra.channel.wecom.storage.WeComConfigStorage",
-        lambda: wecom_storage,
     )
 
     response = await project_route.delete_project(
@@ -102,7 +88,6 @@ async def test_delete_project_clears_channel_config_project_references(
 
     assert response == {"status": "deleted"}
     assert session_storage.clear_calls == [("project-1", "user-1")]
-    assert wecom_storage.clear_calls == [("project-1", "user-1")]
 
 
 @pytest.mark.asyncio
@@ -126,10 +111,6 @@ async def test_delete_project_with_delete_sessions_uses_full_session_cleanup(
     monkeypatch.setattr(
         "src.infra.revealed_file.storage.get_revealed_file_storage",
         lambda: _FakeRevealedStorage(),
-    )
-    monkeypatch.setattr(
-        "src.infra.channel.wecom.storage.WeComConfigStorage",
-        lambda: _FakeWeComConfigStorage(),
     )
 
     response = await project_route.delete_project(

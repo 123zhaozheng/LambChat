@@ -416,6 +416,29 @@ class AgentConfigStorage:
         )
         return result.deleted_count > 0
 
+    async def get_all_role_wecom_configs_raw(self) -> list[dict[str, Any]]:
+        """获取所有角色的 WeCom 配置（含 secret 明文，仅供内部 Bot 启动使用）。
+
+        Returns:
+            List of raw config dicts with keys: role_id, aibotid, secret,
+            stream_reply, send_thinking_message, segmented_reply, session_ttl_hours.
+        """
+        cursor = self._get_collection(_COLL_ROLE_WECOM_CONFIG).find(
+            {"aibotid": {"$ne": ""}, "secret": {"$ne": "", "$exists": True}},
+        )
+        results: list[dict[str, Any]] = []
+        async for doc in cursor:
+            results.append({
+                "role_id": doc["role_id"],
+                "aibotid": doc.get("aibotid", ""),
+                "secret": doc.get("secret", ""),
+                "stream_reply": doc.get("stream_reply", True),
+                "send_thinking_message": doc.get("send_thinking_message", True),
+                "segmented_reply": doc.get("segmented_reply", True),
+                "session_ttl_hours": doc.get("session_ttl_hours", 24),
+            })
+        return results
+
     # ============================================
     # 用户默认 Agent
     # ============================================

@@ -269,15 +269,15 @@ async def _cancel_background_tasks(app: FastAPI, *task_names: str) -> None:
         await asyncio.gather(*tasks, return_exceptions=True)
 
 
-async def _stop_wecom_channels_for_shutdown(app: FastAPI) -> None:
+async def _stop_wecom_bots_for_shutdown(app: FastAPI) -> None:
     await _cancel_background_tasks(app, "wecom_task")
     try:
-        from src.infra.channel.wecom import stop_wecom_channels
+        from src.infra.agent.wecom import stop_wecom_bots
 
-        await stop_wecom_channels()
-        logger.info("WeCom channels stopped")
+        await stop_wecom_bots()
+        logger.info("WeCom bots stopped")
     except Exception as e:
-        logger.warning(f"Failed to stop WeCom channels: {e}")
+        logger.warning(f"Failed to stop WeCom bots: {e}")
 
 
 async def _cancel_lifespan_background_tasks_for_shutdown(app: FastAPI) -> None:
@@ -452,17 +452,14 @@ async def lifespan(app: FastAPI):
     _session_search_backfill_task = asyncio.create_task(_backfill_session_search())
     app.state.session_search_backfill_task = _session_search_backfill_task
 
-    # Start WeCom channels in background (don't block app startup)
+    # Start WeCom bots in background (don't block app startup)
     async def _start_wecom():
         try:
-            from src.infra.channel.wecom.handler import setup_wecom_handler
+            from src.infra.agent.wecom.handler import setup_wecom_handler
 
-            await setup_wecom_handler(
-                default_agent=settings.DEFAULT_AGENT,
-                show_tools=True,
-            )
+            await setup_wecom_handler()
         except Exception as e:
-            logger.warning(f"Failed to start WeCom channels: {e}")
+            logger.warning(f"Failed to start WeCom bots: {e}")
 
     _wecom_task = asyncio.create_task(_start_wecom())
     app.state.wecom_task = _wecom_task
@@ -489,7 +486,7 @@ async def lifespan(app: FastAPI):
         from src.infra.sandbox import SandboxFactory
 
         # 先关闭企业微信长连接并释放 lease，避免快速重启时旧锁阻止新实例启动。
-        await _stop_wecom_channels_for_shutdown(app)
+        await _stop_wecom_bots_for_shutdown(app)
         # 再统一取消 lifespan 后台任务，让各任务自己的 finally 在依赖关闭前完成。
         await _cancel_lifespan_background_tasks_for_shutdown(app)
 

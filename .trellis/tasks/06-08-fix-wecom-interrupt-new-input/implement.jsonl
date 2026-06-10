@@ -1,0 +1,8 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend task; use the backend guideline index to load required conventions before implementation."}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Confirms backend layering and that the change belongs in infra/channel and task-manager-adjacent code."}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "WeCom handler has channel-level exception handling and should preserve logging/error response conventions."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Implementation should follow async, typing, test, and style expectations."}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "WeCom/task logs should follow existing get_logger and subsystem prefix conventions."}
+{"file": ".trellis/spec/guides/index.md", "reason": "Shared thinking guide index for code reuse and cross-layer checks."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "The fix crosses channel handler, task manager submit semantics, Redis/Mongo trace events, and WeCom UI behavior."}
+{"file": ".trellis/tasks/06-08-fix-wecom-interrupt-new-input/research/codebase-wecom-interrupt-flow.md", "reason": "Codebase research comparing Web chat and WeCom interrupt/new-input behavior; contains the recommended implementation direction."}

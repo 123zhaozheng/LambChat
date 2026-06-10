@@ -1,0 +1,3 @@
+{"path": "src/infra/channel/wecom/handler.py", "reason": "验证cancel等待逻辑、session TTL、depth过滤、防抖500ms、徽章追加"}
+{"path": "src/kernel/schemas/wecom.py", "reason": "验证session_ttl_hours字段正确性"}
+{"path": "src/infra/channel/wecom/manager.py", "reason": "验证_dict_to_config包含session_ttl_hours"}

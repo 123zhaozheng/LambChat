@@ -1,0 +1,13 @@
+{"path": "src/infra/channel/wecom/handler.py", "reason": "主修改文件：cancel等待逻辑、session TTL、内容过滤depth、防抖500ms、工具/子代理徽章"}
+{"path": "src/kernel/schemas/wecom.py", "reason": "加session_ttl_hours字段到WeComConfigBase/Update/Response"}
+{"path": "src/infra/channel/wecom/manager.py", "reason": "_dict_to_config加session_ttl_hours"}
+{"path": "src/infra/channel/wecom/channel.py", "reason": "WeComChannel配置读取session_ttl_hours"}
+{"path": "src/infra/task/manager.py", "reason": "理解cancel/submit/状态查询接口，实现轮询等待"}
+{"path": "src/infra/agent/events/processor.py", "reason": "理解事件类型、depth/agent_id字段结构"}
+{"path": "src/infra/agent/events/subagents.py", "reason": "理解子agent事件的checkpoint_ns/depth机制"}
+{"path": "frontend/src/components/panels/channel/wecom/types.ts", "reason": "加session_ttl_hours类型"}
+{"path": "frontend/src/components/panels/channel/wecom/constants.ts", "reason": "加sessionTtlHours默认值"}
+{"path": "frontend/src/components/panels/channel/wecom/WeComPanelForm.tsx", "reason": "加sessionTTL输入UI"}
+{"path": "frontend/src/components/panels/channel/wecom/WeComPanel.tsx", "reason": "状态管理加session_ttl_hours"}
+{"path": "frontend/src/i18n/locales/zh.json", "reason": "加session_ttl_hours i18n key"}
+{"path": "frontend/src/i18n/locales/en.json", "reason": "加session_ttl_hours i18n key"}

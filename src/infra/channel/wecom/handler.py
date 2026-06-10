@@ -11,7 +11,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 from tempfile import NamedTemporaryFile
-from typing import Any, AsyncGenerator, Callable, Optional, cast
+from typing import Any, AsyncGenerator, Callable, Optional
 
 from src.infra.channel.wecom.channel import WeComChannel
 from src.infra.channel.wecom.manager import WeComChannelManager
@@ -558,7 +558,7 @@ class WeComResponseCollector:
         if not base_client:
             logger.warning("[WeCom] No client for user %s", self.user_id)
             return None
-        return cast(WeComChannel, base_client)
+        return base_client
 
     # ── 最终发送 ──────────────────────────────────────────────────
 
@@ -840,11 +840,10 @@ def create_wecom_message_handler(
             ch_storage = None
 
             if instance_id:
-                from src.infra.channel.channel_storage import ChannelStorage
-                from src.kernel.schemas.channel import ChannelType
+                from src.infra.channel.wecom.storage import WeComConfigStorage
 
-                ch_storage = ChannelStorage()
-                ch_config = await ch_storage.get_config(user_id, ChannelType.WECOM, instance_id)
+                ch_storage = WeComConfigStorage()
+                ch_config = await ch_storage.get_config(user_id, instance_id)
                 if ch_config:
                     if ch_config.get("agent_id"):
                         agent_to_use = ch_config["agent_id"]
@@ -906,7 +905,7 @@ def create_wecom_message_handler(
                         )
                         if ch_storage and instance_id:
                             await ch_storage.clear_config_project_id(
-                                user_id, ChannelType.WECOM, instance_id
+                                user_id, instance_id
                             )
                         project_id = None
                 except Exception as e:

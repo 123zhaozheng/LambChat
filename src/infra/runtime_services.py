@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from src.agents.core.recommendations import drain_recommend_background_tasks
 from src.infra.async_utils import shutdown_blocking_io_executor
-from src.infra.channel.pubsub import get_channel_config_pubsub
 from src.infra.llm.pubsub import get_model_config_pubsub
 from src.infra.monitoring.event_loop import (
     start_event_loop_lag_monitor,
@@ -91,7 +90,6 @@ async def start_runtime_services() -> None:
     # Launch all pub/sub listeners concurrently to reduce startup wall-clock time.
     settings_pubsub = get_settings_pubsub()
     model_config_pubsub = get_model_config_pubsub()
-    channel_pubsub = get_channel_config_pubsub()
     tool_cache_pubsub = get_tool_cache_pubsub()
     mcp_cache_pubsub = get_mcp_cache_pubsub()
     websocket_manager = get_connection_manager()
@@ -99,7 +97,6 @@ async def start_runtime_services() -> None:
     listeners = [
         settings_pubsub.start_listener(),
         model_config_pubsub.start_listener(),
-        channel_pubsub.start_listener(),
         tool_cache_pubsub.start_listener(),
         mcp_cache_pubsub.start_listener(),
         websocket_manager.start_pubsub_listener(),
@@ -140,9 +137,6 @@ async def stop_runtime_services() -> None:
 
     tool_cache_pubsub = get_tool_cache_pubsub()
     await tool_cache_pubsub.stop_listener()
-
-    channel_pubsub = get_channel_config_pubsub()
-    await channel_pubsub.stop_listener()
 
     await get_runtime_scheduler().stop()
 

@@ -11,11 +11,9 @@ import time
 from collections import OrderedDict
 from typing import Any, Callable, Optional
 
-from src.infra.channel.base import BaseChannel
 from src.infra.channel.wecom.state import ConnectionState
 from src.infra.logging import get_logger
 from src.infra.storage.redis import get_redis_client
-from src.kernel.schemas.channel import ChannelCapability, ChannelType
 from src.kernel.schemas.wecom import (
     WeComConfig,
     WeComGroupPolicy,
@@ -54,16 +52,13 @@ def _frame_top(frame: Any, key: str, default: str = "") -> str:
     return default
 
 
-class WeComChannel(BaseChannel):
+class WeComChannel:
     """WeCom (企业微信) AI Bot channel implementation for a single user."""
 
-    channel_type = ChannelType.WECOM
-    display_name = "WeCom (企业微信)"
-    description = "WeCom enterprise communication platform with AI Bot WebSocket"
-    icon = "building-2"
-
     def __init__(self, config: WeComConfig, message_handler: Optional[Callable] = None):
-        super().__init__(config, message_handler)
+        self.config = config
+        self.message_handler = message_handler
+        self._running = False
         self._ws_client: Any = None
         self._loop: asyncio.AbstractEventLoop | None = None
         self._processed_message_ids: OrderedDict[str, None] = OrderedDict()
@@ -75,151 +70,46 @@ class WeComChannel(BaseChannel):
         # Store the latest frame for each chat to support reply on same WS
         self._pending_frames: dict[str, Any] = {}
 
-    @classmethod
-    def get_capabilities(cls) -> list[ChannelCapability]:
-        """Get WeCom channel capabilities."""
-        return [
-            ChannelCapability.WEBSOCKET,
-            ChannelCapability.SEND_MESSAGE,
-            ChannelCapability.SEND_IMAGE,
-            ChannelCapability.SEND_FILE,
-            ChannelCapability.GROUP_CHAT,
-            ChannelCapability.DIRECT_MESSAGE,
-        ]
+    @property
+    def is_running(self) -> bool:
+        """Check if the channel is running."""
+        return self._running
 
-    @classmethod
-    def get_config_schema(cls) -> dict[str, Any]:
-        """Get JSON schema for WeCom configuration."""
-        return {
-            "type": "object",
-            "required": ["bot_id", "secret"],
-            "properties": {
-                "bot_id": {
-                    "type": "string",
-                    "title": "机器人 ID",
-                    "description": "企业微信机器人 ID",
-                },
-                "secret": {
-                    "type": "string",
-                    "title": "机器人密钥",
-                    "description": "企业微信机器人密钥",
-                    "sensitive": True,
-                },
-                "group_policy": {
-                    "type": "string",
-                    "enum": ["open", "mention"],
-                    "title": "群聊消息策略",
-                    "description": "如何处理群聊消息",
-                    "default": "mention",
-                },
-                "stream_reply": {
-                    "type": "boolean",
-                    "title": "流式回复",
-                    "description": "通过 WebSocket 流式回复",
-                    "default": True,
-                },
-                "send_thinking_message": {
-                    "type": "boolean",
-                    "title": "发送思考占位消息",
-                    "description": "在 5 秒回调期限内发送思考占位消息",
-                    "default": True,
-                },
-                "segmented_reply": {
-                    "type": "boolean",
-                    "title": "超长回复自动分段",
-                    "description": "超长回复自动分段发送",
-                    "default": True,
-                },
-                "session_ttl_hours": {
-                    "type": "integer",
-                    "title": "会话有效期",
-                    "description": "会话上下文保留小时数，过期后自动新建会话。0 表示永不过期",
-                    "default": 24,
-                },
-                "websocket_url": {
-                    "type": "string",
-                    "title": "WebSocket 地址",
-                    "description": "私有化部署的 WebSocket 地址",
-                    "default": "wss://openws.work.weixin.qq.com",
-                },
-            },
-        }
+    @property
+    def user_id(self) -> str:
+        """Get the user ID this channel belongs to."""
+        return getattr(self.config, "user_id", "unknown")
 
-    @classmethod
-    def get_config_fields(cls) -> list[dict[str, Any]]:
-        """Get configuration fields for UI rendering."""
-        return [
-            {
-                "name": "bot_id",
-                "title": "机器人 ID",
-                "type": "text",
-                "required": True,
-                "sensitive": False,
-                "placeholder": "bot_xxxxxxxxxx",
-            },
-            {
-                "name": "secret",
-                "title": "机器人密钥",
-                "type": "password",
-                "required": True,
-                "sensitive": True,
-                "placeholder": "",
-            },
-            {
-                "name": "group_policy",
-                "title": "群聊消息策略",
-                "type": "select",
-                "required": False,
-                "sensitive": False,
-                "default": "mention",
-                "options": [
-                    {"value": "mention", "label": "仅 @机器人时回复"},
-                    {"value": "open", "label": "回复所有消息"},
-                ],
-            },
-            {
-                "name": "stream_reply",
-                "title": "流式回复",
-                "type": "toggle",
-                "required": False,
-                "sensitive": False,
-                "default": True,
-            },
-            {
-                "name": "send_thinking_message",
-                "title": "发送思考占位消息",
-                "type": "toggle",
-                "required": False,
-                "sensitive": False,
-                "default": True,
-            },
-            {
-                "name": "segmented_reply",
-                "title": "超长回复自动分段",
-                "type": "toggle",
-                "required": False,
-                "sensitive": False,
-                "default": True,
-            },
-            {
-                "name": "session_ttl_hours",
-                "title": "会话有效期",
-                "type": "number",
-                "required": False,
-                "sensitive": False,
-                "default": 24,
-            },
-        ]
+    async def _handle_message(
+        self,
+        sender_id: str,
+        chat_id: str,
+        content: str,
+        metadata: Optional[dict[str, Any]] = None,
+    ) -> None:
+        """Handle an incoming message from the chat platform.
 
-    @classmethod
-    def get_setup_guide(cls) -> list[str]:
-        """Get WeCom setup guide."""
-        return [
-            "前往企业微信管理后台 (work.weixin.qq.com)",
-            "进入应用管理，创建智能机器人",
-            "从机器人设置中获取机器人 ID 和机器人密钥",
-            "启用 WebSocket 长连接（无需公网 IP）",
-        ]
+        Forwards the message to the registered message handler.
+        """
+        if not self.message_handler:
+            logger.warning(f"No message handler registered for WeCom channel")
+            return
+
+        try:
+            enriched_metadata = metadata or {}
+            instance_id = getattr(self.config, "instance_id", None)
+            if instance_id and "instance_id" not in enriched_metadata:
+                enriched_metadata["instance_id"] = instance_id
+
+            await self.message_handler(
+                user_id=self.user_id,
+                sender_id=sender_id,
+                chat_id=chat_id,
+                content=content,
+                metadata=enriched_metadata,
+            )
+        except Exception as e:
+            logger.error(f"Error handling message on WeCom: {e}")
 
     # -- Connection state management --
 

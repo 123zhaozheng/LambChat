@@ -81,7 +81,7 @@ async def test_initialize_startup_indexes_runs_independent_groups_concurrently(
         lambda: [
             ("agent_config", lambda: _slow_initialize("agent_config")),
             ("model_storage", lambda: _slow_initialize("model_storage")),
-            ("channel_storage", lambda: _slow_initialize("channel_storage")),
+            ("trace_storage", lambda: _slow_initialize("trace_storage")),
         ],
     )
 
@@ -92,13 +92,13 @@ async def test_initialize_startup_indexes_runs_independent_groups_concurrently(
             break
         await asyncio.sleep(0)
 
-    assert started == ["agent_config", "model_storage", "channel_storage"]
+    assert started == ["agent_config", "model_storage", "trace_storage"]
     assert finished == []
 
     release.set()
     await task
 
-    assert finished == ["agent_config", "model_storage", "channel_storage"]
+    assert finished == ["agent_config", "model_storage", "trace_storage"]
 
 
 @pytest.mark.asyncio

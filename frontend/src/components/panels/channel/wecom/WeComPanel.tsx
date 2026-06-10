@@ -11,12 +11,13 @@ import { LoadingSpinner } from "../../../common/LoadingSpinner";
 import { ChannelConfigSkeleton } from "../../../skeletons";
 import { EditorSidebar } from "../../../common/EditorSidebar";
 import { ConfirmDialog } from "../../../common/ConfirmDialog";
-import { channelApi } from "../../../../services/api/channel";
+import { wecomApi } from "../../../../services/api/wecom";
 import { WECOM_DEFAULTS } from "./constants";
 import { WeComPanelForm } from "./WeComPanelForm";
 import type {
   WeComConfigResponse,
   WeComConfigStatus,
+  WeComInstanceResponse,
   WeComPanelProps,
 } from "./types";
 
@@ -79,19 +80,17 @@ export function WeComPanel({
 
   const initializeFromExternalData = () => {
     if (initialConfig) {
-      const wecomConfig = initialConfig.config as unknown as
-        | WeComConfigResponse
-        | undefined;
+      const wecomConfig = initialConfig.config;
       setConfig(wecomConfig ?? null);
       setHasExistingConfig(true);
       setInstanceName(initialConfig.name || "");
       setEnabled(initialConfig.enabled);
-      setBotId(wecomConfig?.bot_id || "");
-      setGroupPolicy(wecomConfig?.group_policy || "mention");
-      setStreamReply(wecomConfig?.stream_reply ?? true);
-      setSendThinkingMessage(wecomConfig?.send_thinking_message ?? true);
-      setSegmentedReply(wecomConfig?.segmented_reply ?? WECOM_DEFAULTS.segmentedReply);
-      setSessionTtlHours(wecomConfig?.session_ttl_hours ?? WECOM_DEFAULTS.sessionTtlHours);
+      setBotId(wecomConfig.bot_id || "");
+      setGroupPolicy(wecomConfig.group_policy || "mention");
+      setStreamReply(wecomConfig.stream_reply ?? true);
+      setSendThinkingMessage(wecomConfig.send_thinking_message ?? true);
+      setSegmentedReply(wecomConfig.segmented_reply ?? WECOM_DEFAULTS.segmentedReply);
+      setSessionTtlHours(wecomConfig.session_ttl_hours ?? WECOM_DEFAULTS.sessionTtlHours);
       const initialAgentId = initialConfig.agent_id || null;
       setAgentId(initialAgentId);
       setModelId(initialConfig.model_id || null);
@@ -121,7 +120,7 @@ export function WeComPanel({
     }
 
     if (initialStatus) {
-      setStatus(initialStatus as WeComConfigStatus);
+      setStatus(initialStatus);
     }
     setIsLoading(false);
   };
@@ -150,12 +149,12 @@ export function WeComPanel({
       }
 
       const [configResponse, statusResponse] = await Promise.all([
-        channelApi.get("wecom", instanceId!),
-        channelApi.getStatus("wecom", instanceId!),
+        wecomApi.get(instanceId!),
+        wecomApi.getStatus(instanceId!),
       ]);
 
       if (configResponse) {
-        const wecomConfig = configResponse.config as WeComConfigResponse;
+        const wecomConfig = configResponse.config;
         setConfig(wecomConfig);
         setHasExistingConfig(true);
         setInstanceName(configResponse.name || "");
@@ -251,7 +250,7 @@ export function WeComPanel({
           updateData.secret = secret;
         }
 
-        const updated = await channelApi.update("wecom", instanceId, {
+        const updated = await wecomApi.update(instanceId, {
           config: updateData,
           enabled,
           agent_id: agentId,
@@ -259,13 +258,12 @@ export function WeComPanel({
           team_id: channelTeamId,
           persona_preset_id: channelPersonaPresetId,
         });
-        const wecomConfig = updated.config as WeComConfigResponse;
+        const wecomConfig = updated.config;
         setConfig(wecomConfig);
         setHasExistingConfig(true);
         setSecret("");
       } else {
-        const created = await channelApi.create({
-          channel_type: "wecom",
+        const created = await wecomApi.create({
           name: instanceName.trim(),
           config: {
             bot_id: botId,
@@ -281,7 +279,7 @@ export function WeComPanel({
           team_id: channelTeamId,
           persona_preset_id: channelPersonaPresetId,
         });
-        const wecomConfig = created.config as WeComConfigResponse;
+        const wecomConfig = created.config;
         setConfig(wecomConfig);
         setHasExistingConfig(true);
         setSecret("");
@@ -291,7 +289,7 @@ export function WeComPanel({
       toast.success(t("wecom.saveSuccess", "企业微信配置已保存"));
 
       if (hasExistingConfig) {
-        const newStatus = await channelApi.getStatus("wecom", instanceId);
+        const newStatus = await wecomApi.getStatus(instanceId);
         setStatus(newStatus);
       }
     } catch (error) {
@@ -308,7 +306,7 @@ export function WeComPanel({
 
   const handleDelete = async () => {
     try {
-      await channelApi.delete("wecom", instanceId);
+      await wecomApi.delete(instanceId);
       setConfig(null);
       setHasExistingConfig(false);
       setEnabled(false);
@@ -337,7 +335,7 @@ export function WeComPanel({
   const handleTest = async () => {
     setIsTesting(true);
     try {
-      const result = await channelApi.test("wecom", instanceId);
+      const result = await wecomApi.test(instanceId);
       if (result.success) {
         toast.success(
           result.message || t("wecom.testSuccess", "连接成功"),

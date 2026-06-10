@@ -5,7 +5,6 @@ from typing import Any, Callable
 
 import pytest
 
-from src.infra.channel import pubsub as channel_pubsub
 from src.infra.llm import pubsub as llm_pubsub
 from src.infra.memory import distributed as memory_distributed
 from src.infra.settings import pubsub as settings_pubsub
@@ -29,7 +28,6 @@ class _FakeRedisClient:
     [
         (llm_pubsub, llm_pubsub.ModelConfigPubSub),
         (settings_pubsub, settings_pubsub.SettingsPubSub),
-        (channel_pubsub, channel_pubsub.ChannelConfigPubSub),
         (cache_pubsub, cache_pubsub.ToolCachePubSub),
         (mcp_global, mcp_global.MCPGlobalCachePubSub),
     ],
@@ -78,17 +76,6 @@ async def test_memory_pubsub_offloads_json_parsing(monkeypatch: pytest.MonkeyPat
     [
         (llm_pubsub, llm_pubsub.publish_model_config_changed, MODEL_CONFIG_CHANNEL, {}),
         (
-            channel_pubsub,
-            channel_pubsub.publish_channel_config_changed,
-            channel_pubsub.CHANNEL_CONFIG_CHANNEL,
-            {
-                "user_id": "user-1",
-                "channel_type": "wecom",
-                "channel_instance_id": "chan-1",
-                "action": "updated",
-            },
-        ),
-        (
             cache_pubsub,
             cache_pubsub.publish_tool_cache_invalidation,
             cache_pubsub.TOOL_CACHE_INVALIDATION_CHANNEL,
@@ -130,11 +117,6 @@ async def test_pubsub_publishers_offload_json_serialization(
         pubsub._instance_id = "instance-a"
         monkeypatch.setattr(llm_pubsub, "get_model_config_pubsub", lambda: pubsub)
         await publish_func()
-    elif module is channel_pubsub:
-        pubsub = channel_pubsub.ChannelConfigPubSub()
-        pubsub._instance_id = "instance-a"
-        monkeypatch.setattr(channel_pubsub, "get_channel_config_pubsub", lambda: pubsub)
-        await publish_func(**kwargs)
     elif module is cache_pubsub:
         pubsub = cache_pubsub.ToolCachePubSub()
         pubsub._instance_id = "instance-a"

@@ -17,6 +17,7 @@ from src.infra.channel.wecom.manager import (
     start_wecom_channels,
     stop_wecom_channels,
 )
+from src.infra.channel.wecom.storage import WeComConfigStorage
 
 __all__ = [
     # Channel
@@ -31,4 +32,6 @@ __all__ = [
     "WeComResponseCollector",
     "create_wecom_message_handler",
     "setup_wecom_handler",
+    # Storage
+    "WeComConfigStorage",
 ]

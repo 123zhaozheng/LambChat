@@ -4,10 +4,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 import type { TFunction } from "i18next";
-import { ChannelAgentSelect } from "../ChannelAgentSelect";
-import { ChannelModelSelect } from "../ChannelModelSelect";
-import { ChannelPersonaSelect } from "../ChannelPersonaSelect";
-import { ChannelTeamSelect } from "../ChannelTeamSelect";
+import { WeComAgentSelect } from "./WeComAgentSelect";
+import { WeComModelSelect } from "./WeComModelSelect";
+import { WeComPersonaSelect } from "./WeComPersonaSelect";
+import { WeComTeamSelect } from "./WeComTeamSelect";
 import type { WeComConfigStatus } from "./types";
 
 interface WeComPanelFormProps {
@@ -403,16 +403,16 @@ export function WeComPanelForm({
 
       {/* Agent & Model */}
       <div className="es-section">
-        <ChannelAgentSelect value={agentId} onChange={setAgentId} />
+        <WeComAgentSelect value={agentId} onChange={setAgentId} />
       </div>
       <div className="es-section">
-        <ChannelModelSelect value={modelId} onChange={setModelId} />
+        <WeComModelSelect value={modelId} onChange={setModelId} />
       </div>
       <div className="es-section">
         {agentId === "team" ? (
-          <ChannelTeamSelect value={teamId} onChange={setTeamId} />
+          <WeComTeamSelect value={teamId} onChange={setTeamId} />
         ) : (
-          <ChannelPersonaSelect
+          <WeComPersonaSelect
             value={personaPresetId}
             onChange={setPersonaPresetId}
           />

@@ -22,7 +22,6 @@ from src.api.middleware.user_context import UserContextMiddleware
 from src.api.routes import (
     agent,
     auth,
-    channels,
     chat,
     envvar,
     feedback,
@@ -298,12 +297,6 @@ def _startup_index_initializers():
         await get_model_storage().ensure_indexes()
         logger.info("Model storage indexes initialized")
 
-    async def _init_channel_storage() -> None:
-        from src.infra.channel.channel_storage import ChannelStorage
-
-        await ChannelStorage().ensure_indexes_if_needed()
-        logger.info("Channel storage indexes initialized")
-
     async def _init_skill_indexes() -> None:
         from src.infra.skill import init_skill_indexes
 
@@ -337,7 +330,6 @@ def _startup_index_initializers():
     return [
         ("agent_config_storage", _init_agent_config_storage),
         ("model_storage", _init_model_storage),
-        ("channel_storage", _init_channel_storage),
         ("skill_indexes", _init_skill_indexes),
         ("trace_storage", _init_trace_storage),
         ("session_storage", _init_session_storage),
@@ -666,8 +658,6 @@ def create_app() -> FastAPI:
     app.include_router(human.router, prefix="/human", tags=["Human"])
     app.include_router(feedback.router, prefix="/api/feedback", tags=["Feedback"])
     app.include_router(notification.router, prefix="/api/notifications", tags=["Notifications"])
-    # Generic channel configuration
-    app.include_router(channels.router, prefix="/api/channels", tags=["Channels"])
     # WebSocket 路由: /ws 用于实时通知
     app.include_router(websocket.router, tags=["WebSocket"])
 

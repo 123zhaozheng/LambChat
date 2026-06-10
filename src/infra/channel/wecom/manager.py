@@ -9,12 +9,10 @@ from typing import Any, Callable, Optional
 
 from redis.asyncio import Redis
 
-from src.infra.channel.base import UserChannelManager
-from src.infra.channel.channel_storage import ChannelStorage
 from src.infra.channel.wecom.channel import WECOM_AVAILABLE, WeComChannel
+from src.infra.channel.wecom.storage import WeComConfigStorage
 from src.infra.logging import get_logger
 from src.infra.storage.redis import create_redis_client
-from src.kernel.schemas.channel import ChannelType
 from src.kernel.schemas.wecom import (
     WeComConfig,
     WeComGroupPolicy,
@@ -43,7 +41,7 @@ end
 """
 
 
-class WeComChannelManager(UserChannelManager):
+class WeComChannelManager:
     """
     Manager for all user WeCom channels.
 
@@ -52,12 +50,11 @@ class WeComChannelManager(UserChannelManager):
     each bot_id is only connected from one instance.
     """
 
-    channel_type = ChannelType.WECOM
-    config_class = WeComConfig
-
     def __init__(self, message_handler: Optional[Callable] = None):
-        super().__init__(message_handler)
-        self._storage = ChannelStorage()
+        self.message_handler = message_handler
+        self._channels: dict[str, WeComChannel] = {}
+        self._running = False
+        self._storage = WeComConfigStorage()
         self._message_handler: Optional[Callable] = message_handler
         # Track active bot_ids to prevent duplicate bot connections
         self._active_bot_ids: dict[str, str] = {}  # bot_id -> channel_key
@@ -141,7 +138,7 @@ class WeComChannelManager(UserChannelManager):
         skipped = 0
         desired_local_keys: set[str] = set()
 
-        async for config_dict in self._storage.iter_enabled_configs(ChannelType.WECOM):
+        async for config_dict in self._storage.iter_enabled_configs():
             try:
                 user_id = config_dict.get("user_id")
                 if not user_id:
@@ -344,7 +341,7 @@ class WeComChannelManager(UserChannelManager):
                 await self._stop_channel_by_key(channel_key)
                 logger.info(f"Stopped WeCom client for {channel_key}")
 
-            config_dict = await self._storage.get_config(user_id, ChannelType.WECOM, instance_id)
+            config_dict = await self._storage.get_config(user_id, instance_id)
             if config_dict and config_dict.get("enabled", True):
                 if await self._refresh_node_membership():
                     nodes = await self._list_active_node_ids()
@@ -358,7 +355,7 @@ class WeComChannelManager(UserChannelManager):
             return True
 
         # Legacy behavior: reload all instances for user
-        wecom_configs = await self._storage.list_user_configs_by_type(user_id, ChannelType.WECOM)
+        wecom_configs = await self._storage.list_user_configs(user_id)
 
         for key in list(self._channels.keys()):
             if key.startswith(user_id):
@@ -386,11 +383,11 @@ class WeComChannelManager(UserChannelManager):
         if instance_id:
             channel = self._channels.get(f"{user_id}:{instance_id}")
             if channel:
-                return channel  # type: ignore[return-value]
+                return channel
 
         channel = self._channels.get(user_id)
         if channel:
-            return channel  # type: ignore[return-value]
+            return channel
 
         # Fallback: find first channel whose key starts with "user_id:"
         prefix = f"{user_id}:"
@@ -399,7 +396,7 @@ class WeComChannelManager(UserChannelManager):
                 logger.debug(
                     f"[WeCom] _find_channel fallback: matched key '{key}' for user '{user_id}'"
                 )
-                return ch  # type: ignore[return-value]
+                return ch
 
         return None
 
@@ -431,10 +428,10 @@ class WeComChannelManager(UserChannelManager):
             return True
 
         if instance_id:
-            config = await self._storage.get_config(user_id, ChannelType.WECOM, instance_id)
+            config = await self._storage.get_config(user_id, instance_id)
             return await self._has_cluster_lease(config)
 
-        configs = await self._storage.list_user_configs_by_type(user_id, ChannelType.WECOM)
+        configs = await self._storage.list_user_configs(user_id)
         for config in configs:
             if not config.get("enabled", True):
                 continue

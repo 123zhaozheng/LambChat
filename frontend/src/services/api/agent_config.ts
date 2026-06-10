@@ -10,6 +10,8 @@ import type {
   RoleAgentAssignment,
   RoleAgentAssignmentResponse,
   RoleModelAssignment,
+  RoleWeComConfig,
+  RoleWeComConfigCreate,
   UserAgentPreference,
   UserAgentPreferenceResponse,
   AgentConfig,
@@ -95,6 +97,41 @@ export const agentConfigApi = {
       {
         method: "PUT",
         body: JSON.stringify({ allowed_models: allowedModels }),
+      },
+    );
+  },
+
+  /** 获取角色的企业微信配置（需要 channel:manage 权限） */
+  async getRoleWeComConfig(roleId: string): Promise<RoleWeComConfig | null> {
+    try {
+      return await authFetch<RoleWeComConfig>(
+        `${API_BASE}/api/agent/config/roles/${roleId}/wecom`,
+      );
+    } catch {
+      return null;
+    }
+  },
+
+  /** 创建或更新角色的企业微信配置（需要 channel:manage 权限） */
+  async updateRoleWeComConfig(
+    roleId: string,
+    config: RoleWeComConfigCreate,
+  ): Promise<RoleWeComConfig> {
+    return authFetch<RoleWeComConfig>(
+      `${API_BASE}/api/agent/config/roles/${roleId}/wecom`,
+      {
+        method: "PUT",
+        body: JSON.stringify(config),
+      },
+    );
+  },
+
+  /** 删除角色的企业微信配置（需要 channel:manage 权限） */
+  async deleteRoleWeComConfig(roleId: string): Promise<void> {
+    await authFetch<{ message: string }>(
+      `${API_BASE}/api/agent/config/roles/${roleId}/wecom`,
+      {
+        method: "DELETE",
       },
     );
   },

@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Lock,
   ChevronDown,
+  MessageSquare,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -22,7 +23,7 @@ import { Pagination } from "../common/Pagination";
 import { EditorSidebar } from "../common/EditorSidebar";
 import { ConfirmDialog } from "../common/ConfirmDialog";
 import { Checkbox } from "../common/Checkbox";
-import { roleApi, authApi } from "../../services/api";
+import { roleApi, authApi, agentConfigApi } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { formatDate } from "../../utils/datetime";
 import { Permission } from "../../types";
@@ -33,6 +34,7 @@ import type {
   RoleLimits,
   PermissionGroup,
   PermissionInfo,
+  RoleWeComConfig,
 } from "../../types";
 
 // 角色表单模态框 - 使用 EditorSidebar
@@ -43,6 +45,7 @@ interface RoleFormModalProps {
   isLoading: boolean;
   permissionGroups: PermissionGroup[];
   permissionLabels: Record<string, string>;
+  canManageChannels: boolean;
 }
 
 function RoleFormModal({
@@ -52,6 +55,7 @@ function RoleFormModal({
   isLoading,
   permissionGroups,
   permissionLabels,
+  canManageChannels,
 }: RoleFormModalProps) {
   const { t } = useTranslation();
   const formRef = useRef<HTMLFormElement>(null);
@@ -86,6 +90,46 @@ function RoleFormModal({
     role?.permissions || [],
   );
   const [error, setError] = useState<string | null>(null);
+
+  // WeCom config state
+  const [showWeCom, setShowWeCom] = useState(false);
+  const [wecomLoading, setWeComLoading] = useState(false);
+  const [wecomSaving, setWeComSaving] = useState(false);
+  const [wecomConfig, setWeComConfig] = useState<RoleWeComConfig | null>(null);
+  const [wecomAibotid, setWeComAibotid] = useState("");
+  const [wecomSecret, setWeComSecret] = useState("");
+  const [wecomStreamReply, setWeComStreamReply] = useState(true);
+  const [wecomSendThinking, setWeComSendThinking] = useState(true);
+  const [wecomSegmentedReply, setWeComSegmentedReply] = useState(true);
+  const [wecomSessionTtl, setWeComSessionTtl] = useState(24);
+
+  // Load WeCom config when editing an existing role
+  useEffect(() => {
+    if (!role?.id || !canManageChannels) return;
+    let cancelled = false;
+    (async () => {
+      setWeComLoading(true);
+      try {
+        const config = await agentConfigApi.getRoleWeComConfig(role.id);
+        if (cancelled) return;
+        if (config) {
+          setWeComConfig(config);
+          setWeComAibotid(config.aibotid);
+          setWeComStreamReply(config.stream_reply);
+          setWeComSendThinking(config.send_thinking_message);
+          setWeComSegmentedReply(config.segmented_reply);
+          setWeComSessionTtl(config.session_ttl_hours);
+        }
+      } catch {
+        // No config is fine (404)
+      } finally {
+        if (!cancelled) setWeComLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [role?.id, canManageChannels]);
 
   const isEditing = !!role;
   const isSystem = role?.is_system || false;
@@ -196,6 +240,48 @@ function RoleFormModal({
       onClose();
     } catch (err) {
       setError((err as Error).message || t("roles.operationFailed"));
+    }
+  };
+
+  const handleWeComSave = async () => {
+    if (!role?.id) return;
+    setWeComSaving(true);
+    try {
+      const updated = await agentConfigApi.updateRoleWeComConfig(role.id, {
+        aibotid: wecomAibotid,
+        secret: wecomSecret || (wecomConfig?.has_secret ? "" : ""),
+        stream_reply: wecomStreamReply,
+        send_thinking_message: wecomSendThinking,
+        segmented_reply: wecomSegmentedReply,
+        session_ttl_hours: wecomSessionTtl,
+      });
+      setWeComConfig(updated);
+      setWeComSecret("");
+      toast.success(t("roles.wecom.saveSuccess"));
+    } catch (err) {
+      toast.error((err as Error).message || t("roles.wecom.saveFailed"));
+    } finally {
+      setWeComSaving(false);
+    }
+  };
+
+  const handleWeComDelete = async () => {
+    if (!role?.id || !wecomConfig) return;
+    setWeComSaving(true);
+    try {
+      await agentConfigApi.deleteRoleWeComConfig(role.id);
+      setWeComConfig(null);
+      setWeComAibotid("");
+      setWeComSecret("");
+      setWeComStreamReply(true);
+      setWeComSendThinking(true);
+      setWeComSegmentedReply(true);
+      setWeComSessionTtl(24);
+      toast.success(t("roles.wecom.deleteSuccess"));
+    } catch (err) {
+      toast.error((err as Error).message || t("roles.wecom.deleteFailed"));
+    } finally {
+      setWeComSaving(false);
     }
   };
 
@@ -473,6 +559,223 @@ function RoleFormModal({
           </div>
         </div>
 
+        {/* 企业微信入口配置 */}
+        {canManageChannels && isEditing && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowWeCom(!showWeCom)}
+              className="es-section-title cursor-pointer w-full flex items-center"
+            >
+              <MessageSquare size={14} className="mr-1.5" />
+              {t("roles.wecom.title")}
+              <ChevronDown
+                size={14}
+                className={`ml-auto transition-transform ${
+                  showWeCom ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {showWeCom && (
+              <div className="es-section mt-2">
+                {wecomLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <LoadingSpinner size="sm" />
+                  </div>
+                ) : (
+                  <>
+                    {/* aibotid */}
+                    <div className="es-field">
+                      <label className="es-label">
+                        {t("roles.wecom.aibotid")}
+                      </label>
+                      <input
+                        type="text"
+                        value={wecomAibotid}
+                        onChange={(e) => setWeComAibotid(e.target.value)}
+                        className="glass-input es-input px-3"
+                        placeholder={t("roles.wecom.aibotidPlaceholder")}
+                      />
+                    </div>
+
+                    {/* secret */}
+                    <div className="es-field">
+                      <label className="es-label">
+                        {t("roles.wecom.secret")}
+                        {wecomConfig?.has_secret && (
+                          <span className="es-hint ml-1">
+                            {t("roles.wecom.secretHint")}
+                          </span>
+                        )}
+                      </label>
+                      <input
+                        type="password"
+                        value={wecomSecret}
+                        onChange={(e) => setWeComSecret(e.target.value)}
+                        className="glass-input es-input px-3"
+                        placeholder={
+                          wecomConfig?.has_secret
+                            ? t("roles.wecom.secretMask")
+                            : t("roles.wecom.secretPlaceholder")
+                        }
+                      />
+                    </div>
+
+                    {/* stream_reply toggle */}
+                    <div className="es-field">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <label className="es-label">
+                            {t("roles.wecom.streamReply")}
+                          </label>
+                          <p className="es-hint mt-0.5">
+                            {t("roles.wecom.streamReplyDesc")}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={wecomStreamReply}
+                          onClick={() => setWeComStreamReply(!wecomStreamReply)}
+                          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 ${
+                            wecomStreamReply
+                              ? "bg-amber-500 shadow-sm shadow-amber-500/25"
+                              : "bg-stone-200 dark:bg-stone-700"
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                              wecomStreamReply
+                                ? "translate-x-[18px]"
+                                : "translate-x-[3px]"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* send_thinking_message toggle */}
+                    <div className="es-field">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <label className="es-label">
+                            {t("roles.wecom.sendThinkingMessage")}
+                          </label>
+                          <p className="es-hint mt-0.5">
+                            {t("roles.wecom.sendThinkingMessageDesc")}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={wecomSendThinking}
+                          onClick={() => setWeComSendThinking(!wecomSendThinking)}
+                          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 ${
+                            wecomSendThinking
+                              ? "bg-amber-500 shadow-sm shadow-amber-500/25"
+                              : "bg-stone-200 dark:bg-stone-700"
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                              wecomSendThinking
+                                ? "translate-x-[18px]"
+                                : "translate-x-[3px]"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* segmented_reply toggle */}
+                    <div className="es-field">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <label className="es-label">
+                            {t("roles.wecom.segmentedReply")}
+                          </label>
+                          <p className="es-hint mt-0.5">
+                            {t("roles.wecom.segmentedReplyDesc")}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={wecomSegmentedReply}
+                          onClick={() =>
+                            setWeComSegmentedReply(!wecomSegmentedReply)
+                          }
+                          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 ${
+                            wecomSegmentedReply
+                              ? "bg-amber-500 shadow-sm shadow-amber-500/25"
+                              : "bg-stone-200 dark:bg-stone-700"
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                              wecomSegmentedReply
+                                ? "translate-x-[18px]"
+                                : "translate-x-[3px]"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* session_ttl_hours */}
+                    <div className="es-field">
+                      <label className="es-label">
+                        {t("roles.wecom.sessionTtlHours")}
+                      </label>
+                      <p className="es-hint mt-0.5">
+                        {t("roles.wecom.sessionTtlHoursDesc")}
+                      </p>
+                      <input
+                        type="number"
+                        min={0}
+                        max={720}
+                        value={wecomSessionTtl}
+                        onChange={(e) =>
+                          setWeComSessionTtl(parseInt(e.target.value) || 0)
+                        }
+                        className="glass-input es-input px-3"
+                      />
+                    </div>
+
+                    {/* Save / Delete buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleWeComSave}
+                        disabled={wecomSaving || !wecomAibotid || (!wecomConfig?.has_secret && !wecomSecret)}
+                        className="btn-primary flex-1 disabled:opacity-50"
+                      >
+                        {wecomSaving ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <Save size={16} />
+                        )}
+                        {t("common.save")}
+                      </button>
+                      {wecomConfig && (
+                        <button
+                          type="button"
+                          onClick={handleWeComDelete}
+                          disabled={wecomSaving}
+                          className="btn-secondary hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 disabled:opacity-50"
+                        >
+                          <Trash2 size={16} />
+                          {t("common.delete")}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Hidden submit button so Enter key still works */}
         <button type="submit" className="hidden" />
       </form>
@@ -516,6 +819,7 @@ export function RolesPanel() {
 
   // 权限检查
   const canManage = hasPermission(Permission.ROLE_MANAGE);
+  const canManageChannels = hasPermission(Permission.CHANNEL_MANAGE);
 
   // 加载权限数据
   const loadPermissions = useCallback(async () => {
@@ -799,6 +1103,7 @@ export function RolesPanel() {
           isLoading={isSaving}
           permissionGroups={permissionGroups}
           permissionLabels={permissionLabels}
+          canManageChannels={canManageChannels}
         />
       )}
 

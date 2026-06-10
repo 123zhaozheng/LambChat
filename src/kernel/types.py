@@ -74,6 +74,7 @@ class Permission(str, Enum):
     CHANNEL_READ = "channel:read"
     CHANNEL_WRITE = "channel:write"
     CHANNEL_DELETE = "channel:delete"
+    CHANNEL_MANAGE = "channel:manage"
 
     # Agent
     AGENT_READ = "agent:read"

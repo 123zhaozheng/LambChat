@@ -102,6 +102,8 @@ export type {
   RoleAgentAssignment,
   RoleAgentAssignmentResponse,
   RoleModelAssignment,
+  RoleWeComConfig,
+  RoleWeComConfigCreate,
   UserAgentPreference,
   UserAgentPreferenceResponse,
 } from "./agent";

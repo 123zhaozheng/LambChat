@@ -13,12 +13,14 @@ from src.infra.agent.model_access import ROLE_MODEL_ACCESS_LIMIT
 from src.infra.utils.datetime import utc_now, utc_now_iso
 from src.kernel.config import settings
 from src.kernel.schemas.agent import AgentCatalogConfig, AgentConfig, UserAgentPreference
+from src.kernel.schemas.wecom import RoleWeComConfig
 
 # MongoDB 集合名称
 _COLL_AGENT_CONFIG = "agent_config"
 _COLL_AGENT_CATALOG_CONFIG = "agent_catalog_config"
 _COLL_ROLE_AGENTS = "role_agents"
 _COLL_ROLE_MODELS = "role_models"
+_COLL_ROLE_WECOM_CONFIG = "role_wecom_config"
 _COLL_USER_PREFERENCES = "user_agent_preferences"
 ROLE_AGENT_ACCESS_LIMIT = 100
 AGENT_CATALOG_LIST_LIMIT = 100
@@ -68,6 +70,7 @@ class AgentConfigStorage:
         await self._get_collection(_COLL_AGENT_CATALOG_CONFIG).create_index("agent_id", unique=True)
         await self._get_collection(_COLL_ROLE_AGENTS).create_index("role_id", unique=True)
         await self._get_collection(_COLL_ROLE_MODELS).create_index("role_id", unique=True)
+        await self._get_collection(_COLL_ROLE_WECOM_CONFIG).create_index("role_id", unique=True)
         await self._get_collection(_COLL_USER_PREFERENCES).create_index("user_id", unique=True)
 
     # ============================================
@@ -339,6 +342,79 @@ class AgentConfigStorage:
             {"$set": {"allowed_models": [], "updated_at": now}},
         )
         return result.modified_count
+
+    # ============================================
+    # 角色 WeCom 配置
+    # ============================================
+
+    async def get_role_wecom_config(self, role_id: str) -> Optional[RoleWeComConfig]:
+        """获取角色的 WeCom 配置"""
+        doc = await self._get_collection(_COLL_ROLE_WECOM_CONFIG).find_one(
+            {"role_id": role_id}
+        )
+        if not doc:
+            return None
+        return RoleWeComConfig(
+            role_id=doc["role_id"],
+            aibotid=doc.get("aibotid", ""),
+            has_secret=bool(doc.get("secret")),
+            stream_reply=doc.get("stream_reply", True),
+            send_thinking_message=doc.get("send_thinking_message", True),
+            segmented_reply=doc.get("segmented_reply", True),
+            session_ttl_hours=doc.get("session_ttl_hours", 24),
+            created_at=doc.get("created_at"),
+            updated_at=doc.get("updated_at"),
+        )
+
+    async def set_role_wecom_config(
+        self, role_id: str, aibotid: str, secret: str | None = None, **kwargs
+    ) -> RoleWeComConfig:
+        """创建或更新角色的 WeCom 配置
+
+        Args:
+            role_id: 角色 ID
+            aibotid: 企业微信机器人 ID
+            secret: 机器人密钥（None 表示保留原值）
+            **kwargs: 其他可选字段（stream_reply, send_thinking_message, segmented_reply, session_ttl_hours）
+        """
+        now = utc_now()
+        update_fields: dict[str, Any] = {
+            "aibotid": aibotid,
+            "updated_at": now.isoformat(),
+        }
+        if secret is not None and secret != "":
+            update_fields["secret"] = secret
+        for key in ("stream_reply", "send_thinking_message", "segmented_reply", "session_ttl_hours"):
+            if key in kwargs and kwargs[key] is not None:
+                update_fields[key] = kwargs[key]
+
+        # 检查是否已存在，用于设置 created_at
+        existing = await self._get_collection(_COLL_ROLE_WECOM_CONFIG).find_one(
+            {"role_id": role_id}, {"_id": 1}
+        )
+        if not existing:
+            update_fields["created_at"] = now.isoformat()
+            # 为新文档设置默认值
+            update_fields.setdefault("stream_reply", True)
+            update_fields.setdefault("send_thinking_message", True)
+            update_fields.setdefault("segmented_reply", True)
+            update_fields.setdefault("session_ttl_hours", 24)
+            if secret is not None and secret != "":
+                update_fields.setdefault("secret", secret)
+
+        await self._get_collection(_COLL_ROLE_WECOM_CONFIG).update_one(
+            {"role_id": role_id},
+            {"$set": update_fields},
+            upsert=True,
+        )
+        return await self.get_role_wecom_config(role_id)  # type: ignore[return-value]
+
+    async def delete_role_wecom_config(self, role_id: str) -> bool:
+        """删除角色的 WeCom 配置"""
+        result = await self._get_collection(_COLL_ROLE_WECOM_CONFIG).delete_one(
+            {"role_id": role_id}
+        )
+        return result.deleted_count > 0
 
     # ============================================
     # 用户默认 Agent

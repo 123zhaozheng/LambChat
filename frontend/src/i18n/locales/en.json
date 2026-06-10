@@ -1708,6 +1708,27 @@
     "validation": {
       "enterName": "Please enter role name",
       "selectPermission": "Please select at least one permission"
+    },
+    "wecom": {
+      "title": "WeCom Channel",
+      "aibotid": "Bot ID",
+      "aibotidPlaceholder": "bot_xxxxxxxxxx",
+      "secret": "Bot Secret",
+      "secretHint": "Leave empty to keep current value",
+      "secretMask": "••••••••••••",
+      "secretPlaceholder": "Enter bot secret",
+      "streamReply": "Stream Reply",
+      "streamReplyDesc": "Stream agent replies via WebSocket",
+      "sendThinkingMessage": "Thinking Placeholder",
+      "sendThinkingMessageDesc": "Send a placeholder message within the 5-second callback window",
+      "segmentedReply": "Segmented Reply",
+      "segmentedReplyDesc": "Automatically split long replies into multiple messages",
+      "sessionTtlHours": "Session TTL (hours)",
+      "sessionTtlHoursDesc": "Session context retention in hours. Starts a new session after expiry. 0 = never expire",
+      "saveSuccess": "WeCom config saved",
+      "saveFailed": "Failed to save WeCom config",
+      "deleteSuccess": "WeCom config deleted",
+      "deleteFailed": "Failed to delete WeCom config"
     }
   },
   "selectionActions": {

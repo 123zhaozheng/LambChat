@@ -214,6 +214,10 @@ PERMISSION_METADATA: dict[str, dict[str, str]] = {
         "label": "删除渠道",
         "description": "删除渠道配置",
     },
+    Permission.CHANNEL_MANAGE.value: {
+        "label": "管理渠道配置",
+        "description": "管理角色渠道入口配置（如企业微信等）",
+    },
     # Marketplace
     Permission.MARKETPLACE_READ.value: {
         "label": "浏览商店",
@@ -370,6 +374,7 @@ PERMISSION_GROUPS_CONFIG: list[PermissionGroupConfig] = [
             Permission.CHANNEL_READ.value,
             Permission.CHANNEL_WRITE.value,
             Permission.CHANNEL_DELETE.value,
+            Permission.CHANNEL_MANAGE.value,
         ],
     },
     {

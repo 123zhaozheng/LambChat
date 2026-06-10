@@ -50,6 +50,7 @@ export function WeComPanel({
   const [streamReply, setStreamReply] = useState(true);
   const [sendThinkingMessage, setSendThinkingMessage] = useState(true);
   const [segmentedReply, setSegmentedReply] = useState<boolean>(WECOM_DEFAULTS.segmentedReply);
+  const [sessionTtlHours, setSessionTtlHours] = useState<number>(WECOM_DEFAULTS.sessionTtlHours);
   const [agentId, setAgentId] = useState<string | null>(null);
   const [modelId, setModelId] = useState<string | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
@@ -90,6 +91,7 @@ export function WeComPanel({
       setStreamReply(wecomConfig?.stream_reply ?? true);
       setSendThinkingMessage(wecomConfig?.send_thinking_message ?? true);
       setSegmentedReply(wecomConfig?.segmented_reply ?? WECOM_DEFAULTS.segmentedReply);
+      setSessionTtlHours(wecomConfig?.session_ttl_hours ?? WECOM_DEFAULTS.sessionTtlHours);
       const initialAgentId = initialConfig.agent_id || null;
       setAgentId(initialAgentId);
       setModelId(initialConfig.model_id || null);
@@ -111,6 +113,7 @@ export function WeComPanel({
       setStreamReply(true);
       setSendThinkingMessage(true);
       setSegmentedReply(WECOM_DEFAULTS.segmentedReply);
+      setSessionTtlHours(WECOM_DEFAULTS.sessionTtlHours);
       setAgentId(null);
       setModelId(null);
       setTeamId(null);
@@ -136,6 +139,7 @@ export function WeComPanel({
         setStreamReply(true);
         setSendThinkingMessage(true);
         setSegmentedReply(WECOM_DEFAULTS.segmentedReply);
+        setSessionTtlHours(WECOM_DEFAULTS.sessionTtlHours);
         setStatus(null);
         setAgentId(null);
         setModelId(null);
@@ -161,6 +165,7 @@ export function WeComPanel({
         setStreamReply(wecomConfig.stream_reply ?? true);
         setSendThinkingMessage(wecomConfig.send_thinking_message ?? true);
         setSegmentedReply(wecomConfig.segmented_reply ?? WECOM_DEFAULTS.segmentedReply);
+        setSessionTtlHours(wecomConfig.session_ttl_hours ?? WECOM_DEFAULTS.sessionTtlHours);
         const loadedAgentId = configResponse.agent_id || null;
         setAgentId(loadedAgentId);
         setModelId(configResponse.model_id || null);
@@ -182,6 +187,7 @@ export function WeComPanel({
         setStreamReply(true);
         setSendThinkingMessage(true);
         setSegmentedReply(WECOM_DEFAULTS.segmentedReply);
+        setSessionTtlHours(WECOM_DEFAULTS.sessionTtlHours);
         setAgentId(null);
         setModelId(null);
         setTeamId(null);
@@ -237,6 +243,7 @@ export function WeComPanel({
           stream_reply: streamReply,
           send_thinking_message: sendThinkingMessage,
           segmented_reply: segmentedReply,
+          session_ttl_hours: sessionTtlHours,
           enabled,
         };
 
@@ -267,6 +274,7 @@ export function WeComPanel({
             stream_reply: streamReply,
             send_thinking_message: sendThinkingMessage,
             segmented_reply: segmentedReply,
+            session_ttl_hours: sessionTtlHours,
           },
           agent_id: agentId,
           model_id: modelId,
@@ -310,6 +318,7 @@ export function WeComPanel({
       setStreamReply(true);
       setSendThinkingMessage(true);
       setSegmentedReply(WECOM_DEFAULTS.segmentedReply);
+      setSessionTtlHours(WECOM_DEFAULTS.sessionTtlHours);
       setAgentId(null);
       setModelId(null);
       setTeamId(null);
@@ -364,6 +373,7 @@ export function WeComPanel({
       streamReply={streamReply}
       sendThinkingMessage={sendThinkingMessage}
       segmentedReply={segmentedReply}
+      sessionTtlHours={sessionTtlHours}
       agentId={agentId}
       modelId={modelId}
       teamId={teamId}
@@ -376,6 +386,7 @@ export function WeComPanel({
       setStreamReply={setStreamReply}
       setSendThinkingMessage={setSendThinkingMessage}
       setSegmentedReply={setSegmentedReply}
+      setSessionTtlHours={setSessionTtlHours}
       setAgentId={handleAgentIdChange}
       setModelId={setModelId}
       setTeamId={setTeamId}

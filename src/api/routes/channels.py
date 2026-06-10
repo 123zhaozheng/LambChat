@@ -119,51 +119,6 @@ async def get_channel_types():
     return ChannelTypeListResponse(types=metadata_list)
 
 
-@router.post(
-    "/feishu/registrations",
-    dependencies=[Depends(require_permissions(Permission.CHANNEL_WRITE))],
-)
-async def start_feishu_registration():
-    """Start a one-click Feishu app registration session."""
-    try:
-        from src.infra.channel.feishu.registration import start_registration
-
-        session = await run_blocking_io(start_registration, timeout=5.0)
-        return session.to_dict(include_secret=False)
-    except ImportError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"lark-oapi register_app is unavailable: {e}",
-        )
-
-
-@router.get(
-    "/feishu/registrations/{session_id}",
-    dependencies=[Depends(require_permissions(Permission.CHANNEL_WRITE))],
-)
-async def get_feishu_registration(session_id: str):
-    """Poll a one-click Feishu app registration session."""
-    from src.infra.channel.feishu.registration import get_registration
-
-    session = await run_blocking_io(get_registration, session_id, timeout=5.0)
-    if not session:
-        raise HTTPException(status_code=404, detail="Registration session not found")
-    return session.to_dict(include_secret=session.status == "success")
-
-
-@router.delete(
-    "/feishu/registrations/{session_id}",
-    dependencies=[Depends(require_permissions(Permission.CHANNEL_WRITE))],
-)
-async def cancel_feishu_registration(session_id: str):
-    """Cancel a one-click Feishu app registration session."""
-    from src.infra.channel.feishu.registration import cancel_registration
-
-    if not await run_blocking_io(cancel_registration, session_id, timeout=5.0):
-        raise HTTPException(status_code=404, detail="Registration session not found")
-    return {"cancelled": True}
-
-
 @router.get(
     "/",
     response_model=ChannelListResponse,

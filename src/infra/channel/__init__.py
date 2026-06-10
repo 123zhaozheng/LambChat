@@ -1,18 +1,11 @@
 """Channel infrastructure module.
 
 Provides abstract base classes, registry, and implementations for
-various chat platform integrations (Feishu, WeChat, DingTalk, etc.).
+various chat platform integrations.
 """
 
 from src.infra.channel.base import BaseChannel, UserChannelManager
 from src.infra.channel.channel_storage import ChannelStorage
-from src.infra.channel.feishu import (
-    FeishuResponseCollector,
-    FeishuStorage,
-    create_feishu_message_handler,
-    execute_feishu_agent,
-    setup_feishu_handler,
-)
 from src.infra.channel.manager import (
     ChannelCoordinator,
     get_channel_coordinator,
@@ -40,12 +33,6 @@ __all__ = [
     "stop_channels",
     # Storage
     "ChannelStorage",
-    "FeishuStorage",
-    # Feishu Handler
-    "FeishuResponseCollector",
-    "create_feishu_message_handler",
-    "execute_feishu_agent",
-    "setup_feishu_handler",
     # WeCom Handler
     "WeComResponseCollector",
     "create_wecom_message_handler",

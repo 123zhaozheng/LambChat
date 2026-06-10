@@ -2,8 +2,7 @@
 WeCom (企业微信) AI Bot channel implementation using wecom-aibot-sdk WebSocket long connection.
 
 Supports per-user bot configurations - each user can have their own WeCom AI Bot.
-Replies go back on the SAME WebSocket connection (aibot_respond_msg),
-unlike Feishu which uses a separate HTTP API for sending.
+Replies go back on the SAME WebSocket connection (aibot_respond_msg).
 """
 
 import asyncio
@@ -13,7 +12,7 @@ from collections import OrderedDict
 from typing import Any, Callable, Optional
 
 from src.infra.channel.base import BaseChannel
-from src.infra.channel.feishu.state import ConnectionState
+from src.infra.channel.wecom.state import ConnectionState
 from src.infra.logging import get_logger
 from src.infra.storage.redis import get_redis_client
 from src.kernel.schemas.channel import ChannelCapability, ChannelType
@@ -131,6 +130,12 @@ class WeComChannel(BaseChannel):
                     "description": "超长回复自动分段发送",
                     "default": True,
                 },
+                "session_ttl_hours": {
+                    "type": "integer",
+                    "title": "会话有效期",
+                    "description": "会话上下文保留小时数，过期后自动新建会话。0 表示永不过期",
+                    "default": 24,
+                },
                 "websocket_url": {
                     "type": "string",
                     "title": "WebSocket 地址",
@@ -195,6 +200,14 @@ class WeComChannel(BaseChannel):
                 "required": False,
                 "sensitive": False,
                 "default": True,
+            },
+            {
+                "name": "session_ttl_hours",
+                "title": "会话有效期",
+                "type": "number",
+                "required": False,
+                "sensitive": False,
+                "default": 24,
             },
         ]
 
@@ -859,8 +872,7 @@ class WeComChannel(BaseChannel):
     async def send_message(self, chat_id: str, content: str, **kwargs: Any) -> bool:
         """Send a message through the WeCom WebSocket connection.
 
-        WeCom replies go on the SAME WebSocket connection (aibot_respond_msg),
-        unlike Feishu which uses a separate HTTP API.
+        WeCom replies go on the SAME WebSocket connection (aibot_respond_msg).
 
         Args:
             chat_id: The target chat/conversation ID.

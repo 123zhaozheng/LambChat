@@ -271,14 +271,6 @@ SETTING_DEFINITIONS: dict[str, dict] = {
         "description": "settingDesc.SESSION_EVENT_REDIS_REPLAY_BATCH_SIZE",
         "default": 500,
     },
-    "FEISHU_UPLOAD_BYTES_MAX_SIZE": {
-        "type": SettingType.NUMBER,
-        "category": SettingCategory.FILE_UPLOAD,
-        "subcategory": "feishu",
-        "description": "settingDesc.FEISHU_UPLOAD_BYTES_MAX_SIZE",
-        "default": 20971520,
-        "frontend_visible": False,
-    },
     "SESSION_SEARCH_BACKFILL_STARTUP_DELAY_SECONDS": {
         "type": SettingType.NUMBER,
         "category": SettingCategory.SESSION,

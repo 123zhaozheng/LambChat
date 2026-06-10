@@ -170,7 +170,7 @@ class ProjectStorage:
     ) -> Project:
         """Get or create a project by name for a user.
 
-        Used by channels (e.g. Feishu) to auto-create a project for organizing conversations.
+        Used by channels to auto-create a project for organizing conversations.
         """
         project_dict = await self.collection.find_one(
             {"user_id": user_id, "name": name, "type": project_type}

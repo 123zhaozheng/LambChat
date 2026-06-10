@@ -1,6 +1,6 @@
 """Generic channel configuration schemas.
 
-Supports multiple chat platforms (Feishu, WeChat, DingTalk, Slack, etc.)
+Supports multiple chat platforms (WeCom, etc.)
 with a unified interface.
 """
 
@@ -15,7 +15,6 @@ from pydantic import BaseModel, ConfigDict, Field
 class ChannelType(str, Enum):
     """Supported channel types."""
 
-    FEISHU = "feishu"
     WECOM = "wecom"
     # Future channels:
     # WECHAT = "wechat"

@@ -6,7 +6,6 @@ import pytest
 from fastapi import HTTPException
 
 from src.api.routes import channels as channels_route
-from src.infra.channel.feishu import registration as feishu_registration
 from src.kernel.schemas.channel import ChannelConfigCreate, ChannelConfigUpdate, ChannelType
 
 
@@ -93,10 +92,10 @@ class _FakeTypedListStorage(_FakeStorage):
             {
                 "channel_type": channel_type.value,
                 "instance_id": "instance-1",
-                "name": "Feishu",
+                "name": "WeCom",
                 "enabled": True,
-                "app_id": "app-1",
-                "app_secret": "secret",
+                "bot_id": "bot-1",
+                "bot_secret": "secret",
             }
         ]
 
@@ -237,10 +236,10 @@ async def test_create_channel_rejects_unknown_project_id(
 
     with pytest.raises(HTTPException) as exc_info:
         await channels_route.create_channel_instance(
-            ChannelType.FEISHU,
+            ChannelType.WECOM,
             ChannelConfigCreate(
-                channel_type=ChannelType.FEISHU,
-                name="Feishu",
+                channel_type=ChannelType.WECOM,
+                name="WeCom",
                 config={},
                 project_id="missing-project",
             ),
@@ -266,7 +265,7 @@ async def test_update_channel_rejects_unknown_project_id(
 
     with pytest.raises(HTTPException) as exc_info:
         await channels_route.update_channel_instance(
-            ChannelType.FEISHU,
+            ChannelType.WECOM,
             "instance-1",
             ChannelConfigUpdate(config={}, project_id="missing-project"),
             user=SimpleNamespace(sub="user-1", roles=[]),
@@ -287,10 +286,10 @@ async def test_create_channel_persists_persona_preset_id(
     monkeypatch.setattr(channels_route, "publish_channel_config_changed", _async_noop)
 
     await channels_route.create_channel_instance(
-        ChannelType.FEISHU,
+        ChannelType.WECOM,
         ChannelConfigCreate(
-            channel_type=ChannelType.FEISHU,
-            name="Feishu",
+            channel_type=ChannelType.WECOM,
+            name="WeCom",
             config={},
             persona_preset_id="persona-1",
         ),
@@ -310,10 +309,10 @@ async def test_create_channel_persists_team_id(
     monkeypatch.setattr(channels_route, "publish_channel_config_changed", _async_noop)
 
     await channels_route.create_channel_instance(
-        ChannelType.FEISHU,
+        ChannelType.WECOM,
         ChannelConfigCreate(
-            channel_type=ChannelType.FEISHU,
-            name="Feishu",
+            channel_type=ChannelType.WECOM,
+            name="WeCom",
             config={},
             agent_id="team",
             team_id="team-1",
@@ -336,10 +335,10 @@ async def test_create_channel_limit_counts_configs_without_loading_all(
 
     with pytest.raises(HTTPException) as exc_info:
         await channels_route.create_channel_instance(
-            ChannelType.FEISHU,
+            ChannelType.WECOM,
             ChannelConfigCreate(
-                channel_type=ChannelType.FEISHU,
-                name="Feishu",
+                channel_type=ChannelType.WECOM,
+                name="WeCom",
                 config={},
             ),
             user=SimpleNamespace(sub="user-1", roles=["limited"]),
@@ -356,12 +355,12 @@ async def test_list_channel_instances_filters_in_storage() -> None:
     storage = _FakeTypedListStorage()
 
     response = await channels_route.list_channel_instances(
-        ChannelType.FEISHU,
+        ChannelType.WECOM,
         user=SimpleNamespace(sub="user-1"),
         storage=storage,
     )
 
-    assert storage.typed_calls == [("user-1", ChannelType.FEISHU)]
+    assert storage.typed_calls == [("user-1", ChannelType.WECOM)]
     assert storage.list_calls == 0
     assert [channel.id for channel in response.channels] == ["instance-1"]
 
@@ -393,13 +392,13 @@ async def test_list_channel_instances_rejects_oversized_lists_before_loading(
 
     with pytest.raises(HTTPException) as exc_info:
         await channels_route.list_channel_instances(
-            ChannelType.FEISHU,
+            ChannelType.WECOM,
             user=SimpleNamespace(sub="user-1"),
             storage=storage,
         )
 
     assert exc_info.value.status_code == 413
-    assert storage.typed_count_calls == [("user-1", ChannelType.FEISHU)]
+    assert storage.typed_count_calls == [("user-1", ChannelType.WECOM)]
     assert storage.typed_list_calls == 0
 
 
@@ -413,7 +412,7 @@ async def test_update_channel_persists_explicit_persona_preset_id(
     monkeypatch.setattr(channels_route, "publish_channel_config_changed", _async_noop)
 
     await channels_route.update_channel_instance(
-        ChannelType.FEISHU,
+        ChannelType.WECOM,
         "instance-1",
         ChannelConfigUpdate(config={}, persona_preset_id="persona-2"),
         user=SimpleNamespace(sub="user-1", roles=[], permissions=[]),
@@ -432,7 +431,7 @@ async def test_update_channel_persists_explicit_team_id(
     monkeypatch.setattr(channels_route, "publish_channel_config_changed", _async_noop)
 
     await channels_route.update_channel_instance(
-        ChannelType.FEISHU,
+        ChannelType.WECOM,
         "instance-1",
         ChannelConfigUpdate(config={}, team_id="team-2"),
         user=SimpleNamespace(sub="user-1", roles=[], permissions=[]),
@@ -457,7 +456,7 @@ async def test_status_reports_disconnected_without_reloading_manager(
     monkeypatch.setattr(channels_route, "get_registry", lambda: _FakeRegistry(manager_class))
 
     status = await channels_route.get_channel_instance_status(
-        ChannelType.FEISHU,
+        ChannelType.WECOM,
         "instance-1",
         user=SimpleNamespace(sub="user-1", roles=[]),
         storage=storage,
@@ -481,7 +480,7 @@ async def test_status_uses_distributed_channel_connection_check(
     monkeypatch.setattr(channels_route, "get_registry", lambda: _FakeRegistry(manager_class))
 
     status = await channels_route.get_channel_instance_status(
-        ChannelType.FEISHU,
+        ChannelType.WECOM,
         "instance-1",
         user=SimpleNamespace(sub="user-1", roles=[]),
         storage=storage,
@@ -507,7 +506,7 @@ async def test_status_does_not_reload_disconnected_manager(
     monkeypatch.setattr(channels_route, "get_registry", lambda: _FakeRegistry(manager_class))
 
     status = await channels_route.get_channel_instance_status(
-        ChannelType.FEISHU,
+        ChannelType.WECOM,
         "instance-1",
         user=SimpleNamespace(sub="user-1", roles=[]),
         storage=storage,
@@ -515,24 +514,6 @@ async def test_status_does_not_reload_disconnected_manager(
 
     assert manager.reload_calls == []
     assert status.connected is False
-
-
-@pytest.mark.asyncio
-async def test_start_feishu_registration_returns_without_polling_sleep(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    session = feishu_registration.FeishuRegistrationSession(id="session-1")
-
-    async def _sleep_should_not_be_called(_delay: float) -> None:
-        raise AssertionError("start_feishu_registration should return immediately")
-
-    monkeypatch.setattr(feishu_registration, "start_registration", lambda: session)
-    monkeypatch.setattr("asyncio.sleep", _sleep_should_not_be_called)
-
-    response = await channels_route.start_feishu_registration()
-
-    assert response["session_id"] == "session-1"
-    assert response["status"] == "pending"
 
 
 async def _async_noop(*args, **kwargs) -> None:

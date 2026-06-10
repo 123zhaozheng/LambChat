@@ -2,7 +2,7 @@
  * Generic Channel Configuration Panel
  *
  * Dynamically renders channel configuration based on metadata from the backend.
- * Supports multiple channel types (Feishu, WeChat, DingTalk, etc.)
+ * Supports multiple channel types (WeCom, etc.)
  */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";

@@ -1,5 +1,5 @@
 """
-Feishu connection state management.
+WeCom connection state management.
 """
 
 from enum import Enum

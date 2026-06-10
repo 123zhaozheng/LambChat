@@ -6,7 +6,6 @@ import pytest
 
 from src.infra.channel import channel_storage
 from src.infra.channel.channel_storage import ChannelStorage
-from src.infra.channel.feishu.storage import FeishuStorage
 from src.kernel.schemas.channel import ChannelType
 
 
@@ -94,12 +93,12 @@ class _FakeClient:
 def _channel_doc() -> dict[str, Any]:
     return {
         "user_id": "user-1",
-        "channel_type": "feishu",
+        "channel_type": "wecom",
         "instance_id": "instance-1",
-        "name": "Feishu",
+        "name": "WeCom",
         "config": {
-            "app_id": "cli_a",
-            "app_secret": {"encrypted": "secret"},
+            "bot_id": "bot_a",
+            "bot_secret": {"encrypted": "secret"},
         },
         "enabled": True,
     }
@@ -151,7 +150,6 @@ async def test_list_user_configs_by_type_applies_storage_limit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from src.infra.channel.channel_storage import CHANNEL_CONFIG_LIST_LIMIT
-    from src.kernel.schemas.channel import ChannelType
 
     collection = _ListCollection()
     client = _FakeClient(collection)
@@ -159,10 +157,10 @@ async def test_list_user_configs_by_type_applies_storage_limit(
     monkeypatch.setattr(ChannelStorage, "_indexes_done", True, raising=False)
 
     storage = ChannelStorage()
-    configs = await storage.list_user_configs_by_type("user-1", ChannelType.FEISHU)
+    configs = await storage.list_user_configs_by_type("user-1", ChannelType.WECOM)
 
     assert configs == []
-    assert collection.find_queries == [{"user_id": "user-1", "channel_type": "feishu"}]
+    assert collection.find_queries == [{"user_id": "user-1", "channel_type": "wecom"}]
     assert collection.cursor.limit_calls == [CHANNEL_CONFIG_LIST_LIMIT]
 
 
@@ -178,10 +176,10 @@ async def test_iter_enabled_configs_applies_storage_limit(
     monkeypatch.setattr(ChannelStorage, "_indexes_done", True, raising=False)
 
     storage = ChannelStorage()
-    configs = [config async for config in storage.iter_enabled_configs(ChannelType.FEISHU)]
+    configs = [config async for config in storage.iter_enabled_configs(ChannelType.WECOM)]
 
     assert configs == []
-    assert collection.find_queries == [{"channel_type": "feishu", "enabled": True}]
+    assert collection.find_queries == [{"channel_type": "wecom", "enabled": True}]
     assert collection.cursor.limit_calls == [CHANNEL_CONFIG_LIST_LIMIT]
 
 
@@ -205,7 +203,7 @@ async def test_list_user_configs_offloads_sensitive_field_decryption(
     configs = await storage.list_user_configs("user-1")
 
     assert calls == [channel_storage.decrypt_value]
-    assert configs[0]["app_secret"] == "plain-secret"
+    assert configs[0]["bot_secret"] == "plain-secret"
 
 
 @pytest.mark.asyncio
@@ -229,28 +227,13 @@ async def test_create_config_offloads_sensitive_field_encryption_and_decryption(
     storage = ChannelStorage()
     config = await storage.create_config(
         "user-1",
-        ChannelType.FEISHU,
-        {"app_id": "cli_a", "app_secret": "plain-secret"},
-        "Feishu",
+        ChannelType.WECOM,
+        {"bot_id": "bot_a", "bot_secret": "plain-secret"},
+        "WeCom",
     )
 
     assert calls == [channel_storage.encrypt_value, channel_storage.decrypt_value]
-    assert collection.inserted_docs[0]["config"]["app_secret"] == {
+    assert collection.inserted_docs[0]["config"]["bot_secret"] == {
         "encrypted": {"value": "plain-secret"}
     }
-    assert config["app_secret"] == "plain-secret"
-
-
-@pytest.mark.asyncio
-async def test_feishu_list_enabled_configs_applies_storage_limit() -> None:
-    from src.infra.channel.feishu.storage import FEISHU_CONFIG_LIST_LIMIT
-
-    collection = _ListCollection()
-    storage = FeishuStorage()
-    storage._collection = collection
-
-    configs = await storage.list_enabled_configs()
-
-    assert configs == []
-    assert collection.find_queries == [{"enabled": True}]
-    assert collection.cursor.limit_calls == [FEISHU_CONFIG_LIST_LIMIT]
+    assert config["bot_secret"] == "plain-secret"

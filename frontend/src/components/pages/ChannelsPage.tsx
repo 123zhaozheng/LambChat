@@ -12,7 +12,6 @@ import { Permission } from "../../types";
 import { APP_NAME } from "../../constants";
 import { channelApi } from "../../services/api/channel";
 import { ChannelPanel } from "../panels/ChannelPanel";
-import { FeishuPanel } from "../panels/channel/feishu/FeishuPanel";
 import { WeComPanel } from "../panels/channel/wecom/WeComPanel";
 import { PanelHeader } from "../common/PanelHeader";
 import { ChannelsGridSkeleton } from "../skeletons";
@@ -31,7 +30,6 @@ const CHANNEL_ICONS: Record<string, React.FC<{ className?: string }>> = {
   BotMessageSquare,
   "message-circle": Bot,
   "building-2": Building2,
-  feishu: BotMessageSquare,
   wecom: Building2,
 };
 
@@ -145,25 +143,6 @@ export function ChannelsPage() {
       (ct) => ct.channel_type === selectedChannel,
     );
     if (!metadata) return null;
-
-    if (selectedChannel === "feishu") {
-      const instance = instances[selectedChannel]?.find(
-        (i) => i.instance_id === selectedInstance,
-      );
-      const status =
-        selectedInstance !== "new"
-          ? statuses[`${selectedChannel}:${selectedInstance}`]
-          : null;
-      return (
-        <FeishuPanel
-          instanceId={selectedInstance}
-          initialConfig={instance}
-          initialStatus={status}
-          isLoading={false}
-          onClose={closeSidebar}
-        />
-      );
-    }
 
     if (selectedChannel === "wecom") {
       const instance = instances[selectedChannel]?.find(

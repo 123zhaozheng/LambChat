@@ -1,7 +1,6 @@
 """Generic channel configuration storage using MongoDB.
 
 Stores user-level channel configurations with encrypted sensitive fields.
-Supports multiple channel types (Feishu, WeChat, DingTalk, etc.)
 """
 
 import asyncio

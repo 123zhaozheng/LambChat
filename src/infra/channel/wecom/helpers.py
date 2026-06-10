@@ -1,33 +1,19 @@
-"""Helper functions and constants for Feishu message handling."""
+"""Helper functions and constants for WeCom message handling."""
 
 import inspect
 import mimetypes
-import time
 from typing import Any
-from urllib.parse import quote, unquote, urlparse
+from urllib.parse import unquote, urlparse
 
 from src.infra.async_utils import run_blocking_io
 from src.infra.logging import get_logger
-from src.kernel.config import settings
 
 logger = get_logger(__name__)
 
-# Redis key prefix for Feishu chat session mapping
-FEISHU_SESSION_KEY_PREFIX = "feishu:session:"
-
-# 事件类型定义
-EVENT_MESSAGE_CHUNK = "message:chunk"
-EVENT_THINKING = "thinking"
-EVENT_TOOL_START = "tool:start"
-EVENT_TOOL_RESULT = "tool:result"
-EVENT_DONE = "done"
-FEISHU_STREAM_UPDATE_DEBOUNCE_SECONDS = 0.12
-FEISHU_STREAM_FIRST_PAINT_CHARS = 12
 _UPLOAD_FILE_PATH_MARKER = "/api/upload/file/"
-_SESSION_LINK_TEXT = "查看这条消息"
-FEISHU_REVEAL_DOWNLOAD_CHUNK_SIZE = 1024 * 1024
-FEISHU_REVEAL_DOWNLOAD_MAX_BYTES = 50 * 1024 * 1024
-FEISHU_REVEAL_LEGACY_DOWNLOAD_MAX_BYTES = 2 * 1024 * 1024
+WECOM_REVEAL_DOWNLOAD_CHUNK_SIZE = 1024 * 1024
+WECOM_REVEAL_DOWNLOAD_MAX_BYTES = 50 * 1024 * 1024
+WECOM_REVEAL_LEGACY_DOWNLOAD_MAX_BYTES = 2 * 1024 * 1024
 
 
 async def _get_backend_object_size(backend: Any, key: str) -> int | None:
@@ -43,15 +29,15 @@ async def _get_backend_object_size(backend: Any, key: str) -> int | None:
         value = int(size)
         return value if value >= 0 else None
     except Exception as e:
-        logger.debug("[Feishu] Failed to preflight storage object size for %s: %s", key, e)
+        logger.debug("[WeCom] Failed to preflight storage object size for %s: %s", key, e)
         return None
 
 
 def _raise_if_storage_object_too_large(size: int, key: str) -> None:
-    if size > FEISHU_REVEAL_DOWNLOAD_MAX_BYTES:
+    if size > WECOM_REVEAL_DOWNLOAD_MAX_BYTES:
         raise ValueError(
-            f"Storage object too large for Feishu reveal download: {key} "
-            f"size={size} bytes (max {FEISHU_REVEAL_DOWNLOAD_MAX_BYTES})"
+            f"Storage object too large for WeCom reveal download: {key} "
+            f"size={size} bytes (max {WECOM_REVEAL_DOWNLOAD_MAX_BYTES})"
         )
 
 
@@ -60,7 +46,7 @@ async def _download_storage_object_to_file(
     key: str,
     file: Any,
     *,
-    chunk_size: int = FEISHU_REVEAL_DOWNLOAD_CHUNK_SIZE,
+    chunk_size: int = WECOM_REVEAL_DOWNLOAD_CHUNK_SIZE,
 ) -> int:
     """Download storage object into a file sink, preferring streaming APIs."""
     size = await _get_backend_object_size(backend, key)
@@ -73,10 +59,10 @@ async def _download_storage_object_to_file(
     if hasattr(backend, "download_stream"):
         total_size = 0
         async for chunk in backend.download_stream(key, chunk_size=chunk_size):
-            if total_size + len(chunk) > FEISHU_REVEAL_DOWNLOAD_MAX_BYTES:
+            if total_size + len(chunk) > WECOM_REVEAL_DOWNLOAD_MAX_BYTES:
                 raise ValueError(
-                    f"Storage object too large for Feishu reveal download: {key} "
-                    f"size>{FEISHU_REVEAL_DOWNLOAD_MAX_BYTES} bytes"
+                    f"Storage object too large for WeCom reveal download: {key} "
+                    f"size>{WECOM_REVEAL_DOWNLOAD_MAX_BYTES} bytes"
                 )
             await run_blocking_io(file.write, chunk)
             total_size += len(chunk)
@@ -87,48 +73,14 @@ async def _download_storage_object_to_file(
     if not data:
         return 0
     size = len(data)
-    if size > FEISHU_REVEAL_LEGACY_DOWNLOAD_MAX_BYTES:
+    if size > WECOM_REVEAL_LEGACY_DOWNLOAD_MAX_BYTES:
         raise ValueError(
             f"Storage object too large for legacy bytes download: {size} bytes "
-            f"(max {FEISHU_REVEAL_LEGACY_DOWNLOAD_MAX_BYTES})"
+            f"(max {WECOM_REVEAL_LEGACY_DOWNLOAD_MAX_BYTES})"
         )
     await run_blocking_io(file.write, data)
     await run_blocking_io(file.seek, 0)
     return size
-
-
-async def _get_feishu_session_id(chat_id: str) -> str:
-    """获取飞书聊天对应的当前 session ID，如果不存在则创建默认的"""
-    from src.infra.storage.redis import RedisStorage
-
-    storage = RedisStorage()
-    key = f"{FEISHU_SESSION_KEY_PREFIX}{chat_id}"
-    session_id = await storage.get(key)
-
-    if session_id is None:
-        # 默认使用 chat_id 作为 session ID（兼容旧数据）
-        session_id = f"feishu_{chat_id}"
-        await storage.set(key, session_id)
-
-    return session_id
-
-
-async def _create_new_feishu_session(chat_id: str) -> str:
-    """为飞书聊天创建新的 session ID"""
-    from src.infra.storage.redis import RedisStorage
-
-    storage = RedisStorage()
-    key = f"{FEISHU_SESSION_KEY_PREFIX}{chat_id}"
-
-    # 使用时间戳生成唯一的 session ID
-    timestamp = int(time.time())
-    session_id = f"feishu_{chat_id}_{timestamp}"
-
-    # 存储到 Redis，不设置过期时间
-    await storage.set(key, session_id)
-
-    logger.info(f"[Feishu] Created new session for chat {chat_id}: {session_id}")
-    return session_id
 
 
 def _storage_key_from_upload_url(url: str) -> str | None:
@@ -176,7 +128,7 @@ def _media_attachment_type(media_type: str, mime_type: str) -> str:
 
 
 def _media_file_info_from_entry(entry: dict[str, Any], index: int) -> dict[str, Any] | None:
-    """Normalize tool media entries into FeishuResponseCollector file metadata."""
+    """Normalize tool media entries into WeComResponseCollector file metadata."""
     media_type = str(entry.get("type") or "").lower()
     if media_type not in {"image", "file", "audio", "video", ""}:
         return None
@@ -229,12 +181,3 @@ def _extract_tool_media_files(result: Any) -> list[dict[str, Any]]:
         seen_keys.add(file_info["key"])
         file_infos.append(file_info)
     return file_infos
-
-
-def _build_session_run_url(session_id: str, run_id: str | None = None) -> str:
-    path = f"/chat/{quote(session_id, safe='')}"
-    if run_id:
-        path = f"{path}?run_id={quote(run_id, safe='')}"
-
-    base_url = getattr(settings, "APP_BASE_URL", "").rstrip("/")
-    return f"{base_url}{path}" if base_url else path

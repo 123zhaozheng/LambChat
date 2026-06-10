@@ -10,6 +10,7 @@ export type WeComConfigResponse = ChannelConfigResponse["config"] & {
   stream_reply?: boolean;
   send_thinking_message?: boolean;
   segmented_reply?: boolean;
+  session_ttl_hours?: number;
   websocket_url?: string;
 };
 

@@ -87,7 +87,6 @@ _LIFESPAN_BACKGROUND_TASK_NAMES = (
     "agent_discovery_task",
     "models_preload_task",
     "stale_task_cleanup_task",
-    "feishu_task",
     "wecom_task",
 )
 
@@ -269,17 +268,6 @@ async def _cancel_background_tasks(app: FastAPI, *task_names: str) -> None:
             tasks.append(task)
     if tasks:
         await asyncio.gather(*tasks, return_exceptions=True)
-
-
-async def _stop_feishu_channels_for_shutdown(app: FastAPI) -> None:
-    await _cancel_background_tasks(app, "feishu_task")
-    try:
-        from src.infra.channel.feishu import stop_feishu_channels
-
-        await stop_feishu_channels()
-        logger.info("Feishu channels stopped")
-    except Exception as e:
-        logger.warning(f"Failed to stop Feishu channels: {e}")
 
 
 async def _stop_wecom_channels_for_shutdown(app: FastAPI) -> None:
@@ -472,22 +460,6 @@ async def lifespan(app: FastAPI):
     _session_search_backfill_task = asyncio.create_task(_backfill_session_search())
     app.state.session_search_backfill_task = _session_search_backfill_task
 
-    # Start Feishu channels in background (don't block app startup)
-    async def _start_feishu():
-        try:
-            from src.infra.channel.feishu.handler import setup_feishu_handler
-
-            await setup_feishu_handler(
-                default_agent=settings.DEFAULT_AGENT,
-                show_tools=True,
-            )
-        except Exception as e:
-            logger.warning(f"Failed to start Feishu channels: {e}")
-
-    # Keep task reference to prevent GC from cancelling it
-    _feishu_task = asyncio.create_task(_start_feishu())
-    app.state.feishu_task = _feishu_task
-
     # Start WeCom channels in background (don't block app startup)
     async def _start_wecom():
         try:
@@ -524,8 +496,7 @@ async def lifespan(app: FastAPI):
         from src.agents import AgentFactory
         from src.infra.sandbox import SandboxFactory
 
-        # 先关闭飞书长连接并释放 lease，避免快速重启时旧锁阻止新实例启动。
-        await _stop_feishu_channels_for_shutdown(app)
+        # 先关闭企业微信长连接并释放 lease，避免快速重启时旧锁阻止新实例启动。
         await _stop_wecom_channels_for_shutdown(app)
         # 再统一取消 lifespan 后台任务，让各任务自己的 finally 在依赖关闭前完成。
         await _cancel_lifespan_background_tasks_for_shutdown(app)

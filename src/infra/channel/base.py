@@ -1,7 +1,7 @@
 """Base channel interface for chat platforms.
 
 Provides abstract base class for implementing various chat platform channels
-(Feishu, WeChat, DingTalk, Slack, etc.) with a unified interface.
+with a unified interface.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ class BaseChannel(ABC):
     """
     Abstract base class for chat channel implementations.
 
-    Each channel (Feishu, WeChat, DingTalk, etc.) should implement this interface
+    Each channel (WeCom, etc.) should implement this interface
     to integrate with the LambChat message system.
 
     Attributes:
@@ -39,7 +39,7 @@ class BaseChannel(ABC):
         Initialize the channel.
 
         Args:
-            config: Channel-specific configuration (e.g., FeishuConfig).
+            config: Channel-specific configuration.
             message_handler: Async callback for incoming messages.
         """
         self.config = config

@@ -23,6 +23,7 @@ interface WeComPanelFormProps {
   streamReply: boolean;
   sendThinkingMessage: boolean;
   segmentedReply: boolean;
+  sessionTtlHours: number;
   agentId: string | null;
   modelId: string | null;
   teamId: string | null;
@@ -35,6 +36,7 @@ interface WeComPanelFormProps {
   setStreamReply: (value: boolean) => void;
   setSendThinkingMessage: (value: boolean) => void;
   setSegmentedReply: (value: boolean) => void;
+  setSessionTtlHours: (value: number) => void;
   setAgentId: (value: string | null) => void;
   setModelId: (value: string | null) => void;
   setTeamId: (value: string | null) => void;
@@ -86,6 +88,7 @@ export function WeComPanelForm({
   streamReply,
   sendThinkingMessage,
   segmentedReply,
+  sessionTtlHours,
   agentId,
   modelId,
   teamId,
@@ -98,6 +101,7 @@ export function WeComPanelForm({
   setStreamReply,
   setSendThinkingMessage,
   setSegmentedReply,
+  setSessionTtlHours,
   setAgentId,
   setModelId,
   setTeamId,
@@ -313,6 +317,24 @@ export function WeComPanelForm({
               )}
             />
           </div>
+        </div>
+
+        {/* Session TTL */}
+        <div className="es-field">
+          <label className="es-label">
+            {t("wecom.sessionTtlHours", "会话有效期")}
+          </label>
+          <p className="es-hint mt-0.5">
+            {t("wecom.sessionTtlHoursDesc", "会话上下文保留小时数，过期后自动新建会话。0 表示永不过期")}
+          </p>
+          <input
+            type="number"
+            min={0}
+            max={720}
+            value={sessionTtlHours}
+            onChange={(e) => setSessionTtlHours(parseInt(e.target.value) || 0)}
+            className="glass-input es-input"
+          />
         </div>
 
         {/* Group Policy */}

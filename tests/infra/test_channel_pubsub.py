@@ -100,7 +100,7 @@ async def test_channel_config_pubsub_reloads_foreign_instance_changes(
                 {
                     "instance_id": "instance-b",
                     "user_id": "user-1",
-                    "channel_type": "feishu",
+                    "channel_type": "wecom",
                     "channel_instance_id": "chan-1",
                     "action": "updated",
                 }
@@ -124,7 +124,7 @@ async def test_publish_channel_config_changed_broadcasts_instance_scoped_payload
 
     await publish_channel_config_changed(
         user_id="user-1",
-        channel_type="feishu",
+        channel_type="wecom",
         channel_instance_id="chan-1",
         action="deleted",
     )
@@ -136,7 +136,7 @@ async def test_publish_channel_config_changed_broadcasts_instance_scoped_payload
                 {
                     "instance_id": "instance-a",
                     "user_id": "user-1",
-                    "channel_type": "feishu",
+                    "channel_type": "wecom",
                     "channel_instance_id": "chan-1",
                     "action": "deleted",
                 }

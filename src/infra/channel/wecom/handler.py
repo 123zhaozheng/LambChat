@@ -27,7 +27,7 @@ WECOM_SESSION_KEY_PREFIX = "wecom:session:"
 
 # 流式更新防抖间隔（秒）。WeCom 原生 WS 流式比飞书 CardKit 更轻量，
 # 可以稍微长一点的防抖间隔以减少 WS 帧数量。
-WECOM_STREAM_UPDATE_DEBOUNCE_SECONDS = 1.0
+WECOM_STREAM_UPDATE_DEBOUNCE_SECONDS = 0.5
 
 # WeCom 流式回复硬性超时：6 分钟。
 # 超时后流式消息会被 finalize，完整结果通过 aibot_send_msg 主动推送。
@@ -52,7 +52,7 @@ _STREAM_UPDATE_SIGNAL = object()
 # ── Session 辅助函数 ──────────────────────────────────────────────────
 
 
-async def _get_wecom_session_id(chat_id: str) -> str:
+async def _get_wecom_session_id(chat_id: str, ttl_hours: int | None = 24) -> str:
     """获取 WeCom 聊天对应的当前 session ID，如果不存在则创建默认的"""
     from src.infra.storage.redis import RedisStorage
 
@@ -63,12 +63,16 @@ async def _get_wecom_session_id(chat_id: str) -> str:
     if session_id is None:
         # 默认使用 chat_id 作为 session ID（兼容旧数据）
         session_id = f"wecom_{chat_id}"
-        await storage.set(key, session_id)
+        ttl_seconds = (ttl_hours or 0) * 3600 + 3600  # +1h buffer
+        if ttl_hours:  # 0 means no expiry
+            await storage.set(key, session_id, ttl=ttl_seconds)
+        else:
+            await storage.set(key, session_id)
 
     return session_id
 
 
-async def _create_new_wecom_session(chat_id: str) -> str:
+async def _create_new_wecom_session(chat_id: str, ttl_hours: int | None = 24) -> str:
     """为 WeCom 聊天创建新的 session ID"""
     from src.infra.storage.redis import RedisStorage
 
@@ -79,8 +83,11 @@ async def _create_new_wecom_session(chat_id: str) -> str:
     timestamp = int(time.time())
     session_id = f"wecom_{chat_id}_{timestamp}"
 
-    # 存储到 Redis，不设置过期时间
-    await storage.set(key, session_id)
+    ttl_seconds = (ttl_hours or 0) * 3600 + 3600  # +1h buffer
+    if ttl_hours:  # 0 means no expiry
+        await storage.set(key, session_id, ttl=ttl_seconds)
+    else:
+        await storage.set(key, session_id)
 
     logger.info(f"[WeCom] Created new session for chat {chat_id}: {session_id}")
     return session_id
@@ -180,6 +187,7 @@ class WeComResponseCollector:
         # 内容收集
         self.text_parts: list[str] = []
         self.tools_used: list[str] = []
+        self.subagents_used: list[str] = []
         self.files_to_reveal: list[dict] = []
         self._sent_file_keys: set[str] = set()
 
@@ -423,6 +431,11 @@ class WeComResponseCollector:
         if tool_name:
             self.tools_used.append(tool_name)
 
+    def add_subagent(self, agent_name: str) -> None:
+        """添加使用的子代理"""
+        if agent_name:
+            self.subagents_used.append(agent_name)
+
     def add_file_to_reveal(self, file_info: dict) -> None:
         """添加待展示的文件"""
         self.files_to_reveal.append(file_info)
@@ -433,8 +446,8 @@ class WeComResponseCollector:
         从 S3 storage 下载文件到临时文件，通过 upload_media 上传获取 media_id，
         再通过 send_media_message 主动推送到 WeCom。
         """
-        from src.infra.channel.feishu.handler_helpers import (
-            FEISHU_REVEAL_DOWNLOAD_CHUNK_SIZE,
+        from src.infra.channel.wecom.helpers import (
+            WECOM_REVEAL_DOWNLOAD_CHUNK_SIZE,
             _download_storage_object_to_file,
         )
         from src.infra.storage.s3.service import get_or_init_storage
@@ -487,7 +500,7 @@ class WeComResponseCollector:
                         backend,
                         file_key,
                         tmp,
-                        chunk_size=FEISHU_REVEAL_DOWNLOAD_CHUNK_SIZE,
+                        chunk_size=WECOM_REVEAL_DOWNLOAD_CHUNK_SIZE,
                     )
                     if size <= 0:
                         logger.warning(
@@ -578,7 +591,13 @@ class WeComResponseCollector:
             if not self._stream_id:
                 return False
             final_content = self._current_stream_content()
-            final_text = final_content.strip() or " "
+            if not final_content.strip():
+                # Blank-stream guard: avoid finalizing a stream started only
+                # by the thinking placeholder into a whitespace-only bubble.
+                # Instead, finalize with a nonblank fallback message.
+                final_text = "(无回复内容)"
+            else:
+                final_text = final_content.strip()
 
             success = await client.reply_stream(
                 self.chat_id, self._stream_id, final_text, finish=True
@@ -599,7 +618,10 @@ class WeComResponseCollector:
             return False
 
         final_content = self._current_stream_content()
-        final_text = final_content.strip() or " "
+        if not final_content.strip():
+            final_text = "(处理超时，请稍后查看完整回复)"
+        else:
+            final_text = final_content.strip()
 
         # 分段发送：超过字节限制时自动拆分
         if self.segmented_reply and len(final_text.encode("utf-8")) > WECOM_MESSAGE_BYTE_LIMIT:
@@ -658,6 +680,10 @@ class WeComResponseCollector:
             unique_tools = list(dict.fromkeys(self.tools_used))
             tool_badges = " ".join(f"`{t}`" for t in unique_tools)
             metadata_parts.append(f"🔧 {tool_badges}")
+        if self.subagents_used:
+            unique_subagents = list(dict.fromkeys(self.subagents_used))
+            subagent_badges = " ".join(f"`{a}`" for a in unique_subagents)
+            metadata_parts.append(f"🤖 {subagent_badges}")
         if self.files_to_reveal:
             file_names = [f.get("name", "未知文件") for f in self.files_to_reveal]
             metadata_parts.append(f"📎 {', '.join(file_names)}")
@@ -810,6 +836,7 @@ def create_wecom_message_handler(
             stream_reply = True
             send_thinking_message = True
             segmented_reply = True
+            session_ttl_hours = 24
             ch_storage = None
 
             if instance_id:
@@ -834,6 +861,7 @@ def create_wecom_message_handler(
                     stream_reply = bool(ch_config.get("stream_reply", True))
                     send_thinking_message = bool(ch_config.get("send_thinking_message", True))
                     segmented_reply = bool(ch_config.get("segmented_reply", True))
+                    session_ttl_hours = int(ch_config.get("session_ttl_hours", 24))
 
             # Persona preset resolution
             if persona_preset_id:
@@ -903,7 +931,7 @@ def create_wecom_message_handler(
 
             # 处理 /new 命令 - 严格匹配
             if content.strip() == "/new":
-                new_session_id = await _create_new_wecom_session(chat_id)
+                new_session_id = await _create_new_wecom_session(chat_id, ttl_hours=session_ttl_hours)
                 await manager.send_message(
                     user_id,
                     delivery_chat_id,
@@ -914,31 +942,34 @@ def create_wecom_message_handler(
                 return
 
             # 获取当前 session ID
-            session_id = await _get_wecom_session_id(chat_id)
+            session_id = await _get_wecom_session_id(chat_id, ttl_hours=session_ttl_hours)
             task_manager = get_task_manager()
 
-            # Cancel any previous running task for this session
-            # This matches Web UI behavior where sending a new message cancels the previous run
-            previous_run_cancelled = False
+            # Cancel any previous running task for this session.
+            # The same session is kept — context is preserved, the new message
+            # is submitted as a fresh run on the existing session so the agent
+            # sees the full conversation history plus the new user input.
             try:
                 cancel_result = await task_manager.cancel(session_id, user_id=user_id)
                 if cancel_result.get("success") or cancel_result.get("cancelled_locally"):
-                    previous_run_cancelled = True
                     logger.info(
                         "[WeCom] Cancelled previous run for session %s: %s",
                         session_id,
                         cancel_result.get("message", ""),
                     )
+                    # Poll until old run reaches CANCELLED status (max 3s)
+                    old_run_id = cancel_result.get("run_id")
+                    if old_run_id:
+                        for _ in range(30):
+                            try:
+                                run_status = await task_manager.get_run_status(session_id, old_run_id)
+                                if run_status and str(run_status) in ("CANCELLED", "cancelled", "TaskStatus.CANCELLED"):
+                                    break
+                            except Exception:
+                                pass
+                            await asyncio.sleep(0.1)
             except Exception as e:
                 logger.debug("[WeCom] No previous run to cancel for session %s: %s", session_id, e)
-
-            # When a previous run is cancelled, create a fresh session so the
-            # new message is processed from a clean checkpoint.  Otherwise the
-            # agent inherits the cancelled run's partial assistant response from
-            # the LangGraph checkpointer and treats the new user message as a
-            # follow-up rather than a fresh request.
-            if previous_run_cancelled:
-                session_id = await _create_new_wecom_session(chat_id)
 
             collector = WeComResponseCollector(
                 manager=manager,
@@ -1006,6 +1037,8 @@ def create_wecom_message_handler(
                 enabled_skills=enabled_skills,
                 persona_system_prompt=persona_system_prompt,
                 team_id=team_id if agent_to_use == "team" else None,
+                display_message=content,
+                write_user_message_immediately=True,
             )
 
             if persona_metadata:
@@ -1089,19 +1122,25 @@ async def _process_events(
 
             if event_type == EVENT_MESSAGE_CHUNK:
                 chunk = data.get("content", "")
-                if chunk:
+                depth = data.get("depth", 0)
+                if chunk and depth == 0:
                     await collector.append_stream_chunk(chunk)
 
             elif event_type == EVENT_TOOL_START and show_tools:
                 tool_name = data.get("tool", "")
+                depth = data.get("depth", 0)
+                agent_id = data.get("agent_id", "")
                 if tool_name:
-                    collector.add_tool(tool_name)
+                    if depth > 0 or (agent_id and not agent_id.startswith("tool_")):
+                        collector.add_subagent(tool_name)
+                    else:
+                        collector.add_tool(tool_name)
 
             elif event_type == EVENT_TOOL_RESULT:
                 tool_name = data.get("tool", "")
                 result = data.get("result", {})
                 if isinstance(result, dict):
-                    from src.infra.channel.feishu.handler_helpers import (
+                    from src.infra.channel.wecom.helpers import (
                         _extract_tool_media_files,
                     )
 

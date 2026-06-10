@@ -3,7 +3,6 @@
  */
 
 export type ChannelType =
-  | "feishu"
   | "wecom"
   | "dingtalk"
   | "slack"

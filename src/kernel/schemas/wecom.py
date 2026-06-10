@@ -30,6 +30,7 @@ class WeComConfigBase(BaseModel):
         True, description="在 5 秒回调期限内发送思考占位消息"
     )
     segmented_reply: bool = Field(True, description="超长回复自动分段发送")
+    session_ttl_hours: int = Field(24, description="会话 TTL 小时数，0 表示永不过期")
     websocket_url: str = Field(
         "wss://openws.work.weixin.qq.com",
         description="私有化部署的 WebSocket 地址",
@@ -54,6 +55,7 @@ class WeComConfigUpdate(BaseModel):
     stream_reply: Optional[bool] = None
     send_thinking_message: Optional[bool] = None
     segmented_reply: Optional[bool] = None
+    session_ttl_hours: Optional[int] = None
     websocket_url: Optional[str] = None
     enabled: Optional[bool] = None
 
@@ -79,6 +81,7 @@ class WeComConfigResponse(BaseModel):
     stream_reply: bool = True
     send_thinking_message: bool = True
     segmented_reply: bool = True
+    session_ttl_hours: int = 24
     websocket_url: str = "wss://openws.work.weixin.qq.com"
     enabled: bool = True
     created_at: Optional[datetime] = None

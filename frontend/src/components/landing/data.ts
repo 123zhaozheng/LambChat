@@ -107,7 +107,7 @@ export const TECH_STACK = [
     color: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
   },
   {
-    label: "Feishu/Lark",
+    label: "WeCom",
     color: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
   },
 ];

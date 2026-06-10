@@ -88,6 +88,7 @@ class WeComChannelManager(UserChannelManager):
             stream_reply=config_dict.get("stream_reply", True),
             send_thinking_message=config_dict.get("send_thinking_message", True),
             segmented_reply=config_dict.get("segmented_reply", True),
+            session_ttl_hours=config_dict.get("session_ttl_hours", 24),
             websocket_url=config_dict.get("websocket_url") or "wss://openws.work.weixin.qq.com",
             enabled=config_dict.get("enabled", True),
         )

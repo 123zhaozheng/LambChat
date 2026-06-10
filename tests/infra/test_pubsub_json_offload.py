@@ -83,7 +83,7 @@ async def test_memory_pubsub_offloads_json_parsing(monkeypatch: pytest.MonkeyPat
             channel_pubsub.CHANNEL_CONFIG_CHANNEL,
             {
                 "user_id": "user-1",
-                "channel_type": "feishu",
+                "channel_type": "wecom",
                 "channel_instance_id": "chan-1",
                 "action": "updated",
             },

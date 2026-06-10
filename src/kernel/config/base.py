@@ -64,8 +64,6 @@ class Settings(BaseSettings):
     SESSION_EVENT_MONGO_BUFFER_MAX: int = 10000
     SESSION_EVENT_TTL_CACHE_MAX: int = 5000
     SESSION_EVENT_REDIS_REPLAY_BATCH_SIZE: int = 500
-    FEISHU_UPLOAD_BYTES_MAX_SIZE: int = 20 * 1024 * 1024
-
     # ============================================
     # All settings below get defaults from SETTING_DEFINITIONS
     # ============================================

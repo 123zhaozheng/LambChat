@@ -1,0 +1,3 @@
+﻿{"file": ".trellis/tasks/06-10-refactor-wecom-channel-from-instance-to-role/prd.md", "reason": "Verify implementation matches all design decisions in parent PRD."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Verify code quality and test coverage."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "This refactor crosses WeCom SDK, role config, task manager, session storage, and user context."}

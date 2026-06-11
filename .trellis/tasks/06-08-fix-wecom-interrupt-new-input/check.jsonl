@@ -1,6 +1,0 @@
-{"file": ".trellis/spec/backend/index.md", "reason": "Review backend changes against the backend guideline index."}
-{"file": ".trellis/spec/backend/error-handling.md", "reason": "Check that channel errors remain logged and surfaced consistently."}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Verify async style, type annotations, focused tests, and no forbidden patterns."}
-{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Check log messages follow existing subsystem conventions and avoid sensitive data."}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Review the data flow across WeCom, task manager, trace storage, Redis stream, and UI-visible behavior."}
-{"file": ".trellis/tasks/06-08-fix-wecom-interrupt-new-input/research/codebase-wecom-interrupt-flow.md", "reason": "Use the researched Web-vs-WeCom behavior as the regression target during review."}

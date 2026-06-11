@@ -1,0 +1,4 @@
+﻿{"file": ".trellis/tasks/06-10-refactor-wecom-channel-from-instance-to-role/research/role-config-system.md", "reason": "Detailed map of the role/agent config system — role_models pattern to follow for WeCom config."}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend guideline index."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Code style, type annotations, test conventions."}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Confirms where new agent/wecom config code should live."}

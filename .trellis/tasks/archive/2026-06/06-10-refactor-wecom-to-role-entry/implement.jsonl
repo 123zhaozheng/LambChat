@@ -1,0 +1,5 @@
+﻿{"file": ".trellis/tasks/06-10-refactor-wecom-channel-from-instance-to-role/research/wecom-instance-scope.md", "reason": "Detailed classification of WeCom files — what to keep (SDK logic), what to change (identity binding)."}
+{"file": ".trellis/tasks/06-10-refactor-wecom-channel-from-instance-to-role/research/role-config-system.md", "reason": "How to read role config for agent_id, model_id, project_id at runtime."}
+{"file": ".trellis/tasks/06-10-refactor-wecom-channel-from-instance-to-role/prd.md", "reason": "Parent PRD with all design decisions."}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend guideline index."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Async style, type annotations, test conventions."}

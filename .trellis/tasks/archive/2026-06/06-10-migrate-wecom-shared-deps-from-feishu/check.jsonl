@@ -1,0 +1,2 @@
+﻿{"file": ".trellis/tasks/06-10-refactor-wecom-channel-from-instance-to-role/research/feishu-deletion-scope.md", "reason": "Verify all shared dependencies identified in research have been migrated."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Verify code style, type annotations, and no forbidden patterns."}

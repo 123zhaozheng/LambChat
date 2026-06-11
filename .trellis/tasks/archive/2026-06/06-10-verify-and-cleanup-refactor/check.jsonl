@@ -1,0 +1,2 @@
+﻿{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Final quality bar for the entire refactor."}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Verify no orphaned log references to deleted modules."}

@@ -59,12 +59,14 @@ class WeComBot:
         websocket_url: str = "wss://openws.work.weixin.qq.com",
         group_policy: WeComGroupPolicy = WeComGroupPolicy.MENTION,
         message_handler: Optional[Callable] = None,
+        feedback_handler: Optional[Callable] = None,
     ):
         self.aibotid = aibotid
         self.secret = secret
         self.websocket_url = websocket_url
         self.group_policy = group_policy
         self.message_handler = message_handler
+        self.feedback_handler = feedback_handler
         self._running = False
         self._ws_client: Any = None
         self._loop: asyncio.AbstractEventLoop | None = None
@@ -677,13 +679,69 @@ class WeComBot:
         )
 
     async def _on_feedback_event(self, frame: Any) -> None:
-        """Handle user feedback event."""
+        """Handle user feedback event (thumbs up/down) from WeCom.
+
+        Parses the feedback event data and forwards to the registered
+        feedback_handler callback for processing.
+        """
         self._update_activity_time()
+        body = _frame_body(frame)
+        event = body.get("event", {})
+        feedback_event = event.get("feedback_event", {})
+
+        feedback_id = feedback_event.get("id", "")  # = run_id
+        feedback_type = feedback_event.get("type", 0)  # 1=like, 2=dislike, 3=cancel
+        feedback_content = feedback_event.get("content", "")
+        inaccurate_reasons = feedback_event.get("inaccurate_reason_list", [])
+
+        from_info = body.get("from", {})
+        sender_id = from_info.get("userid", "") if isinstance(from_info, dict) else ""
+
+        chat_type = body.get("chattype", "single")
+        chat_id = body.get("chatid", "")
+        # Single chats do not include chatid — use sender's userid
+        if not chat_id and chat_type == "single" and sender_id:
+            chat_id = sender_id
+
+        aibotid = body.get("aibotid", "") or self.aibotid
+
+        if not feedback_id or not sender_id:
+            logger.warning(
+                "[WeCom] Incomplete feedback event for aibotid=%s: missing id or sender",
+                self.aibotid,
+            )
+            return
+
         logger.info(
-            "WeCom feedback event for aibotid=%s: frame_id=%s",
+            "[WeCom] Feedback event: aibotid=%s, type=%s, id=%s, sender=%s",
             self.aibotid,
-            _frame_top(frame, "frame_id"),
+            feedback_type,
+            feedback_id,
+            sender_id,
         )
+
+        if not self.feedback_handler:
+            logger.warning("[WeCom] No feedback_handler registered for aibotid=%s", self.aibotid)
+            return
+
+        try:
+            await self.feedback_handler(
+                feedback_id=feedback_id,
+                feedback_type=feedback_type,
+                content=feedback_content,
+                inaccurate_reasons=inaccurate_reasons or [],
+                sender_id=sender_id,
+                chat_id=chat_id,
+                chat_type=chat_type,
+                aibotid=aibotid,
+            )
+        except Exception as e:
+            logger.error(
+                "[WeCom] Error in feedback_handler for aibotid=%s: %s",
+                self.aibotid,
+                e,
+                exc_info=True,
+            )
 
     # -- Group message policy --
 
@@ -775,6 +833,7 @@ class WeComBot:
         stream_id: str,
         content: str,
         finish: bool = False,
+        feedback: Optional[dict] = None,
     ) -> bool:
         """Send a streaming reply via the WebSocket connection.
 
@@ -786,6 +845,8 @@ class WeComBot:
             stream_id: Unique identifier for this streaming session.
             content: Full markdown content to display (not delta).
             finish: True to finalize the stream, False for more updates.
+            feedback: Optional feedback dict {"id": str} for thumbs up/down.
+                Only effective on the first reply_stream call for a stream.
 
         Returns:
             True if sent successfully, False otherwise.
@@ -801,7 +862,7 @@ class WeComBot:
 
         try:
             await self._ws_client.reply_stream(
-                frame, stream_id, content, finish=finish
+                frame, stream_id, content, finish=finish, feedback=feedback
             )
             return True
         except Exception as e:

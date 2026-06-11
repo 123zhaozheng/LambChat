@@ -132,7 +132,19 @@ class WeComResponseCollector:
         self._stream_last_pushed_content = ""
         self._stream_start_time: float = 0.0
 
+        # Feedback 状态：run_id 在 submit 后才获取，首帧时设置 feedback={"id": run_id}
+        self._run_id: str | None = None
+        self._feedback_sent = False
+
     # ── 内容管理 ──────────────────────────────────────────────────
+
+    def set_run_id(self, run_id: str) -> None:
+        """Set the run_id for feedback tracking.
+
+        Called after task_manager.submit() returns the run_id.
+        The run_id is used as feedback.id in the first content stream frame.
+        """
+        self._run_id = run_id
 
     def _current_stream_content(self) -> str:
         """获取当前累积的文本内容"""
@@ -179,8 +191,12 @@ class WeComResponseCollector:
 
             stream_id = self._stream_id or uuid.uuid4().hex[:16]
             self._stream_id = stream_id
+            feedback = None
+            if self._run_id and not self._feedback_sent:
+                feedback = {"id": self._run_id}
+                self._feedback_sent = True
             success = await client.reply_stream(
-                self.chat_id, stream_id, initial_content, finish=False
+                self.chat_id, stream_id, initial_content, finish=False, feedback=feedback
             )
             if not success:
                 self._stream_failed = True
@@ -305,8 +321,12 @@ class WeComResponseCollector:
                     self._stream_failed = True
                     return
 
+                feedback = None
+                if self._run_id and not self._feedback_sent:
+                    feedback = {"id": self._run_id}
+                    self._feedback_sent = True
                 success = await client.reply_stream(
-                    self.chat_id, self._stream_id, content, finish=False
+                    self.chat_id, self._stream_id, content, finish=False, feedback=feedback
                 )
                 if not success:
                     self._stream_failed = True

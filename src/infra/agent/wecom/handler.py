@@ -22,6 +22,9 @@ logger = get_logger(__name__)
 
 # Redis key prefix for WeCom chat→session mapping
 WECOM_SESSION_KEY_PREFIX = "wecom:session:"
+# Redis key prefix for WeCom run_id→session_id mapping (for feedback lookup)
+WECOM_RUN_SESSION_KEY_PREFIX = "wecom:run_session:"
+_WECOM_RUN_SESSION_TTL_SECONDS = 25 * 3600  # ~25h, longer than session TTL
 
 # 事件类型（与 agent stream 事件一致）
 EVENT_MESSAGE_CHUNK = "message:chunk"
@@ -73,6 +76,25 @@ async def _create_new_wecom_session(chat_id: str, ttl_hours: int | None = 24) ->
 
     logger.info("[WeCom] Created new session for chat %s: %s", chat_id, session_id)
     return session_id
+
+
+async def _store_run_session_mapping(run_id: str, session_id: str) -> None:
+    """Store run_id → session_id mapping in Redis for later feedback lookup."""
+    from src.infra.storage.redis import RedisStorage
+
+    storage = RedisStorage()
+    key = f"{WECOM_RUN_SESSION_KEY_PREFIX}{run_id}"
+    await storage.set(key, session_id, ttl=_WECOM_RUN_SESSION_TTL_SECONDS)
+
+
+async def _lookup_session_by_run_id(run_id: str) -> str | None:
+    """Look up session_id from Redis by run_id (stored at reply time)."""
+    from src.infra.storage.redis import RedisStorage
+
+    storage = RedisStorage()
+    key = f"{WECOM_RUN_SESSION_KEY_PREFIX}{run_id}"
+    value = await storage.get(key)
+    return str(value) if value is not None else None
 
 
 # ── Agent 执行 ────────────────────────────────────────────────────────
@@ -383,6 +405,12 @@ def create_wecom_message_handler(
 
             logger.info("[WeCom] Task submitted: session=%s, run_id=%s, user=%s", session_id, run_id, session_owner_id)
 
+            # Set run_id on collector so the first content stream frame includes feedback
+            collector.set_run_id(run_id)
+
+            # Store run_id→session_id mapping for later feedback lookup
+            await _store_run_session_mapping(run_id, session_id)
+
             await _process_events(
                 collector=collector,
                 session_id=session_id,
@@ -508,6 +536,169 @@ async def _process_events(
         logger.error("[WeCom] Event processing error: %s", e, exc_info=True)
 
 
+# ── WeCom 反馈处理 ──────────────────────────────────────────────────
+
+_INACCURATE_REASON_MAP: dict[int, str] = {
+    1: "与问题无关",
+    2: "内容不完整",
+    3: "内容错误",
+    4: "数据分析错误",
+}
+
+
+async def _handle_wecom_feedback(
+    feedback_id: str,
+    feedback_type: int,
+    content: str,
+    inaccurate_reasons: list[int],
+    sender_id: str,
+    chat_id: str,
+    chat_type: str,
+    aibotid: str,
+) -> None:
+    """Process WeCom feedback event and sync to LambChat feedback system.
+
+    WeCom feedback_type: 1=like, 2=dislike, 3=cancel.
+    LambChat rating: "up" or "down".
+    """
+    from src.infra.feedback.manager import FeedbackManager
+    from src.infra.feedback.storage import FeedbackStorage
+    from src.infra.user.storage import UserStorage
+    from src.kernel.schemas.feedback import FeedbackCreate
+
+    # Validate feedback_type (only 1=like, 2=dislike, 3=cancel are valid)
+    if feedback_type not in (1, 2, 3):
+        logger.warning(
+            "[WeCom Feedback] Unknown feedback_type=%s for id=%s, skipping",
+            feedback_type,
+            feedback_id,
+        )
+        return
+
+    # Map sender_id → user_id (same pattern as message handler)
+    user_id = sender_id  # fallback
+    username = sender_id
+    try:
+        user_storage = UserStorage()
+        wecom_user_obj = await user_storage.get_by_username(sender_id)
+        if wecom_user_obj:
+            user_id = wecom_user_obj.id
+            username = sender_id
+            logger.info(
+                "[WeCom Feedback] Mapped sender %s → user_id %s",
+                sender_id,
+                user_id,
+            )
+        else:
+            logger.warning(
+                "[WeCom Feedback] No LambChat user for username=%s, using sender_id as fallback",
+                sender_id,
+            )
+    except Exception as e:
+        logger.warning(
+            "[WeCom Feedback] Failed to lookup user for sender %s: %s",
+            sender_id,
+            e,
+        )
+
+    # Look up session_id from run_id→session_id mapping stored at reply time.
+    # Fallback to "wecom_{chat_id}" if mapping not found (e.g. Redis expired).
+    session_id = await _lookup_session_by_run_id(feedback_id) or f"wecom_{chat_id}"
+
+    # feedback.id was set to run_id when replying
+    run_id = feedback_id
+
+    feedback_manager = FeedbackManager()
+    feedback_storage = FeedbackStorage()
+
+    if feedback_type == 3:
+        # Cancel: delete existing feedback record (idempotent)
+        existing = await feedback_storage.get_user_feedback_for_run(
+            user_id, session_id, run_id
+        )
+        if existing:
+            await feedback_storage.delete(existing.id)
+            logger.info(
+                "[WeCom Feedback] Deleted feedback for run %s by user %s",
+                run_id,
+                sender_id,
+            )
+        return
+
+    # type=1 → "up", type=2 → "down"
+    rating = "up" if feedback_type == 1 else "down"
+
+    # Build comment for type=2 (dislike)
+    comment: str | None = None
+    if feedback_type == 2:
+        comment_parts: list[str] = []
+        if content:
+            comment_parts.append(f"用户反馈: {content}")
+        if inaccurate_reasons:
+            reason_texts = [
+                _INACCURATE_REASON_MAP.get(r, f"未知原因({r})")
+                for r in inaccurate_reasons
+            ]
+            comment_parts.append(f"原因: {', '.join(reason_texts)}")
+        if comment_parts:
+            comment = " | ".join(comment_parts)
+
+    # Handle duplicate: check existing feedback
+    existing = await feedback_storage.get_user_feedback_for_run(
+        user_id, session_id, run_id
+    )
+    if existing:
+        if existing.rating == rating:
+            # Same rating, skip (idempotent)
+            logger.info(
+                "[WeCom Feedback] Duplicate feedback (same rating) for run %s by user %s, skipping",
+                run_id,
+                sender_id,
+            )
+            return
+        # Different rating: delete old, then create new
+        await feedback_storage.delete(existing.id)
+        logger.info(
+            "[WeCom Feedback] Replaced feedback for run %s by user %s (%s → %s)",
+            run_id,
+            sender_id,
+            existing.rating,
+            rating,
+        )
+
+    # Create feedback
+    try:
+        data = FeedbackCreate(
+            session_id=session_id,
+            run_id=run_id,
+            rating=rating,
+            comment=comment,
+        )
+        await feedback_manager.submit_feedback(user_id, username, data)
+        logger.info(
+            "[WeCom Feedback] Created %s feedback for run %s by user %s",
+            rating,
+            run_id,
+            sender_id,
+        )
+    except ValueError as e:
+        # Duplicate from concurrent request
+        logger.warning(
+            "[WeCom Feedback] Duplicate feedback for run %s by user %s: %s",
+            run_id,
+            sender_id,
+            e,
+        )
+    except Exception as e:
+        logger.error(
+            "[WeCom Feedback] Failed to create feedback for run %s by user %s: %s",
+            run_id,
+            sender_id,
+            e,
+            exc_info=True,
+        )
+
+
 # ── Handler 设置入口 ──────────────────────────────────────────────────
 
 
@@ -522,5 +713,5 @@ async def setup_wecom_handler() -> None:
     manager = get_wecom_bot_manager()
     handler = create_wecom_message_handler(manager=manager)
 
-    await start_wecom_bots(handler)
+    await start_wecom_bots(handler, feedback_handler=_handle_wecom_feedback)
     logger.info("WeCom bots started (preset-based routing)")

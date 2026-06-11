@@ -51,8 +51,9 @@ class WeComBotManager:
     each aibotid is only connected from one node.
     """
 
-    def __init__(self, message_handler: Optional[Callable] = None):
+    def __init__(self, message_handler: Optional[Callable] = None, feedback_handler: Optional[Callable] = None):
         self.message_handler = message_handler
+        self.feedback_handler = feedback_handler
         self._bots: dict[str, WeComBot] = {}  # aibotid -> WeComBot
         self._aibotid_to_preset: dict[str, str] = {}  # aibotid -> preset_id
         # Per-aibotid WeCom config (stream_reply, send_thinking_message, etc.)
@@ -330,6 +331,7 @@ class WeComBotManager:
 
         if existing_bot and not replace_existing and existing_running:
             existing_bot.message_handler = self.message_handler
+            existing_bot.feedback_handler = self.feedback_handler
             self._ensure_lease_refresh_task(aibotid)
             return True
 
@@ -351,6 +353,7 @@ class WeComBotManager:
                 websocket_url=config.get("websocket_url", "wss://openws.work.weixin.qq.com"),
                 group_policy=WeComGroupPolicy(config.get("group_policy", "mention")),
                 message_handler=self.message_handler,
+                feedback_handler=self.feedback_handler,
             )
             success = await bot.start()
 
@@ -503,10 +506,11 @@ def get_wecom_bot_manager() -> WeComBotManager:
     return _wecom_bot_manager
 
 
-async def start_wecom_bots(message_handler=None) -> None:
+async def start_wecom_bots(message_handler=None, feedback_handler=None) -> None:
     """Start the WeCom bot manager with all preset-configured bots."""
     manager = get_wecom_bot_manager()
     manager.message_handler = message_handler
+    manager.feedback_handler = feedback_handler
     await manager.start()
 
 

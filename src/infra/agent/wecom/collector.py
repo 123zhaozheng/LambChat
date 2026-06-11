@@ -13,7 +13,6 @@ import os
 import time
 import uuid
 from tempfile import NamedTemporaryFile
-from typing import Any
 
 from src.infra.agent.wecom.bot import WeComBot
 from src.infra.agent.wecom.manager import WeComBotManager

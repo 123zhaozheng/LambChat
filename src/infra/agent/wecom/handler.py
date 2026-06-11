@@ -231,8 +231,8 @@ def create_wecom_message_handler(
             # Use the role's name as the project name for organizing sessions
             project_id: str | None = None
             try:
-                from src.infra.role.manager import get_role_manager
                 from src.infra.folder.storage import get_project_storage
+                from src.infra.role.manager import get_role_manager
 
                 role_manager = get_role_manager()
                 role = await role_manager.get_role(role_id)

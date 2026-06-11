@@ -8,7 +8,6 @@ export type TabType =
   | "settings"
   | "mcp"
   | "feedback"
-  | "channels"
   | "agents"
   | "files"
   | "notifications"

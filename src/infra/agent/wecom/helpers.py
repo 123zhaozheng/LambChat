@@ -1,7 +1,4 @@
 """Helper functions and constants for WeCom message handling.
-
-Migrated from src.infra.channel.wecom.helpers — no longer depends on the
-generic channel framework.
 """
 
 import inspect

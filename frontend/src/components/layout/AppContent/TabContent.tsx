@@ -30,9 +30,6 @@ const FeedbackPanel = lazy(() =>
     default: m.FeedbackPanel,
   })),
 );
-const ChannelsPage = lazy(() =>
-  import("../../pages/ChannelsPage").then((m) => ({ default: m.ChannelsPage })),
-);
 const RevealedFilesPage = lazy(() =>
   import("../../fileLibrary/RevealedFilesPanel").then((m) => ({
     default: m.RevealedFilesPanel,
@@ -70,7 +67,6 @@ const panelMap: Record<
   settings: SettingsPanel,
   mcp: MCPPanel,
   feedback: FeedbackPanel,
-  channels: ChannelsPage,
   agents: AgentModelPanel,
   files: RevealedFilesPage,
   persona: PersonaPlazaPanel,

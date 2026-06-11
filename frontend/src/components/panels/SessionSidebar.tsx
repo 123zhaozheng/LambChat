@@ -15,7 +15,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { Server, Brain, MessageCircle, Sparkles } from "lucide-react";
+import { Server, Brain, Sparkles } from "lucide-react";
 import { sessionApi, type BackendSession } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useSettingsContext } from "../../contexts/SettingsContext";
@@ -117,7 +117,6 @@ export const SessionSidebar = forwardRef<
   const { enableMemory } = useSettingsContext();
 
   const canReadMCP = hasAnyPermission([Permission.MCP_READ]);
-  const canReadChannels = hasAnyPermission([Permission.CHANNEL_READ]);
   const canReadMemory = enableMemory;
   const canReadSkills = hasAnyPermission([Permission.SKILL_READ]);
   const moreMenuFeatureItems = [
@@ -132,12 +131,6 @@ export const SessionSidebar = forwardRef<
       label: t("nav.mcp"),
       icon: Server,
       show: canReadMCP,
-    },
-    {
-      path: "/channels",
-      label: t("nav.channels"),
-      icon: MessageCircle,
-      show: canReadChannels,
     },
     {
       path: "/memory",

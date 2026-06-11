@@ -223,15 +223,6 @@ function FeedbackPage() {
   return <AppContent key="feedback" activeTab="feedback" />;
 }
 
-function ChannelsPage() {
-  useSEO({
-    title: "seo.channels.title",
-    description: "seo.channels.description",
-    path: "/channels",
-  });
-  return <AppContent key="channels" activeTab="channels" />;
-}
-
 function AgentsPage() {
   useSEO({
     title: "seo.agents.title",
@@ -496,19 +487,6 @@ function App() {
                   toastMessage={t("errors.noPermission")}
                 >
                   <FeedbackPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/channels/:channelType?/:instanceId?"
-              element={
-                <ProtectedRoute
-                  permissions={[Permission.CHANNEL_READ]}
-                  redirectTo="/chat"
-                  showToast
-                  toastMessage={t("errors.noPermission")}
-                >
-                  <ChannelsPage />
                 </ProtectedRoute>
               }
             />

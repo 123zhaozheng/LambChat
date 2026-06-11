@@ -1,8 +1,5 @@
 """
 WeCom connection state management.
-
-Migrated from src.infra.channel.wecom.state — no longer depends on the
-generic channel framework.
 """
 
 from enum import Enum

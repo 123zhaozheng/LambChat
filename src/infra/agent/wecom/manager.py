@@ -3,7 +3,7 @@ WeCom (企业微信) Bot manager for managing multiple bot connections.
 
 Manages WeCom AI Bot WebSocket connections keyed by aibotid.
 Each aibotid maps to one role. Uses Redis lease-based distributed
-coordination to ensure each aibotid is only connected from one instance.
+coordination to ensure each aibotid is only connected from one node.
 """
 
 import asyncio
@@ -48,7 +48,7 @@ class WeComBotManager:
     Manages multiple WeCom AI Bot connections, one per aibotid.
     Each aibotid maps to one role via the role_wecom_config collection.
     Uses Redis lease-based distributed coordination to ensure
-    each aibotid is only connected from one instance.
+    each aibotid is only connected from one node.
     """
 
     def __init__(self, message_handler: Optional[Callable] = None):
@@ -58,7 +58,7 @@ class WeComBotManager:
         # Per-aibotid WeCom config (stream_reply, send_thinking_message, etc.)
         self._aibotid_configs: dict[str, dict[str, Any]] = {}
         self._running = False
-        self._instance_id = uuid.uuid4().hex
+        self._node_id = uuid.uuid4().hex
         self._lease_tasks: dict[str, asyncio.Task] = {}
         self._lease_redis: Redis | None = None
         self._rebalance_task: asyncio.Task | None = None
@@ -103,8 +103,8 @@ class WeComBotManager:
             return 0, 0
 
         node_ids = await self._list_active_node_ids()
-        if self._instance_id not in node_ids:
-            node_ids.append(self._instance_id)
+        if self._node_id not in node_ids:
+            node_ids.append(self._node_id)
             node_ids.sort()
 
         started = 0
@@ -131,7 +131,7 @@ class WeComBotManager:
                     skipped += 1
                     continue
 
-                if self._preferred_owner(aibotid, node_ids) != self._instance_id:
+                if self._preferred_owner(aibotid, node_ids) != self._node_id:
                     # This bot should run on another node
                     if aibotid in self._bots:
                         await self._stop_bot(aibotid)
@@ -210,9 +210,9 @@ class WeComBotManager:
         # Check if this node should own this bot
         if await self._refresh_node_membership():
             nodes = await self._list_active_node_ids()
-            if self._instance_id not in nodes:
-                nodes.append(self._instance_id)
-            if self._preferred_owner(aibotid, sorted(nodes)) != self._instance_id:
+            if self._node_id not in nodes:
+                nodes.append(self._node_id)
+            if self._preferred_owner(aibotid, sorted(nodes)) != self._node_id:
                 logger.info("[WeCom] Role %s bot should run on another node", role_id)
                 return True
 
@@ -247,8 +247,8 @@ class WeComBotManager:
         try:
             redis = self._get_lease_redis()
             await redis.set(
-                self._node_key(self._instance_id),
-                self._instance_id,
+                self._node_key(self._node_id),
+                self._node_id,
                 ex=_WECOM_NODE_TTL_SECONDS,
             )
             return True
@@ -274,7 +274,7 @@ class WeComBotManager:
     async def _unregister_node(self) -> None:
         try:
             redis = self._get_lease_redis()
-            await redis.delete(self._node_key(self._instance_id))
+            await redis.delete(self._node_key(self._node_id))
         except Exception as e:
             logger.warning("[WeCom] Failed to unregister node membership: %s", e)
 
@@ -303,8 +303,8 @@ class WeComBotManager:
             await asyncio.gather(task, return_exceptions=True)
 
     @staticmethod
-    def _node_key(instance_id: str) -> str:
-        return f"{_WECOM_NODE_PREFIX}:{instance_id}"
+    def _node_key(node_id: str) -> str:
+        return f"{_WECOM_NODE_PREFIX}:{node_id}"
 
     @staticmethod
     def _preferred_owner(aibotid: str, node_ids: list[str]) -> str | None:
@@ -388,7 +388,7 @@ class WeComBotManager:
             redis = self._get_lease_redis()
             claimed = await redis.set(
                 self._lease_key(aibotid),
-                self._instance_id,
+                self._node_id,
                 nx=True,
                 ex=_WECOM_LEASE_TTL_SECONDS,
             )
@@ -412,14 +412,14 @@ class WeComBotManager:
                         _REFRESH_LEASE_LUA,
                         1,
                         self._lease_key(aibotid),
-                        self._instance_id,
+                        self._node_id,
                         _WECOM_LEASE_TTL_SECONDS,
                     )
                     if not refreshed:
                         logger.warning(
                             "[WeCom] Lost lease refresh for aibotid=%s on instance=%s",
                             aibotid,
-                            self._instance_id,
+                            self._node_id,
                         )
                         await self._stop_bot_after_lost_lease(aibotid)
                         return
@@ -461,7 +461,7 @@ class WeComBotManager:
                 pass
         try:
             redis = self._get_lease_redis()
-            await redis.eval(_RELEASE_LEASE_LUA, 1, self._lease_key(aibotid), self._instance_id)
+            await redis.eval(_RELEASE_LEASE_LUA, 1, self._lease_key(aibotid), self._node_id)
         except Exception as e:
             logger.warning("[WeCom] Failed to release lease for aibotid=%s: %s", aibotid, e)
 

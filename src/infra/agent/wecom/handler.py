@@ -192,7 +192,6 @@ def create_wecom_message_handler(
 
             # ── Persona resolve ─────────────────────────────────────
             from src.api.routes.chat import resolve_persona_request
-            from src.kernel.config import settings
             from src.kernel.schemas.agent import AgentRequest
             from src.kernel.schemas.user import TokenPayload
 
@@ -213,8 +212,9 @@ def create_wecom_message_handler(
             persona_system_prompt = agent_request.persona_system_prompt
             enabled_skills = agent_request.enabled_skills
 
-            # Use the default agent for WeCom
-            agent_to_use = settings.DEFAULT_AGENT
+            # Use "search" agent (same as Web chat default).
+            # PersonaPreset provides the system_prompt and skills via snapshot.
+            agent_to_use = "search"
 
             # ── Session 归属 sender_id ─────────────────────────────
             # WeCom userid is assumed to match the LambChat user_id.

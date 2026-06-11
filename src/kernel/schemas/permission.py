@@ -201,19 +201,7 @@ PERMISSION_METADATA: dict[str, dict[str, str]] = {
         "label": "管理模型",
         "description": "管理角色可用的模型分配（管理员权限）",
     },
-    # Channel - Generic
-    Permission.CHANNEL_READ.value: {
-        "label": "查看渠道",
-        "description": "查看渠道配置和连接状态",
-    },
-    Permission.CHANNEL_WRITE.value: {
-        "label": "配置渠道",
-        "description": "创建和修改渠道配置",
-    },
-    Permission.CHANNEL_DELETE.value: {
-        "label": "删除渠道",
-        "description": "删除渠道配置",
-    },
+    # Channel - Role entry config
     Permission.CHANNEL_MANAGE.value: {
         "label": "管理渠道配置",
         "description": "管理角色渠道入口配置（如企业微信等）",
@@ -371,9 +359,6 @@ PERMISSION_GROUPS_CONFIG: list[PermissionGroupConfig] = [
     {
         "name": "渠道管理",
         "permissions": [
-            Permission.CHANNEL_READ.value,
-            Permission.CHANNEL_WRITE.value,
-            Permission.CHANNEL_DELETE.value,
             Permission.CHANNEL_MANAGE.value,
         ],
     },

@@ -157,9 +157,7 @@ class RBACManager:
                     Permission.FEEDBACK_WRITE.value,
                     Permission.FEEDBACK_READ.value,
                     # Channel
-                    Permission.CHANNEL_READ.value,
-                    Permission.CHANNEL_WRITE.value,
-                    Permission.CHANNEL_DELETE.value,
+                    Permission.CHANNEL_MANAGE.value,
                     # Agent
                     Permission.AGENT_READ.value,
                     # Team
@@ -184,8 +182,7 @@ class RBACManager:
                     Permission.SESSION_READ.value,
                     Permission.SKILL_READ.value,
                     Permission.MCP_READ.value,
-                    # Channel - read only
-                    Permission.CHANNEL_READ.value,
+                    # Channel - no access for guests
                     # Agent
                     Permission.AGENT_READ.value,
                     # Team

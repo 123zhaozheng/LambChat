@@ -1,7 +1,8 @@
-"""WeCom (企业微信) AI Bot role-entry configuration schemas.
+"""WeCom (企业微信) AI Bot persona-preset configuration schemas.
 
 The old instance-model schemas (WeComConfigBase, WeComConfig, etc.) have been
 removed as part of the WeCom instance-to-role refactoring.
+The role-level schemas were later migrated to persona-preset level.
 """
 
 from datetime import datetime
@@ -19,12 +20,12 @@ class WeComGroupPolicy(str, Enum):
 
 
 # ============================================
-# Role WeCom Config Schemas
+# Persona WeCom Config Schemas
 # ============================================
 
 
-class RoleWeComConfigBase(BaseModel):
-    """Base schema for role-level WeCom configuration."""
+class PersonaWeComConfigBase(BaseModel):
+    """Base schema for persona-preset-level WeCom configuration."""
 
     aibotid: str = Field(..., description="企业微信机器人 bot_id")
     secret: str = Field(..., description="企业微信机器人密钥")
@@ -36,14 +37,14 @@ class RoleWeComConfigBase(BaseModel):
     session_ttl_hours: int = Field(24, description="会话 TTL 小时数，0 表示永不过期")
 
 
-class RoleWeComConfigCreate(RoleWeComConfigBase):
-    """Schema for creating role-level WeCom configuration."""
+class PersonaWeComConfigCreate(PersonaWeComConfigBase):
+    """Schema for creating persona-preset-level WeCom configuration."""
 
     pass
 
 
-class RoleWeComConfigUpdate(BaseModel):
-    """Schema for updating role-level WeCom configuration."""
+class PersonaWeComConfigUpdate(BaseModel):
+    """Schema for updating persona-preset-level WeCom configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -55,10 +56,10 @@ class RoleWeComConfigUpdate(BaseModel):
     session_ttl_hours: Optional[int] = None
 
 
-class RoleWeComConfig(BaseModel):
-    """Role-level WeCom configuration (database view)."""
+class PersonaWeComConfig(BaseModel):
+    """Persona-preset-level WeCom configuration (database view)."""
 
-    role_id: str
+    preset_id: str
     aibotid: str
     has_secret: bool = True
     stream_reply: bool = True

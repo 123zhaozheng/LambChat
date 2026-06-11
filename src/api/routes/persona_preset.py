@@ -5,6 +5,8 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 
 from src.api.deps import require_permissions
+from src.infra.agent.config_storage import get_agent_config_storage
+from src.infra.logging import get_logger
 from src.infra.persona_preset.manager import PersonaPresetManager
 from src.kernel.exceptions import AuthorizationError, NotFoundError
 from src.kernel.schemas.persona_preset import (
@@ -12,12 +14,15 @@ from src.kernel.schemas.persona_preset import (
     PersonaPresetCreate,
     PersonaPresetListResponse,
     PersonaPresetPreferenceUpdate,
+    PersonaPresetScope,
     PersonaPresetSnapshot,
     PersonaPresetUpdate,
 )
 from src.kernel.schemas.user import TokenPayload
+from src.kernel.schemas.wecom import PersonaWeComConfig, PersonaWeComConfigCreate
 
 router = APIRouter()
+logger = get_logger(__name__)
 
 
 def _is_admin(user: TokenPayload) -> bool:
@@ -206,3 +211,101 @@ async def update_persona_preset_preference(
         )
     except NotFoundError:
         raise HTTPException(status_code=404, detail="persona_preset_not_found")
+
+
+# ============================================
+# WeCom 配置
+# ============================================
+
+
+async def _validate_global_preset(preset_id: str) -> PersonaPreset:
+    """Validate that a preset exists and has global scope."""
+    try:
+        preset = await _manager().get_preset(
+            preset_id,
+            user_id="",
+            is_admin=True,
+        )
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="persona_preset_not_found")
+    if preset.scope != PersonaPresetScope.GLOBAL:
+        raise HTTPException(
+            status_code=400,
+            detail="wecom_config_requires_global_preset",
+        )
+    return preset
+
+
+@router.get("/{preset_id}/wecom", response_model=PersonaWeComConfig)
+async def get_persona_wecom_config(
+    preset_id: str,
+    _: TokenPayload = Depends(require_permissions("channel:manage")),
+):
+    """获取 persona preset 的企业微信配置"""
+    await _validate_global_preset(preset_id)
+
+    storage = get_agent_config_storage()
+    config = await storage.get_persona_wecom_config(preset_id)
+    if not config:
+        raise HTTPException(status_code=404, detail="wecom_config_not_found")
+
+    return config
+
+
+@router.put("/{preset_id}/wecom", response_model=PersonaWeComConfig)
+async def set_persona_wecom_config(
+    preset_id: str,
+    config_data: PersonaWeComConfigCreate,
+    _: TokenPayload = Depends(require_permissions("channel:manage")),
+):
+    """创建或更新 persona preset 的企业微信配置"""
+    await _validate_global_preset(preset_id)
+
+    storage = get_agent_config_storage()
+    config = await storage.set_persona_wecom_config(
+        preset_id=preset_id,
+        aibotid=config_data.aibotid,
+        secret=config_data.secret,
+        stream_reply=config_data.stream_reply,
+        send_thinking_message=config_data.send_thinking_message,
+        segmented_reply=config_data.segmented_reply,
+        session_ttl_hours=config_data.session_ttl_hours,
+    )
+
+    # Notify the WeCom bot manager to reload this preset's bot
+    try:
+        from src.infra.agent.wecom.manager import get_wecom_bot_manager
+
+        manager = get_wecom_bot_manager()
+        if manager._running:
+            await manager.reload_preset(preset_id)
+    except Exception as e:
+        logger.warning("Failed to reload WeCom bot for preset %s: %s", preset_id, e)
+
+    return config
+
+
+@router.delete("/{preset_id}/wecom")
+async def delete_persona_wecom_config(
+    preset_id: str,
+    _: TokenPayload = Depends(require_permissions("channel:manage")),
+):
+    """删除 persona preset 的企业微信配置"""
+    await _validate_global_preset(preset_id)
+
+    storage = get_agent_config_storage()
+    deleted = await storage.delete_persona_wecom_config(preset_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="wecom_config_not_found")
+
+    # Notify the WeCom bot manager to reload this preset's bot
+    try:
+        from src.infra.agent.wecom.manager import get_wecom_bot_manager
+
+        manager = get_wecom_bot_manager()
+        if manager._running:
+            await manager.reload_preset(preset_id)
+    except Exception as e:
+        logger.warning("Failed to reload WeCom bot for preset %s after delete: %s", preset_id, e)
+
+    return {"message": "企业微信配置已删除"}

@@ -2,7 +2,7 @@
 WeCom (企业微信) 消息处理器模块
 
 处理 WeCom 消息的 Agent 执行和响应。
-按 aibotid 路由到角色，session 归属 sender_id。
+按 aibotid 路由到 persona preset，session 归属 sender_id。
 支持流式回复（原生 WebSocket 流式）、5 秒思考占位、6 分钟超时回退。
 """
 
@@ -156,7 +156,7 @@ def create_wecom_message_handler(
         content: str,
         metadata: dict,
     ) -> None:
-        """处理 WeCom 消息 — 按 aibotid 路由到角色"""
+        """处理 WeCom 消息 — 按 aibotid 路由到 persona preset"""
         original_message_id = metadata.get("message_id")
         aibotid = metadata.get("aibotid", "")
         delivery_chat_id = chat_id
@@ -173,11 +173,11 @@ def create_wecom_message_handler(
             chat_type_from_msg = metadata.get("chat_type")
             reply_to_msgid = original_message_id
 
-            # ── 路由：aibotid → role_id ──────────────────────────
-            role_id = manager.get_role_id_for_aibotid(aibotid)
-            if not role_id:
+            # ── 路由：aibotid → preset_id ──────────────────────────
+            preset_id = manager.get_preset_id_for_aibotid(aibotid)
+            if not preset_id:
                 logger.warning(
-                    "[WeCom] No role mapping for aibotid=%s, skipping message",
+                    "[WeCom] No preset mapping for aibotid=%s, skipping message",
                     aibotid,
                 )
                 return
@@ -190,30 +190,31 @@ def create_wecom_message_handler(
                 )
                 return
 
-            # ── 从角色配置获取 agent_id ────────────────────────────
-            from src.infra.agent.config_storage import get_agent_config_storage
+            # ── Persona resolve ─────────────────────────────────────
+            from src.api.routes.chat import resolve_persona_request
             from src.kernel.config import settings
+            from src.kernel.schemas.agent import AgentRequest
+            from src.kernel.schemas.user import TokenPayload
 
-            config_storage = get_agent_config_storage()
+            agent_request = AgentRequest(
+                persona_preset_id=preset_id,
+                message=content,
+            )
+            # Build a virtual TokenPayload for WeCom user (no admin permissions)
+            wecom_user = TokenPayload(
+                sub=sender_id,
+                username=sender_id,
+                roles=[],
+                permissions=[],
+            )
+            await resolve_persona_request(agent_request, wecom_user)
 
-            # Get role's allowed agents — use the first one as default
-            role_agents = await config_storage.get_role_agents(role_id)
-            if role_agents:
-                agent_to_use = role_agents[0]
-            else:
-                # Fallback to global default agent
-                agent_to_use = settings.DEFAULT_AGENT
-                logger.info(
-                    "[WeCom] Role %s has no agents configured, using default: %s",
-                    role_id,
-                    agent_to_use,
-                )
+            # The persona snapshot and system prompt are now filled
+            persona_system_prompt = agent_request.persona_system_prompt
+            enabled_skills = agent_request.enabled_skills
 
-            # ── 从角色配置获取 model_id ────────────────────────────
-            model_id: str | None = None
-            role_models = await config_storage.get_role_models(role_id)
-            if role_models:
-                model_id = role_models[0]
+            # Use the default agent for WeCom
+            agent_to_use = settings.DEFAULT_AGENT
 
             # ── Session 归属 sender_id ─────────────────────────────
             # WeCom userid is assumed to match the LambChat user_id.
@@ -228,28 +229,27 @@ def create_wecom_message_handler(
             session_ttl_hours = wecom_config.get("session_ttl_hours", 24)
 
             # ── Project 自动创建 ───────────────────────────────────
-            # Use the role's name as the project name for organizing sessions
+            # Use the preset name as the project name for organizing sessions
             project_id: str | None = None
             try:
                 from src.infra.folder.storage import get_project_storage
-                from src.infra.role.manager import get_role_manager
+                from src.infra.persona_preset.manager import PersonaPresetManager
 
-                role_manager = get_role_manager()
-                role = await role_manager.get_role(role_id)
-                role_name = role.name if role else "WeCom"
+                preset_manager = PersonaPresetManager()
+                preset = await preset_manager.get_preset(
+                    preset_id,
+                    user_id="",
+                    is_admin=True,
+                )
+                preset_name = preset.name if preset else "WeCom"
 
                 proj_storage = get_project_storage()
                 project = await proj_storage.get_or_create_by_name(
-                    session_owner_id, role_name, project_type="channel", icon="💬"
+                    session_owner_id, preset_name, project_type="channel", icon="💬"
                 )
                 project_id = project.id
             except Exception as e:
-                logger.warning("[WeCom] Failed to auto-create project for role %s: %s", role_id, e)
-
-            # Build agent_options with model_id if configured
-            wecom_agent_options: dict | None = None
-            if model_id:
-                wecom_agent_options = {"model_id": model_id}
+                logger.warning("[WeCom] Failed to auto-create project for preset %s: %s", preset_id, e)
 
             # ── 处理 /new 命令 - 严格匹配 ─────────────────────────
             if content.strip() == "/new":
@@ -352,10 +352,12 @@ def create_wecom_message_handler(
                 user_id=session_owner_id,
                 executor=executor,
                 project_id=project_id,
-                agent_options=wecom_agent_options,
+                agent_options=None,
                 session_name=session_title,
                 display_message=content,
                 write_user_message_immediately=True,
+                enabled_skills=enabled_skills,
+                persona_system_prompt=persona_system_prompt,
             )
 
             logger.info("[WeCom] Task submitted: session=%s, run_id=%s, user=%s", session_id, run_id, session_owner_id)
@@ -492,7 +494,7 @@ async def setup_wecom_handler() -> None:
     """
     设置 WeCom 消息处理器并启动 Bot 管理器。
 
-    从 role_wecom_config 加载配置，按 aibotid 建 WS 连接。
+    从 persona_wecom_config 加载配置，按 aibotid 建 WS 连接。
     """
     from src.infra.agent.wecom.manager import get_wecom_bot_manager, start_wecom_bots
 
@@ -500,4 +502,4 @@ async def setup_wecom_handler() -> None:
     handler = create_wecom_message_handler(manager=manager)
 
     await start_wecom_bots(handler)
-    logger.info("WeCom bots started (role-based routing)")
+    logger.info("WeCom bots started (preset-based routing)")

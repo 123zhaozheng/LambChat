@@ -31,7 +31,6 @@ from src.kernel.schemas.agent import (
     UserAgentPreferenceUpdate,
 )
 from src.kernel.schemas.user import TokenPayload
-from src.kernel.schemas.wecom import RoleWeComConfig, RoleWeComConfigCreate
 from src.kernel.types import Permission
 
 router = APIRouter()
@@ -300,101 +299,6 @@ async def update_role_models(
         allowed_models=allowed_models,
         configured=True,
     )
-
-
-# ============================================
-# 角色 WeCom 配置
-# ============================================
-
-
-@router.get("/roles/{role_id}/wecom", response_model=RoleWeComConfig)
-async def get_role_wecom_config(
-    role_id: str,
-    _: TokenPayload = Depends(require_permissions(Permission.CHANNEL_MANAGE.value)),
-):
-    """获取角色的企业微信配置"""
-    storage = get_agent_config_storage()
-    role_manager = get_role_manager()
-
-    role = await role_manager.get_role(role_id)
-    if not role:
-        from src.kernel.exceptions import NotFoundError
-
-        raise NotFoundError(f"角色 '{role_id}' 不存在")
-
-    config = await storage.get_role_wecom_config(role_id)
-    if not config:
-        from src.kernel.exceptions import NotFoundError
-
-        raise NotFoundError(f"角色 '{role_id}' 未配置企业微信")
-
-    return config
-
-
-@router.put("/roles/{role_id}/wecom", response_model=RoleWeComConfig)
-async def set_role_wecom_config(
-    role_id: str,
-    config_data: RoleWeComConfigCreate,
-    _: TokenPayload = Depends(require_permissions(Permission.CHANNEL_MANAGE.value)),
-):
-    """创建或更新角色的企业微信配置"""
-    storage = get_agent_config_storage()
-    role_manager = get_role_manager()
-
-    role = await role_manager.get_role(role_id)
-    if not role:
-        from src.kernel.exceptions import NotFoundError
-
-        raise NotFoundError(f"角色 '{role_id}' 不存在")
-
-    config = await storage.set_role_wecom_config(
-        role_id=role_id,
-        aibotid=config_data.aibotid,
-        secret=config_data.secret,
-        stream_reply=config_data.stream_reply,
-        send_thinking_message=config_data.send_thinking_message,
-        segmented_reply=config_data.segmented_reply,
-        session_ttl_hours=config_data.session_ttl_hours,
-    )
-
-    # Notify the WeCom bot manager to reload this role's bot
-    try:
-        from src.infra.agent.wecom.manager import get_wecom_bot_manager
-
-        manager = get_wecom_bot_manager()
-        if manager._running:
-            await manager.reload_role(role_id)
-    except Exception as e:
-        logger.warning("Failed to reload WeCom bot for role %s: %s", role_id, e)
-
-    return config
-
-
-@router.delete("/roles/{role_id}/wecom")
-async def delete_role_wecom_config(
-    role_id: str,
-    _: TokenPayload = Depends(require_permissions(Permission.CHANNEL_MANAGE.value)),
-):
-    """删除角色的企业微信配置"""
-    storage = get_agent_config_storage()
-
-    deleted = await storage.delete_role_wecom_config(role_id)
-    if not deleted:
-        from src.kernel.exceptions import NotFoundError
-
-        raise NotFoundError(f"角色 '{role_id}' 未配置企业微信")
-
-    # Notify the WeCom bot manager to reload this role's bot
-    try:
-        from src.infra.agent.wecom.manager import get_wecom_bot_manager
-
-        manager = get_wecom_bot_manager()
-        if manager._running:
-            await manager.reload_role(role_id)
-    except Exception as e:
-        logger.warning("Failed to reload WeCom bot for role %s after delete: %s", role_id, e)
-
-    return {"message": "企业微信配置已删除"}
 
 
 # ============================================

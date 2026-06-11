@@ -2,7 +2,7 @@
 WeCom (企业微信) Bot manager for managing multiple bot connections.
 
 Manages WeCom AI Bot WebSocket connections keyed by aibotid.
-Each aibotid maps to one role. Uses Redis lease-based distributed
+Each aibotid maps to one persona preset. Uses Redis lease-based distributed
 coordination to ensure each aibotid is only connected from one node.
 """
 
@@ -46,7 +46,7 @@ class WeComBotManager:
     Manager for all WeCom bot connections.
 
     Manages multiple WeCom AI Bot connections, one per aibotid.
-    Each aibotid maps to one role via the role_wecom_config collection.
+    Each aibotid maps to one persona preset via the persona_wecom_config collection.
     Uses Redis lease-based distributed coordination to ensure
     each aibotid is only connected from one node.
     """
@@ -54,7 +54,7 @@ class WeComBotManager:
     def __init__(self, message_handler: Optional[Callable] = None):
         self.message_handler = message_handler
         self._bots: dict[str, WeComBot] = {}  # aibotid -> WeComBot
-        self._aibotid_to_role: dict[str, str] = {}  # aibotid -> role_id
+        self._aibotid_to_preset: dict[str, str] = {}  # aibotid -> preset_id
         # Per-aibotid WeCom config (stream_reply, send_thinking_message, etc.)
         self._aibotid_configs: dict[str, dict[str, Any]] = {}
         self._running = False
@@ -64,17 +64,17 @@ class WeComBotManager:
         self._rebalance_task: asyncio.Task | None = None
 
     async def start(self) -> None:
-        """Start all enabled WeCom bots based on role_wecom_config."""
+        """Start all enabled WeCom bots based on persona_wecom_config."""
         if not WECOM_AVAILABLE:
             logger.warning("WeCom SDK not installed. Run: pip install wecom-aibot-sdk")
             return
 
         self._running = True
 
-        started, skipped = await self._reconcile_role_configs()
+        started, skipped = await self._reconcile_preset_configs()
         self._ensure_rebalance_task()
         logger.info(
-            "WeCom startup processed role configurations: started=%s skipped=%s",
+            "WeCom startup processed preset configurations: started=%s skipped=%s",
             started,
             skipped,
         )
@@ -94,11 +94,11 @@ class WeComBotManager:
         await self._unregister_node()
         await self._close_lease_redis()
         self._bots.clear()
-        self._aibotid_to_role.clear()
+        self._aibotid_to_preset.clear()
         self._aibotid_configs.clear()
 
-    async def _reconcile_role_configs(self) -> tuple[int, int]:
-        """Load role_wecom_config entries and start bots for entries assigned to this node."""
+    async def _reconcile_preset_configs(self) -> tuple[int, int]:
+        """Load persona_wecom_config entries and start bots for entries assigned to this node."""
         if not await self._refresh_node_membership():
             return 0, 0
 
@@ -111,22 +111,22 @@ class WeComBotManager:
         skipped = 0
         desired_aibotids: set[str] = set()
 
-        # Load all role WeCom configs from AgentConfigStorage
+        # Load all persona WeCom configs from AgentConfigStorage
         from src.infra.agent.config_storage import get_agent_config_storage
 
         storage = get_agent_config_storage()
-        all_configs = await storage.get_all_role_wecom_configs_raw()
+        all_configs = await storage.get_all_persona_wecom_configs_raw()
 
         for config in all_configs:
             try:
                 aibotid = config.get("aibotid", "")
                 secret = config.get("secret", "")
-                role_id = config.get("role_id", "")
+                preset_id = config.get("preset_id", "")
 
                 if not aibotid or not secret:
                     logger.warning(
-                        "Skipping role WeCom config for role_id=%s: missing aibotid or secret",
-                        role_id,
+                        "Skipping preset WeCom config for preset_id=%s: missing aibotid or secret",
+                        preset_id,
                     )
                     skipped += 1
                     continue
@@ -141,7 +141,7 @@ class WeComBotManager:
                 desired_aibotids.add(aibotid)
 
                 # Store config metadata for handler access
-                self._aibotid_to_role[aibotid] = role_id
+                self._aibotid_to_preset[aibotid] = preset_id
                 self._aibotid_configs[aibotid] = config
 
                 if await self._start_bot(aibotid, secret, replace_existing=False):
@@ -150,8 +150,8 @@ class WeComBotManager:
                     skipped += 1
             except Exception as e:
                 logger.error(
-                    "Failed to reconcile WeCom config for role_id=%s: %s",
-                    config.get("role_id"),
+                    "Failed to reconcile WeCom config for preset_id=%s: %s",
+                    config.get("preset_id"),
                     e,
                 )
                 skipped += 1
@@ -163,45 +163,45 @@ class WeComBotManager:
 
         return started, skipped
 
-    async def reload_role(self, role_id: str) -> bool:
-        """Reload a role's WeCom configuration and restart the bot if needed.
+    async def reload_preset(self, preset_id: str) -> bool:
+        """Reload a preset's WeCom configuration and restart the bot if needed.
 
-        Called when a role's WeCom config is updated or deleted via API.
+        Called when a preset's WeCom config is updated or deleted via API.
         """
         from src.infra.agent.config_storage import get_agent_config_storage
 
         storage = get_agent_config_storage()
 
-        # Find the old aibotid for this role (if any)
+        # Find the old aibotid for this preset (if any)
         old_aibotid = None
-        for aid, rid in self._aibotid_to_role.items():
-            if rid == role_id:
+        for aid, pid in self._aibotid_to_preset.items():
+            if pid == preset_id:
                 old_aibotid = aid
                 break
 
         # Stop the old bot if it exists
         if old_aibotid:
             await self._stop_bot(old_aibotid)
-            del self._aibotid_to_role[old_aibotid]
+            del self._aibotid_to_preset[old_aibotid]
             self._aibotid_configs.pop(old_aibotid, None)
 
         # Load the new config
-        config = await storage.get_role_wecom_config(role_id)
+        config = await storage.get_persona_wecom_config(preset_id)
         if not config or not config.aibotid:
             # Config was deleted or has no aibotid
-            logger.info("[WeCom] Role %s WeCom config removed", role_id)
+            logger.info("[WeCom] Preset %s WeCom config removed", preset_id)
             return True
 
         # Need the raw config (with secret) to start the bot
-        all_raw = await storage.get_all_role_wecom_configs_raw()
+        all_raw = await storage.get_all_persona_wecom_configs_raw()
         raw_config = None
         for rc in all_raw:
-            if rc.get("role_id") == role_id:
+            if rc.get("preset_id") == preset_id:
                 raw_config = rc
                 break
 
         if not raw_config or not raw_config.get("secret"):
-            logger.warning("[WeCom] Role %s has no secret, cannot start bot", role_id)
+            logger.warning("[WeCom] Preset %s has no secret, cannot start bot", preset_id)
             return True
 
         aibotid = raw_config["aibotid"]
@@ -213,17 +213,17 @@ class WeComBotManager:
             if self._node_id not in nodes:
                 nodes.append(self._node_id)
             if self._preferred_owner(aibotid, sorted(nodes)) != self._node_id:
-                logger.info("[WeCom] Role %s bot should run on another node", role_id)
+                logger.info("[WeCom] Preset %s bot should run on another node", preset_id)
                 return True
 
         # Store config and start
-        self._aibotid_to_role[aibotid] = role_id
+        self._aibotid_to_preset[aibotid] = preset_id
         self._aibotid_configs[aibotid] = raw_config
         return await self._start_bot(aibotid, secret)
 
-    def get_role_id_for_aibotid(self, aibotid: str) -> str | None:
-        """Look up role_id for a given aibotid."""
-        return self._aibotid_to_role.get(aibotid)
+    def get_preset_id_for_aibotid(self, aibotid: str) -> str | None:
+        """Look up preset_id for a given aibotid."""
+        return self._aibotid_to_preset.get(aibotid)
 
     def get_config_for_aibotid(self, aibotid: str) -> dict[str, Any] | None:
         """Look up WeCom config for a given aibotid."""
@@ -287,7 +287,7 @@ class WeComBotManager:
         try:
             while self._running:
                 await asyncio.sleep(_WECOM_REBALANCE_INTERVAL)
-                await self._reconcile_role_configs()
+                await self._reconcile_preset_configs()
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -504,7 +504,7 @@ def get_wecom_bot_manager() -> WeComBotManager:
 
 
 async def start_wecom_bots(message_handler=None) -> None:
-    """Start the WeCom bot manager with all role-configured bots."""
+    """Start the WeCom bot manager with all preset-configured bots."""
     manager = get_wecom_bot_manager()
     manager.message_handler = message_handler
     await manager.start()

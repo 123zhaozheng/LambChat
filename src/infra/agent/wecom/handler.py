@@ -190,6 +190,33 @@ def create_wecom_message_handler(
                 )
                 return
 
+            # ── WeCom userid → LambChat user_id mapping ───────────────
+            # WeCom userid (e.g. employee ID "10325") is used as the
+            # LambChat username during registration. Look up the real
+            # LambChat user_id (MongoDB ObjectId) via username.
+            session_owner_id = sender_id  # fallback
+            try:
+                from src.infra.user.storage import UserStorage
+                user_storage = UserStorage()
+                wecom_user_obj = await user_storage.get_by_username(sender_id)
+                if wecom_user_obj:
+                    session_owner_id = wecom_user_obj.id
+                    logger.info(
+                        "[WeCom] Mapped sender %s → user_id %s",
+                        sender_id, session_owner_id,
+                    )
+                else:
+                    logger.warning(
+                        "[WeCom] No LambChat user found for username=%s, "
+                        "using sender_id as fallback",
+                        sender_id,
+                    )
+            except Exception as e:
+                logger.warning(
+                    "[WeCom] Failed to lookup user for sender %s: %s",
+                    sender_id, e,
+                )
+
             # ── Persona resolve ─────────────────────────────────────
             from src.api.routes.chat import resolve_persona_request
             from src.kernel.schemas.agent import AgentRequest
@@ -199,9 +226,9 @@ def create_wecom_message_handler(
                 persona_preset_id=preset_id,
                 message=content,
             )
-            # Build a virtual TokenPayload for WeCom user (no admin permissions)
+            # Build a virtual TokenPayload with the mapped user_id
             wecom_user = TokenPayload(
-                sub=sender_id,
+                sub=session_owner_id,
                 username=sender_id,
                 roles=[],
                 permissions=[],
@@ -215,12 +242,6 @@ def create_wecom_message_handler(
             # Use "search" agent (same as Web chat default).
             # PersonaPreset provides the system_prompt and skills via snapshot.
             agent_to_use = "search"
-
-            # ── Session 归属 sender_id ─────────────────────────────
-            # WeCom userid is assumed to match the LambChat user_id.
-            # This is a deployment requirement: company employees must have
-            # matching userids in both WeChat Work and LambChat.
-            session_owner_id = sender_id
 
             # ── WeCom 行为配置 ─────────────────────────────────────
             stream_reply = wecom_config.get("stream_reply", True)

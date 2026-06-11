@@ -129,7 +129,7 @@ LambChat is built for teams who want more than a chatbot UI. It gives you a comp
 - **Realtime** — Redis + MongoDB dual-write, WebSocket, auto-reconnect, and shared-session updates
 - **Security** — JWT, RBAC, bcrypt, OAuth (Google/GitHub/Apple), email verification, CAPTCHA, and sandbox controls
 - **Observability** — LangSmith tracing, structured logging, health checks, and distributed memory diagnostics
-- **Channels** — Native Feishu integration plus an extensible multi-channel architecture
+- **Channels** — WeCom (企业微信) integration with extensible multi-channel architecture
 - **Frontend Stack** — React 19, Vite 6, TailwindCSS 3.4, dark/light theme, rich content rendering, and responsive multi-device layouts
 - **i18n** — English, Chinese, Japanese, Korean, and Russian
 

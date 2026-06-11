@@ -579,7 +579,7 @@ async def lifespan(app: FastAPI):
 
         await close_mongo_client()
 
-        # Cancel remaining background tasks (e.g., lark_oapi ExpiringCache cron)
+        # Cancel remaining background tasks
         pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
         for task in pending:
             task.cancel()

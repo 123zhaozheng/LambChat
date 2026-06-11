@@ -61,6 +61,8 @@ export type {
   PersonaPresetUpdate,
   PersonaPresetVisibility,
   LocalizedText,
+  PersonaWeComConfig,
+  PersonaWeComConfigCreate,
 } from "./personaPreset";
 
 // ============================================
@@ -102,8 +104,6 @@ export type {
   RoleAgentAssignment,
   RoleAgentAssignmentResponse,
   RoleModelAssignment,
-  RoleWeComConfig,
-  RoleWeComConfigCreate,
   UserAgentPreference,
   UserAgentPreferenceResponse,
 } from "./agent";

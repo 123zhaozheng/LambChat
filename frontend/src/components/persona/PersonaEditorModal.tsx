@@ -15,17 +15,19 @@ import {
   Smile,
   MessageSquare,
   Check,
+  Trash2,
 } from "lucide-react";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { EditorSidebar } from "../common/EditorSidebar";
 import toast from "react-hot-toast";
 import { useSkills } from "../../hooks/useSkills";
+import { useAuth } from "../../hooks/useAuth";
 import {
   buildPersonaPresetPayload,
   draftRowsToStarterPrompts,
   starterPromptsToDraftRows,
 } from "./personaPresetEditor";
-import { uploadApi } from "../../services/api";
+import { uploadApi, personaPresetApi } from "../../services/api";
 import { compressImageFile } from "../../utils/imageCompression";
 import {
   isPersonaImageAvatar,
@@ -34,11 +36,13 @@ import {
 } from "./personaAvatar";
 import { getFluentEmojiCDN } from "@lobehub/fluent-emoji";
 import { PersonaAvatarIcon, PersonaAvatarImage } from "./PersonaAvatarIcon";
+import { Permission } from "../../types";
 import type {
   PersonaPreset,
   PersonaPresetCreate,
   PersonaPresetStatus,
   PersonaPresetUpdate,
+  PersonaWeComConfig,
 } from "../../types";
 
 const PERSONA_SKILL_PAGE_SIZE = 20;
@@ -125,6 +129,16 @@ export function PersonaEditorModal({
       setSkillSearch("");
       setSkillDropdownOpen(false);
       setIconPickerOpen(false);
+      setShowWeCom(false);
+      setWeComConfig(null);
+      setWeComDraft({
+        aibotid: "",
+        secret: "",
+        stream_reply: true,
+        send_thinking_message: true,
+        segmented_reply: true,
+        session_ttl_hours: 24,
+      });
     }
   }, [showModal, editingPreset, initialScope]);
 
@@ -136,6 +150,115 @@ export function PersonaEditorModal({
   const iconPickerRef = useRef<HTMLDivElement>(null);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // WeCom config state (only visible for global scope + channel:manage + editing existing preset)
+  const { hasPermission } = useAuth();
+  const canManageChannels = hasPermission(Permission.CHANNEL_MANAGE);
+  const showWeComSection =
+    editorScope === "global" && canManageChannels && !!editingPreset;
+  const [showWeCom, setShowWeCom] = useState(false);
+  const [wecomConfig, setWeComConfig] = useState<PersonaWeComConfig | null>(
+    null,
+  );
+  const [wecomLoading, setWeComLoading] = useState(false);
+  const [wecomSaving, setWeComSaving] = useState(false);
+  const [wecomDraft, setWeComDraft] = useState({
+    aibotid: "",
+    secret: "",
+    stream_reply: true,
+    send_thinking_message: true,
+    segmented_reply: true,
+    session_ttl_hours: 24,
+  });
+
+  // Load WeCom config when editing an existing preset
+  useEffect(() => {
+    if (!showWeComSection || !editingPreset?.id) return;
+    let cancelled = false;
+    (async () => {
+      setWeComLoading(true);
+      try {
+        const config = await personaPresetApi.getWeComConfig(editingPreset.id);
+        if (cancelled) return;
+        if (config) {
+          setWeComConfig(config);
+          setWeComDraft({
+            aibotid: config.aibotid,
+            secret: "",
+            stream_reply: config.stream_reply,
+            send_thinking_message: config.send_thinking_message,
+            segmented_reply: config.segmented_reply,
+            session_ttl_hours: config.session_ttl_hours,
+          });
+        }
+      } catch {
+        // No config is fine (404)
+      } finally {
+        if (!cancelled) setWeComLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showWeComSection, editingPreset?.id]);
+
+  const handleWeComSave = useCallback(async () => {
+    if (!editingPreset?.id) return;
+    setWeComSaving(true);
+    try {
+      const updated = await personaPresetApi.updateWeComConfig(
+        editingPreset.id,
+        {
+          aibotid: wecomDraft.aibotid,
+          secret:
+            wecomDraft.secret || (wecomConfig?.has_secret ? "" : ""),
+          stream_reply: wecomDraft.stream_reply,
+          send_thinking_message: wecomDraft.send_thinking_message,
+          segmented_reply: wecomDraft.segmented_reply,
+          session_ttl_hours: wecomDraft.session_ttl_hours,
+        },
+      );
+      setWeComConfig(updated);
+      setWeComDraft((prev) => ({ ...prev, secret: "" }));
+      toast.success(
+        t("personaPresets.wecom.saveSuccess", "WeCom configuration saved"),
+      );
+    } catch (err) {
+      toast.error(
+        (err as Error).message ||
+          t("personaPresets.wecom.saveFailed", "Failed to save WeCom configuration"),
+      );
+    } finally {
+      setWeComSaving(false);
+    }
+  }, [editingPreset?.id, wecomDraft, wecomConfig, t]);
+
+  const handleWeComDelete = useCallback(async () => {
+    if (!editingPreset?.id || !wecomConfig) return;
+    setWeComSaving(true);
+    try {
+      await personaPresetApi.deleteWeComConfig(editingPreset.id);
+      setWeComConfig(null);
+      setWeComDraft({
+        aibotid: "",
+        secret: "",
+        stream_reply: true,
+        send_thinking_message: true,
+        segmented_reply: true,
+        session_ttl_hours: 24,
+      });
+      toast.success(
+        t("personaPresets.wecom.deleteSuccess", "WeCom configuration deleted"),
+      );
+    } catch (err) {
+      toast.error(
+        (err as Error).message ||
+          t("personaPresets.wecom.deleteFailed", "Failed to delete WeCom configuration"),
+      );
+    } finally {
+      setWeComSaving(false);
+    }
+  }, [editingPreset?.id, wecomConfig, t]);
 
   const skillListParams = useMemo(
     () => ({
@@ -875,6 +998,323 @@ export function PersonaEditorModal({
             </div>
           </div>
         </div>
+
+        {/* WeCom Entry Config (global scope + channel:manage + editing existing preset only) */}
+        {showWeComSection && (
+          <div className="ppe-section ppe-field-animated">
+            <button
+              type="button"
+              onClick={() => setShowWeCom(!showWeCom)}
+              className="ppe-section-header cursor-pointer w-full flex items-center"
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                font: "inherit",
+                color: "inherit",
+              }}
+            >
+              <MessageSquare size={13} className="ppe-label-icon" />
+              <span className="text-sm font-medium">
+                {t("personaPresets.wecom.title", "WeCom Entry")}
+              </span>
+              <ChevronDown
+                size={14}
+                className={`ml-auto transition-transform ${
+                  showWeCom ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {showWeCom && (
+              <div className="mt-3 space-y-3">
+                {wecomLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <LoadingSpinner size="sm" />
+                  </div>
+                ) : (
+                  <>
+                    {/* aibotid */}
+                    <div className="ppe-field">
+                      <label className="ppe-label">
+                        {t("personaPresets.wecom.aibotid", "Bot ID (aibotid)")}
+                      </label>
+                      <input
+                        type="text"
+                        value={wecomDraft.aibotid}
+                        onChange={(e) =>
+                          setWeComDraft((prev) => ({
+                            ...prev,
+                            aibotid: e.target.value,
+                          }))
+                        }
+                        className="ppe-input"
+                        placeholder={t(
+                          "personaPresets.wecom.aibotidPlaceholder",
+                          "bot_xxxxxxxxxx",
+                        )}
+                      />
+                    </div>
+
+                    {/* secret */}
+                    <div className="ppe-field">
+                      <label className="ppe-label">
+                        {t("personaPresets.wecom.secret", "Bot Secret")}
+                        {wecomConfig?.has_secret && (
+                          <span
+                            className="text-xs ml-1"
+                            style={{
+                              color: "var(--theme-text-secondary)",
+                            }}
+                          >
+                            {t(
+                              "personaPresets.wecom.secretHint",
+                              "Leave empty to keep current value",
+                            )}
+                          </span>
+                        )}
+                      </label>
+                      <input
+                        type="password"
+                        value={wecomDraft.secret}
+                        onChange={(e) =>
+                          setWeComDraft((prev) => ({
+                            ...prev,
+                            secret: e.target.value,
+                          }))
+                        }
+                        className="ppe-input"
+                        placeholder={
+                          wecomConfig?.has_secret
+                            ? t(
+                                "personaPresets.wecom.secretMask",
+                                "••••••••",
+                              )
+                            : t(
+                                "personaPresets.wecom.secretPlaceholder",
+                                "Enter bot secret",
+                              )
+                        }
+                      />
+                    </div>
+
+                    {/* stream_reply toggle */}
+                    <div className="ppe-field">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <label className="ppe-label">
+                            {t(
+                              "personaPresets.wecom.streamReply",
+                              "Stream Reply",
+                            )}
+                          </label>
+                          <p
+                            className="text-xs mt-0.5"
+                            style={{
+                              color: "var(--theme-text-secondary)",
+                            }}
+                          >
+                            {t(
+                              "personaPresets.wecom.streamReplyDesc",
+                              "Stream responses via WebSocket",
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={wecomDraft.stream_reply}
+                          onClick={() =>
+                            setWeComDraft((prev) => ({
+                              ...prev,
+                              stream_reply: !prev.stream_reply,
+                            }))
+                          }
+                          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 ${
+                            wecomDraft.stream_reply
+                              ? "bg-amber-500 shadow-sm shadow-amber-500/25"
+                              : "bg-stone-200 dark:bg-stone-700"
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                              wecomDraft.stream_reply
+                                ? "translate-x-[18px]"
+                                : "translate-x-[3px]"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* send_thinking_message toggle */}
+                    <div className="ppe-field">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <label className="ppe-label">
+                            {t(
+                              "personaPresets.wecom.sendThinkingMessage",
+                              "Send Thinking Placeholder",
+                            )}
+                          </label>
+                          <p
+                            className="text-xs mt-0.5"
+                            style={{
+                              color: "var(--theme-text-secondary)",
+                            }}
+                          >
+                            {t(
+                              "personaPresets.wecom.sendThinkingMessageDesc",
+                              "Send a placeholder message within the 5-second callback window",
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={wecomDraft.send_thinking_message}
+                          onClick={() =>
+                            setWeComDraft((prev) => ({
+                              ...prev,
+                              send_thinking_message:
+                                !prev.send_thinking_message,
+                            }))
+                          }
+                          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 ${
+                            wecomDraft.send_thinking_message
+                              ? "bg-amber-500 shadow-sm shadow-amber-500/25"
+                              : "bg-stone-200 dark:bg-stone-700"
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                              wecomDraft.send_thinking_message
+                                ? "translate-x-[18px]"
+                                : "translate-x-[3px]"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* segmented_reply toggle */}
+                    <div className="ppe-field">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <label className="ppe-label">
+                            {t(
+                              "personaPresets.wecom.segmentedReply",
+                              "Segmented Reply",
+                            )}
+                          </label>
+                          <p
+                            className="text-xs mt-0.5"
+                            style={{
+                              color: "var(--theme-text-secondary)",
+                            }}
+                          >
+                            {t(
+                              "personaPresets.wecom.segmentedReplyDesc",
+                              "Automatically split long replies into segments",
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={wecomDraft.segmented_reply}
+                          onClick={() =>
+                            setWeComDraft((prev) => ({
+                              ...prev,
+                              segmented_reply: !prev.segmented_reply,
+                            }))
+                          }
+                          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 ${
+                            wecomDraft.segmented_reply
+                              ? "bg-amber-500 shadow-sm shadow-amber-500/25"
+                              : "bg-stone-200 dark:bg-stone-700"
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                              wecomDraft.segmented_reply
+                                ? "translate-x-[18px]"
+                                : "translate-x-[3px]"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* session_ttl_hours */}
+                    <div className="ppe-field">
+                      <label className="ppe-label">
+                        {t(
+                          "personaPresets.wecom.sessionTtlHours",
+                          "Session TTL (hours)",
+                        )}
+                      </label>
+                      <p
+                        className="text-xs mt-0.5"
+                        style={{ color: "var(--theme-text-secondary)" }}
+                      >
+                        {t(
+                          "personaPresets.wecom.sessionTtlHoursDesc",
+                          "Session expiration time, 0 means never expire",
+                        )}
+                      </p>
+                      <input
+                        type="number"
+                        min={0}
+                        max={720}
+                        value={wecomDraft.session_ttl_hours}
+                        onChange={(e) =>
+                          setWeComDraft((prev) => ({
+                            ...prev,
+                            session_ttl_hours:
+                              parseInt(e.target.value) || 0,
+                          }))
+                        }
+                        className="ppe-input"
+                      />
+                    </div>
+
+                    {/* Save / Delete buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleWeComSave}
+                        disabled={
+                          wecomSaving ||
+                          !wecomDraft.aibotid ||
+                          (!wecomConfig?.has_secret && !wecomDraft.secret)
+                        }
+                        className="btn-primary flex-1 disabled:opacity-50"
+                      >
+                        {wecomSaving ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <Save size={16} />
+                        )}
+                        {t("common.save", "Save")}
+                      </button>
+                      {wecomConfig && (
+                        <button
+                          type="button"
+                          onClick={handleWeComDelete}
+                          disabled={wecomSaving}
+                          className="btn-secondary hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 disabled:opacity-50"
+                        >
+                          <Trash2 size={16} />
+                          {t("common.delete", "Delete")}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </EditorSidebar>
   );

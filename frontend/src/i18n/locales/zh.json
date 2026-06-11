@@ -1489,7 +1489,28 @@
     "use": "使用",
     "useFailed": "使用角色预设失败",
     "useSuccess": "已切换到角色「{{name}}」",
-    "using": "使用中"
+    "using": "使用中",
+    "wecom": {
+      "title": "企业微信入口",
+      "aibotid": "机器人 ID",
+      "aibotidPlaceholder": "bot_xxxxxxxxxx",
+      "secret": "机器人密钥",
+      "secretHint": "留空保持当前值",
+      "secretMask": "••••••••",
+      "secretPlaceholder": "输入机器人密钥",
+      "streamReply": "流式回复",
+      "streamReplyDesc": "通过 WebSocket 流式传输回复",
+      "sendThinkingMessage": "思考占位消息",
+      "sendThinkingMessageDesc": "在 5 秒回调期限内发送占位消息",
+      "segmentedReply": "分段回复",
+      "segmentedReplyDesc": "超长回复自动分段发送",
+      "sessionTtlHours": "会话有效期（小时）",
+      "sessionTtlHoursDesc": "会话过期时间，0 表示永不过期",
+      "saveSuccess": "企业微信配置已保存",
+      "saveFailed": "保存企业微信配置失败",
+      "deleteSuccess": "企业微信配置已删除",
+      "deleteFailed": "删除企业微信配置失败"
+    }
   },
   "profile": {
     "appearance": "外观",
@@ -1643,27 +1664,6 @@
     "validation": {
       "enterName": "请输入角色名称",
       "selectPermission": "请至少选择一个权限"
-    },
-    "wecom": {
-      "title": "企业微信入口",
-      "aibotid": "机器人 ID",
-      "aibotidPlaceholder": "bot_xxxxxxxxxx",
-      "secret": "机器人密钥",
-      "secretHint": "留空保持当前值",
-      "secretMask": "••••••••••••",
-      "secretPlaceholder": "输入机器人密钥",
-      "streamReply": "流式回复",
-      "streamReplyDesc": "通过 WebSocket 流式传输 Agent 回复",
-      "sendThinkingMessage": "思考占位消息",
-      "sendThinkingMessageDesc": "在 5 秒回调期限内发送占位消息",
-      "segmentedReply": "分段回复",
-      "segmentedReplyDesc": "超长回复自动分段发送",
-      "sessionTtlHours": "会话有效期（小时）",
-      "sessionTtlHoursDesc": "会话上下文保留小时数，过期后自动新建会话。0 表示永不过期",
-      "saveSuccess": "企业微信配置已保存",
-      "saveFailed": "保存企业微信配置失败",
-      "deleteSuccess": "企业微信配置已删除",
-      "deleteFailed": "删除企业微信配置失败"
     }
   },
   "selectionActions": {

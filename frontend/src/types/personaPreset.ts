@@ -76,6 +76,31 @@ export interface PersonaPresetSnapshot {
   avatar?: string | null;
 }
 
+// ============================================
+// Persona WeCom Config Types
+// ============================================
+
+export interface PersonaWeComConfig {
+  preset_id: string;
+  aibotid: string;
+  has_secret: boolean;
+  stream_reply: boolean;
+  send_thinking_message: boolean;
+  segmented_reply: boolean;
+  session_ttl_hours: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PersonaWeComConfigCreate {
+  aibotid: string;
+  secret: string;
+  stream_reply?: boolean;
+  send_thinking_message?: boolean;
+  segmented_reply?: boolean;
+  session_ttl_hours?: number;
+}
+
 export interface PersonaPresetListResponse {
   presets: PersonaPreset[];
   total: number;

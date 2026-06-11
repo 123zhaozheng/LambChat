@@ -9,6 +9,8 @@ import type {
   PersonaPresetPreferenceUpdate,
   PersonaPresetSnapshot,
   PersonaPresetUpdate,
+  PersonaWeComConfig,
+  PersonaWeComConfigCreate,
 } from "../../types/personaPreset";
 
 const PERSONA_PRESETS_API = `${API_BASE}/api/persona-presets`;
@@ -186,5 +188,41 @@ export const personaPresetApi = {
     );
     clearPersonaPresetListCache();
     return snapshot;
+  },
+
+  // ---- WeCom Config ----
+
+  async getWeComConfig(
+    presetId: string,
+  ): Promise<PersonaWeComConfig | null> {
+    try {
+      return await authFetch<PersonaWeComConfig>(
+        `${PERSONA_PRESETS_API}/${encodeURIComponent(presetId)}/wecom`,
+      );
+    } catch {
+      return null;
+    }
+  },
+
+  async updateWeComConfig(
+    presetId: string,
+    config: PersonaWeComConfigCreate,
+  ): Promise<PersonaWeComConfig> {
+    return authFetch<PersonaWeComConfig>(
+      `${PERSONA_PRESETS_API}/${encodeURIComponent(presetId)}/wecom`,
+      {
+        method: "PUT",
+        body: JSON.stringify(config),
+      },
+    );
+  },
+
+  async deleteWeComConfig(presetId: string): Promise<void> {
+    await authFetch<{ message: string }>(
+      `${PERSONA_PRESETS_API}/${encodeURIComponent(presetId)}/wecom`,
+      {
+        method: "DELETE",
+      },
+    );
   },
 };

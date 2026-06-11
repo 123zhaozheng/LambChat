@@ -116,25 +116,3 @@ export interface RoleModelAssignment {
   configured?: boolean;
 }
 
-// Role WeCom configuration
-export interface RoleWeComConfig {
-  role_id: string;
-  aibotid: string;
-  has_secret: boolean;
-  stream_reply: boolean;
-  send_thinking_message: boolean;
-  segmented_reply: boolean;
-  session_ttl_hours: number;
-  created_at?: string;
-  updated_at?: string;
-}
-
-// Role WeCom configuration create/update payload
-export interface RoleWeComConfigCreate {
-  aibotid: string;
-  secret: string;
-  stream_reply?: boolean;
-  send_thinking_message?: boolean;
-  segmented_reply?: boolean;
-  session_ttl_hours?: number;
-}
